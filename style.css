@@ -1,0 +1,80 @@
+/* --------- BASE LAYOUT ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: monospace, sans-serif;
+}
+
+body {
+  height: 100vh;
+  background: #0b0c10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+/* Title */
+.title {
+  margin-bottom: 40px;
+  font-size: 2rem;
+  color: #eee;
+  opacity: 0.9;
+}
+
+/* -------- CARD GRID -------- */
+.card-container {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* -------- CARD ---------------- */
+.card {
+  width: 260px;
+  padding: 25px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid transparent;
+  backdrop-filter: blur(10px);
+  transition: 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Neon Outline (depends on data attribute) */
+.card[data-color="red"]:hover {
+  border-color: #ff4f75;
+  box-shadow: 0 0 15px #ff4f75, 0 0 40px #ff4f75aa;
+}
+
+.card[data-color="blue"]:hover {
+  border-color: #4fd2ff;
+  box-shadow: 0 0 15px #4fd2ff, 0 0 40px #4fd2ffaa;
+}
+
+.card[data-color="purple"]:hover {
+  border-color: #bb55ff;
+  box-shadow: 0 0 15px #bb55ff, 0 0 40px #bb55ffaa;
+}
+
+/* Icon — subtle glowing */
+.icon {
+  font-size: 35px;
+  margin-bottom: 18px;
+  opacity: 0.9;
+}
+
+/* Text */
+.card h2 {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.card p {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
