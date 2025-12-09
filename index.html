@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MANAS - Developer Portfolio</title>
+    <title>MANAS - Student Developer</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -21,7 +21,6 @@
             position: relative;
         }
 
-        /* Animated background particles */
         .particles {
             position: fixed;
             top: 0;
@@ -57,14 +56,14 @@
             border-radius: 50%;
             pointer-events: none;
             z-index: 10000;
-            transition: all 0.15s ease;
             mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
             animation: pulse-cursor 2s infinite;
         }
 
         @keyframes pulse-cursor {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
         }
 
         .cursor-follower {
@@ -75,8 +74,8 @@
             border-radius: 50%;
             pointer-events: none;
             z-index: 9999;
-            transition: all 0.2s ease;
             mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
         }
 
         .pixel-border-top {
@@ -253,10 +252,23 @@
         .hero-subtitle {
             font-size: clamp(12px, 2vw, 20px);
             color: #000;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             position: relative;
             z-index: 2;
             animation: fade-in 1s ease-in;
+        }
+
+        .hero-description {
+            font-size: clamp(8px, 1.5vw, 12px);
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+            animation: fade-in 1.5s ease-in;
         }
 
         @keyframes fade-in {
@@ -407,134 +419,28 @@
             font-size: clamp(40px, 7vw, 70px);
             text-align: center;
             color: #000;
-            margin-bottom: 60px;
+            margin-bottom: 30px;
             text-shadow: 4px 4px 0 #ff69b4;
             animation: title-float 4s ease-in-out infinite;
         }
 
-        .services-section {
-            padding: 80px 40px;
-            background: #fff;
-            border-top: 4px solid #000;
-            position: relative;
-        }
-
-        .services-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .services-subtitle {
-            font-size: 12px;
-            color: #000;
-            margin-bottom: 10px;
-            animation: fade-in 1s ease-in;
-        }
-
-        .expand-icon {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            width: 60px;
-            height: 60px;
-            background: #fff;
-            border: 4px solid #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 6px 6px 0 #ff69b4;
-            animation: icon-rotate 4s ease-in-out infinite;
-        }
-
-        @keyframes icon-rotate {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(45deg); }
-        }
-
-        .expand-icon:hover {
-            transform: translate(3px, 3px) rotate(90deg) !important;
-            box-shadow: 3px 3px 0 #ff69b4;
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            max-width: 1000px;
+        .about-content {
+            max-width: 800px;
             margin: 0 auto;
-        }
-
-        .service-card {
-            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            font-size: 10px;
+            line-height: 2;
+            color: #333;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,0.8);
             border: 4px solid #000;
-            padding: 30px;
-            box-shadow: 8px 8px 0 #000;
-            transition: all 0.4s;
-            position: relative;
-            overflow: hidden;
-            animation: card-appear 0.6s ease-out backwards;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.2);
+            animation: slide-up 1s ease-out;
         }
 
-        .service-card:nth-child(1) { animation-delay: 0.1s; }
-        .service-card:nth-child(2) { animation-delay: 0.2s; }
-        .service-card:nth-child(3) { animation-delay: 0.3s; }
-        .service-card:nth-child(4) { animation-delay: 0.4s; }
-
-        @keyframes card-appear {
-            from { opacity: 0; transform: translateY(50px) scale(0.8); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(180deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: top 0.5s;
-        }
-
-        .service-card:hover::before {
-            top: 100%;
-        }
-
-        .service-card:hover {
-            transform: translate(4px, 4px) scale(1.05) rotate(-1deg);
-            box-shadow: 4px 4px 0 #000;
-        }
-
-        .pixel-icon {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            image-rendering: pixelated;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-            animation: icon-bounce 2s ease-in-out infinite;
-        }
-
-        @keyframes icon-bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .service-title {
-            font-size: 12px;
-            color: #fff;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-        }
-
-        .service-desc {
-            font-size: 8px;
-            color: #fff;
-            line-height: 1.8;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .pixel-flower {
@@ -552,10 +458,6 @@
                 gap: 30px;
             }
 
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-
             .nav-links {
                 display: none;
             }
@@ -565,15 +467,8 @@
                 height: 80px;
                 right: 20px;
             }
-
-            .expand-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
         }
 
-        /* Scroll indicator */
         .scroll-indicator {
             position: fixed;
             bottom: 30px;
@@ -585,6 +480,7 @@
             border-radius: 15px;
             z-index: 100;
             animation: scroll-bounce 2s infinite;
+            transition: opacity 0.3s;
         }
 
         .scroll-indicator::before {
@@ -612,6 +508,43 @@
     </style>
 </head>
 <body>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cursor = document.querySelector('.cursor');
+            const follower = document.querySelector('.cursor-follower');
+            
+            let mouseX = 0, mouseY = 0;
+            let followerX = 0, followerY = 0;
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                cursor.style.left = mouseX + 'px';
+                cursor.style.top = mouseY + 'px';
+            });
+            
+            function animateFollower() {
+                followerX += (mouseX - followerX) * 0.1;
+                followerY += (mouseY - followerY) * 0.1;
+                follower.style.left = followerX + 'px';
+                follower.style.top = followerY + 'px';
+                requestAnimationFrame(animateFollower);
+            }
+            animateFollower();
+            
+            const scrollIndicator = document.querySelector('.scroll-indicator');
+            if (scrollIndicator) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 100) {
+                        scrollIndicator.style.opacity = '0';
+                    } else {
+                        scrollIndicator.style.opacity = '1';
+                    }
+                });
+            }
+        });
+    </script>
+
     <div class="particles">
         <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
         <div class="particle" style="left: 20%; top: 40%; animation-delay: 2s;"></div>
@@ -627,26 +560,30 @@
 
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
+    <div class="scroll-indicator"></div>
 
     <div class="pixel-border-top"></div>
 
     <div class="container">
-        <div class="desktop-bar">★ ELITE DEVELOPER ★ CREATIVE SOLUTIONS ★ MODERN DESIGNS ★</div>
+        <div class="desktop-bar">★ CSE STUDENT ★ CREATIVE EXPLORER ★ LIFELONG LEARNER ★</div>
 
         <nav class="nav">
-            <div class="logo">M.DEV</div>
+            <div class="logo">MANAS</div>
             <div class="nav-links">
-                <a href="#" class="nav-link">WHO AM I</a>
-                <a href="#" class="nav-link">WHAT I DO</a>
-                <a href="#" class="nav-link">PROJECTS</a>
-                <a href="#" class="nav-link">CONTACT</a>
+                <a href="#about" class="nav-link">ABOUT</a>
+                <a href="#skills" class="nav-link">SKILLS</a>
+                <a href="#interests" class="nav-link">INTERESTS</a>
+                <a href="#contact" class="nav-link">CONTACT</a>
             </div>
         </nav>
 
         <section class="hero">
-            <h1 class="hero-title">DEVELOPMENT<br>IS MY ART</h1>
-            <p class="hero-subtitle">SUCCESS IS YOUR REALITY</p>
-            <button class="cta-btn">LET'S START</button>
+            <h1 class="hero-title">LEARNING<br>& CREATING</h1>
+            <p class="hero-subtitle">CSE STUDENT • 2ND YEAR</p>
+            <p class="hero-description">
+                EXPLORING THE INTERSECTION OF TECHNOLOGY, CREATIVITY & INNOVATION
+            </p>
+            <button class="cta-btn">LET'S CONNECT</button>
 
             <svg class="pixel-dino" viewBox="0 0 100 100">
                 <rect x="30" y="20" width="10" height="10" fill="#00ff00"/>
@@ -672,171 +609,49 @@
 
             <div class="stats-section">
                 <p class="stats-intro">
-                    I BUILD SOLUTIONS THAT INCREASE YOUR BRAND AWARENESS, ATTRACT NEW CUSTOMERS, AND IMPROVE YOUR BOTTOM LINE. MY CREATIVE APPROACH TO YOUR WEBSITE WILL HELP POSITION YOUR BRAND AS A FORCE IN YOUR MARKET. I CREATE MEANINGFUL CONNECTIONS WITH YOUR TARGET AUDIENCE.
+                    I'M A SECOND YEAR COMPUTER SCIENCE STUDENT PASSIONATE ABOUT LEARNING NEW TECHNOLOGIES AND EXPLORING CREATIVE SOLUTIONS. CURRENTLY DIVING INTO QUANTUM COMPUTING, GAME DEVELOPMENT, DESIGN, AND MORE!
                 </p>
 
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-number">3+</div>
-                        <div class="stat-label">YEARS OF<br>EXPERIENCE</div>
+                        <div class="stat-number">2ND</div>
+                        <div class="stat-label">YEAR CSE<br>STUDENT</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">50+</div>
-                        <div class="stat-label">COMPLETED<br>PROJECTS</div>
+                        <div class="stat-number">8+</div>
+                        <div class="stat-label">TECHNOLOGIES<br>EXPLORING</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">12+</div>
-                        <div class="stat-label">HAPPY CLIENTS<br>WORLDWIDE</div>
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">CURIOSITY<br>& PASSION</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="who-section">
-            <h2 class="section-title">WHO AM I?</h2>
+        <section class="who-section" id="about">
+            <h2 class="section-title">ABOUT ME</h2>
             
-            <svg class="pixel-flower" style="position: absolute; left: 40px; top: 100px;" width="80" height="80" viewBox="0 0 20 20">
-                <rect x="8" y="4" width="4" height="4" fill="#00ff00"/>
-                <rect x="4" y="8" width="4" height="4" fill="#00ff00"/>
-                <rect x="12" y="8" width="4" height="4" fill="#00ff00"/>
-                <rect x="8" y="12" width="4" height="4" fill="#00ff00"/>
-                <rect x="8" y="8" width="4" height="4" fill="#ffff00"/>
-            </svg>
-
-            <svg class="pixel-flower" style="position: absolute; right: 60px; bottom: 150px;" width="100" height="100" viewBox="0 0 20 20">
-                <rect x="8" y="4" width="4" height="4" fill="#00ff00"/>
-                <rect x="4" y="8" width="4" height="4" fill="#00ff00"/>
-                <rect x="12" y="8" width="4" height="4" fill="#00ff00"/>
-                <rect x="8" y="12" width="4" height="4" fill="#00ff00"/>
-                <rect x="8" y="8" width="4" height="4" fill="#ffff00"/>
-            </svg>
-        </section>
-
-        <section class="services-section">
-            <div class="expand-icon">↗</div>
-            
-            <div class="services-header">
-                <p class="services-subtitle">SERVICES</p>
-                <p class="services-subtitle">FOR YOU</p>
+            <div class="about-content">
+                HEY! I'M MANAS, A SECOND-YEAR CSE MAJOR WHO LOVES EXPERIMENTING WITH DIFFERENT TECHNOLOGIES. FROM QUANTUM COMPUTING WITH QISKIT TO BUILDING GAMES IN UNITY, FROM CRAFTING BEAUTIFUL UI/UX DESIGNS TO WRITING AND EDITING—I'M ALWAYS EXPLORING SOMETHING NEW. THIS IS MY DIGITAL SPACE WHERE I SHOWCASE MY JOURNEY AND PROJECTS AS I GROW!
             </div>
 
-            <div class="services-grid">
-                <div class="service-card">
-                    <svg class="pixel-icon" viewBox="0 0 32 32">
-                        <rect x="4" y="12" width="24" height="2" fill="#fff"/>
-                        <rect x="4" y="16" width="24" height="2" fill="#fff"/>
-                        <rect x="4" y="20" width="16" height="2" fill="#fff"/>
-                        <rect x="8" y="8" width="4" height="4" fill="#fff"/>
-                        <rect x="16" y="8" width="4" height="4" fill="#fff"/>
-                        <rect x="0" y="24" width="32" height="4" fill="#fff"/>
-                    </svg>
-                    <h3 class="service-title">WEB DEVELOPMENT</h3>
-                    <p class="service-desc">BUILDING RESPONSIVE AND MODERN WEBSITES WITH CLEAN CODE</p>
-                </div>
+            <svg class="pixel-flower" style="position: absolute; left: 20px; top: 20px; z-index: 0;" width="60" height="60" viewBox="0 0 20 20">
+                <rect x="8" y="4" width="4" height="4" fill="#ff69b4"/>
+                <rect x="4" y="8" width="4" height="4" fill="#ff69b4"/>
+                <rect x="12" y="8" width="4" height="4" fill="#ff69b4"/>
+                <rect x="8" y="12" width="4" height="4" fill="#ff69b4"/>
+                <rect x="8" y="8" width="4" height="4" fill="#ff1493"/>
+            </svg>
 
-                <div class="service-card">
-                    <svg class="pixel-icon" viewBox="0 0 32 32">
-                        <circle cx="16" cy="16" r="12" fill="none" stroke="#fff" stroke-width="2"/>
-                        <circle cx="16" cy="16" r="6" fill="#fff"/>
-                        <rect x="14" y="4" width="4" height="8" fill="#fff"/>
-                        <rect x="14" y="20" width="4" height="8" fill="#fff"/>
-                        <rect x="4" y="14" width="8" height="4" fill="#fff"/>
-                        <rect x="20" y="14" width="8" height="4" fill="#fff"/>
-                    </svg>
-                    <h3 class="service-title">GAME DEVELOPMENT</h3>
-                    <p class="service-desc">CREATING INTERACTIVE EXPERIENCES WITH UNITY AND C#</p>
-                </div>
-
-                <div class="service-card">
-                    <svg class="pixel-icon" viewBox="0 0 32 32">
-                        <rect x="8" y="8" width="16" height="16" fill="none" stroke="#fff" stroke-width="2"/>
-                        <rect x="12" y="12" width="8" height="8" fill="#fff"/>
-                        <path d="M4,4 L8,8 M28,4 L24,8 M4,28 L8,24 M28,28 L24,24" stroke="#fff" stroke-width="2"/>
-                    </svg>
-                    <h3 class="service-title">UI/UX DESIGN</h3>
-                    <p class="service-desc">DESIGNING INTUITIVE AND BEAUTIFUL USER INTERFACES</p>
-                </div>
-
-                <div class="service-card">
-                    <svg class="pixel-icon" viewBox="0 0 32 32">
-                        <rect x="6" y="8" width="20" height="16" fill="none" stroke="#fff" stroke-width="2"/>
-                        <rect x="10" y="12" width="12" height="8" fill="#fff"/>
-                        <rect x="12" y="24" width="8" height="2" fill="#fff"/>
-                        <rect x="8" y="26" width="16" height="2" fill="#fff"/>
-                    </svg>
-                    <h3 class="service-title">AI/ML SOLUTIONS</h3>
-                    <p class="service-desc">IMPLEMENTING INTELLIGENT SYSTEMS AND AUTOMATION</p>
-                </div>
-            </div>
+            <svg class="pixel-flower" style="position: absolute; right: 20px; top: 20px; z-index: 0;" width="80" height="80" viewBox="0 0 20 20">
+                <rect x="8" y="4" width="4" height="4" fill="#ff69b4"/>
+                <rect x="4" y="8" width="4" height="4" fill="#ff69b4"/>
+                <rect x="12" y="8" width="4" height="4" fill="#ff69b4"/>
+                <rect x="8" y="12" width="4" height="4" fill="#ff69b4"/>
+                <rect x="8" y="8" width="4" height="4" fill="#ff1493"/>
+            </svg>
         </section>
     </div>
-
-    <div class="scroll-indicator"></div>
-
-    <script>
-        const cursor = document.querySelector('.cursor');
-        const follower = document.querySelector('.cursor-follower');
-
-        let mouseX = 0, mouseY = 0;
-        let followerX = 0, followerY = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            cursor.style.left = mouseX + 'px';
-            cursor.style.top = mouseY + 'px';
-        });
-
-        function animateFollower() {
-            followerX += (mouseX - followerX) * 0.1;
-            followerY += (mouseY - followerY) * 0.1;
-            
-            follower.style.left = followerX + 'px';
-            follower.style.top = followerY + 'px';
-            
-            requestAnimationFrame(animateFollower);
-        }
-        animateFollower();
-
-        const buttons = document.querySelectorAll('.cta-btn, .service-card, .expand-icon, .stat-item');
-        buttons.forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                cursor.style.width = '60px';
-                cursor.style.height = '60px';
-                cursor.style.background = 'rgba(255,255,255,0.2)';
-                cursor.style.borderColor = '#ffff00';
-            });
-
-            btn.addEventListener('mouseleave', () => {
-                cursor.style.width = '20px';
-                cursor.style.height = '20px';
-                cursor.style.background = 'transparent';
-                cursor.style.borderColor = '#fff';
-            });
-        });
-
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
-
-        // Hide scroll indicator on scroll
-        let scrollTimeout;
-        window.addEventListener('scroll', () => {
-            const indicator = document.querySelector('.scroll-indicator');
-            if (window.scrollY > 100) {
-                indicator.style.opacity = '0';
-            } else {
-                indicator.style.opacity = '1';
-            }
-        });
-    </script>
 </body>
 </html>
