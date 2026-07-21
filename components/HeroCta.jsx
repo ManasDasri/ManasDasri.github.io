@@ -17,7 +17,7 @@ export default function HeroCta() {
         Send an email
       </a>
       <a
-        href="Manas_resume.pdf"
+        href="..public/Manas_resume.pdf"
         target="_blank"
         rel="noopener noreferrer"
         className="font-display text-sm px-6 py-3 rounded-lg border border-line text-text hover:border-mute no-underline"
