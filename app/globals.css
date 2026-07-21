@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: #14171C;
+  color: #E7E7E2;
+}
+
+::selection {
+  background: #4FD1A5;
+  color: #0B1210;
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+/* cmdk overrides */
+[cmdk-overlay] {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 15, 0.7);
+  z-index: 40;
+}
+
+[cmdk-dialog] {
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 560px;
+  z-index: 50;
+}
+
+[cmdk-root] {
+  background: #1B1F26;
+  border: 1px solid #2A2F3A;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px -30px rgba(0,0,0,0.7);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+[cmdk-input] {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2A2F3A;
+  padding: 16px 18px;
+  font-size: 0.9rem;
+  color: #E7E7E2;
+  outline: none;
+}
+[cmdk-input]::placeholder { color: #8B93A1; }
+
+[cmdk-list] {
+  padding: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+[cmdk-item] {
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  color: #E7E7E2;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+[cmdk-item][data-selected="true"] {
+  background: #20242C;
+  color: #4FD1A5;
+}
+[cmdk-empty] {
+  padding: 20px;
+  text-align: center;
+  color: #8B93A1;
+  font-size: 0.85rem;
+}
