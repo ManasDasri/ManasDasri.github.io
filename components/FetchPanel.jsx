@@ -34,7 +34,7 @@ export default function FetchPanel() {
         <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
         <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
         <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-        <span className="ml-2 font-display text-xs text-mute">manas@bengaluru</span>
+        <span className="ml-2 font-display text-xs text-mute">Manas Dasari</span>
       </div>
 
       <div className="flex gap-6 sm:gap-8 p-6 sm:p-8 font-display text-sm">
@@ -50,9 +50,7 @@ export default function FetchPanel() {
 
         <div className="flex-1 min-w-0">
           <div className="text-base sm:text-lg font-bold mb-1.5">
-            <span className="text-signal">manas</span>
-            <span className="text-mute">@</span>
-            <span className="text-accent">bengaluru</span>
+            <span className="text-signal">Manas</span> <span className="text-accent">Dasari</span>
           </div>
           <div className="text-line mb-2">-----------------</div>
 
