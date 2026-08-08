@@ -13,7 +13,13 @@ const Tooltip = dynamic(() => import('react-tooltip').then((mod) => mod.Tooltip)
 const GITHUB_USERNAME = 'ManasDasri';
 
 const CALENDAR_THEME = {
-  dark: ['#1B1F26', '#123328', '#1B5C43', '#2C9268', '#4FD1A5'],
+  dark: [
+    '#0B0F14',
+    '#17212B',
+    '#1E3A4C',
+    '#287A9A',
+    '#58C4E8'
+  ],
 };
 
 
