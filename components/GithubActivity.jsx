@@ -3,10 +3,6 @@
 import { cloneElement } from 'react';
 import dynamic from 'next/dynamic';
 
-// The calendar fetches contribution data client-side and its internal
-// markup differs slightly between the server render and first client
-// paint, which throws a hydration mismatch. Forcing it to render only
-// on the client (ssr: false) avoids that entirely.
 const GitHubCalendar = dynamic(
   () => import('react-github-calendar').then((mod) => mod.GitHubCalendar),
   { ssr: false, loading: () => <p className="font-display text-xs text-mute">loading activity…</p> }
@@ -14,20 +10,28 @@ const GitHubCalendar = dynamic(
 
 const Tooltip = dynamic(() => import('react-tooltip').then((mod) => mod.Tooltip), { ssr: false });
 
-// Uses the GITHUB_USERNAME from your socials data — change here if it ever diverges.
 const GITHUB_USERNAME = 'ManasDasri';
 
-// Signal-green shading to match the rest of the site, from empty → most active.
 const CALENDAR_THEME = {
   dark: ['#1B1F26', '#123328', '#1B5C43', '#2C9268', '#4FD1A5'],
 };
+
+// How far back to show. Change the number to widen/narrow the window —
+// this is what keeps the graph "fixed" instead of scrolling through a full year.
+const MONTHS_TO_SHOW = 4;
+
+function filterToRecentMonths(contributions) {
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - MONTHS_TO_SHOW);
+  return contributions.filter((day) => new Date(day.date) >= cutoff);
+}
 
 export default function GithubActivity() {
   return (
     <section id="activity" className="max-w-3xl mx-auto px-6 py-16">
       <h2 className="font-display text-sm text-signal mb-6">// github activity</h2>
 
-      <div className="rounded-xl border border-line bg-paper p-6 sm:p-7 overflow-x-auto">
+      <div className="rounded-xl border border-line bg-paper p-6 sm:p-7 flex justify-center">
         <GitHubCalendar
           username={GITHUB_USERNAME}
           colorScheme="dark"
@@ -35,7 +39,7 @@ export default function GithubActivity() {
           fontSize={12}
           blockSize={11}
           blockMargin={4}
-          style={{ width: '100%' }}
+          transformData={filterToRecentMonths}
           labels={{
             legend: { less: 'Less active', more: 'More active' },
           }}
