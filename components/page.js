@@ -13,7 +13,7 @@ import CommandPalette from '@/components/CommandPalette';
 
 export default function Home() {
   return (
-    <main>
+    <main className="max-w-5xl mx-auto border-x border-line/60">
       <HeroBanner />
       <Topbar />
 
