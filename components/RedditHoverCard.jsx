@@ -11,24 +11,6 @@ export default function RedditHoverCard({ username, children }) {
   const [status, setStatus] = useState(cache[username] ? 'ready' : 'idle');
   const timeoutRef = useRef(null);
 
-  async function load() {
-    if (cache[username]) {
-      setData(cache[username]);
-      setStatus('ready');
-      return;
-    }
-    setStatus('loading');
-    try {
-      const res = await fetch(`/api/reddit/${username}`);
-      if (!res.ok) throw new Error('not found');
-      const json = await res.json();
-      cache[username] = json;
-      setData(json);
-      setStatus('ready');
-    } catch (e) {
-      setStatus('error');
-    }
-  }
 
   function handleEnter() {
     clearTimeout(timeoutRef.current);
