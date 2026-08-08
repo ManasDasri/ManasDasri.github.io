@@ -5,46 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const cache = {};
 
-// Community-run proxy for LeetCode's (otherwise CORS-blocked) GraphQL API.
-// This is an unofficial third-party service — it can go down or change its
-// response shape without notice. If the card starts showing "couldn't load
-// profile" out of nowhere, check https://github.com/alfa-leetcode-api/alfa-leetcode-api
-// first before assuming your own code broke.
-const API_BASE = 'https://alfa-leetcode-api.onrender.com';
-
 export default function LeetCodeHoverCard({ username, children }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState(cache[username] || null);
   const [status, setStatus] = useState(cache[username] ? 'ready' : 'idle');
   const timeoutRef = useRef(null);
-
-  async function load() {
-    if (cache[username]) {
-      setData(cache[username]);
-      setStatus('ready');
-      return;
-    }
-    setStatus('loading');
-    try {
-      const res = await fetch(`${API_BASE}/${username}`);
-      if (!res.ok) throw new Error('not found');
-      const json = await res.json();
-
-      const normalized = {
-        username,
-        realName: json.name || null,
-        avatar: json.avatar || null,
-        totalSolved: json.totalSolved ?? json.solvedProblem ?? '—',
-        ranking: json.ranking || null,
-      };
-
-      cache[username] = normalized;
-      setData(normalized);
-      setStatus('ready');
-    } catch (e) {
-      setStatus('error');
-    }
-  }
 
   function handleEnter() {
     clearTimeout(timeoutRef.current);
