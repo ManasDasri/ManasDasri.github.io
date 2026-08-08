@@ -1,5 +1,6 @@
 'use client';
 
+import { cloneElement } from 'react';
 import dynamic from 'next/dynamic';
 
 // The calendar fetches contribution data client-side and its internal
@@ -10,6 +11,8 @@ const GitHubCalendar = dynamic(
   () => import('react-github-calendar').then((mod) => mod.GitHubCalendar),
   { ssr: false, loading: () => <p className="font-display text-xs text-mute">loading activity…</p> }
 );
+
+const Tooltip = dynamic(() => import('react-tooltip').then((mod) => mod.Tooltip), { ssr: false });
 
 // Uses the GITHUB_USERNAME from your socials data — change here if it ever diverges.
 const GITHUB_USERNAME = 'ManasDasri';
@@ -25,24 +28,35 @@ export default function GithubActivity() {
       <h2 className="font-display text-sm text-signal mb-6">// github activity</h2>
 
       <div className="rounded-xl border border-line bg-paper p-6 sm:p-7 overflow-x-auto">
-        {/*
-          No forced width:100% here — the calendar renders as an SVG sized
-          from blockSize/blockMargin, and stretching it to a container width
-          that doesn't match its aspect ratio is what was distorting the
-          grid (uneven squares, months getting clipped). Letting it render
-          at its natural size and scroll horizontally inside the card (on
-          narrow screens) keeps every square square and every month visible.
-        */}
         <GitHubCalendar
           username={GITHUB_USERNAME}
           colorScheme="dark"
           theme={CALENDAR_THEME}
-          fontSize={14}
-          blockSize={12}
+          fontSize={12}
+          blockSize={11}
           blockMargin={4}
-          showWeekdayLabels
+          style={{ width: '100%' }}
           labels={{
             legend: { less: 'Less active', more: 'More active' },
+          }}
+          renderBlock={(block, activity) =>
+            cloneElement(block, {
+              'data-tooltip-id': 'github-activity-tooltip',
+              'data-tooltip-content': `${activity.count} contribution${
+                activity.count === 1 ? '' : 's'
+              } on ${activity.date}`,
+            })
+          }
+        />
+        <Tooltip
+          id="github-activity-tooltip"
+          style={{
+            backgroundColor: '#1B1F26',
+            color: '#E7E7E2',
+            border: '1px solid #2A2F3A',
+            borderRadius: '8px',
+            fontSize: '12px',
+            padding: '6px 10px',
           }}
         />
       </div>
