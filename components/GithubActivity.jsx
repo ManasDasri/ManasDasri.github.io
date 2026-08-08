@@ -16,9 +16,8 @@ const CALENDAR_THEME = {
   dark: ['#1B1F26', '#123328', '#1B5C43', '#2C9268', '#4FD1A5'],
 };
 
-// How far back to show. Change the number to widen/narrow the window —
-// this is what keeps the graph "fixed" instead of scrolling through a full year.
-const MONTHS_TO_SHOW = 4;
+
+const MONTHS_TO_SHOW = 6;
 
 function filterToRecentMonths(contributions) {
   const cutoff = new Date();
