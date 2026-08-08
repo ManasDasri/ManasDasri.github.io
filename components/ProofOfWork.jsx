@@ -1,6 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
+// No token needed — GitHub's REST search API works unauthenticated for
+// public data. Rate limit is lower (10 req/min per IP vs ~30 authenticated),
+// which is plenty for portfolio-site traffic. Never put a GitHub token in
+// NEXT_PUBLIC_* — it ships straight into your public JS bundle.
 const GITHUB_USERNAME = 'ManasDasri';
 const INITIAL_COUNT = 2;
 
