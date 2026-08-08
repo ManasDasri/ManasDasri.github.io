@@ -26,14 +26,18 @@ export default function Building() {
             <p className="text-mute mb-4">{p.description}</p>
             {p.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
-                {p.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="font-display text-xs text-accent border border-line rounded px-2.5 py-1"
-                  >
-                    {t}
-                  </span>
-                ))}
+                {p.tags.map((t) => {
+                  const Icon = t.icon;
+                  return (
+                    <span
+                      key={t.label}
+                      className="font-display text-xs text-accent border border-line rounded px-2.5 py-1 flex items-center gap-1.5"
+                    >
+                      {Icon && <Icon className="w-3 h-3" aria-hidden="true" />}
+                      {t.label}
+                    </span>
+                  );
+                })}
               </div>
             )}
             {p.active && (
