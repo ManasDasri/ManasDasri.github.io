@@ -7,6 +7,7 @@ import About from '@/components/About';
 import Building from '@/components/Building';
 import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
+import ProofOfWork from '@/components/ProofOfWork';
 import Writing from '@/components/Writing';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
@@ -27,6 +28,7 @@ export default function Home() {
       <Building />
       <Skills />
       <GithubActivity />
+      <ProofOfWork />
       <Writing />
       <Footer />
 
