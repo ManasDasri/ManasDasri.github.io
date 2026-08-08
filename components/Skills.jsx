@@ -9,14 +9,18 @@ export default function Skills() {
           <div key={group.group}>
             <h3 className="font-display text-xs text-mute mb-3">{group.group}</h3>
             <div className="flex flex-wrap gap-2">
-              {group.items.map((item) => (
-                <span
-                  key={item}
-                  className="font-display text-xs border border-line bg-paper rounded-md px-3 py-1.5"
-                >
-                  {item}
-                </span>
-              ))}
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <span
+                    key={item.label}
+                    className="font-display text-xs border border-line bg-paper rounded-md px-3 py-1.5 flex items-center gap-1.5"
+                  >
+                    {Icon && <Icon className="w-3.5 h-3.5 text-mute" aria-hidden="true" />}
+                    {item.label}
+                  </span>
+                );
+              })}
             </div>
           </div>
         ))}
