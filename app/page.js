@@ -1,9 +1,4 @@
-import Topbar from '@/components/Topbar';
-import HeroBanner from '@/components/HeroBanner';
-import FetchPanel from '@/components/FetchPanel';
-import HeroCta from '@/components/HeroCta';
-import Socials from '@/components/Socials';
-import About from '@/components/About';
+import Hero from '@/components/Hero';
 import Building from '@/components/Building';
 import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
@@ -11,27 +6,22 @@ import ProofOfWork from '@/components/ProofOfWork';
 import Writing from '@/components/Writing';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
+import IndexNav from '@/components/IndexNav';
 
 export default function Home() {
   return (
-    <main className="max-w-5xl mx-auto border-x border-line/60">
-      <HeroBanner />
-      <Topbar />
+    <main className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <Hero />
 
-      <section id="hero" className="px-6 pt-8 pb-16 flex flex-col items-center gap-9">
-        <FetchPanel />
-        <HeroCta />
-      </section>
-
-      <Socials />
-      <About />
       <Building />
       <Skills />
       <GithubActivity />
       <ProofOfWork />
       <Writing />
+
       <Footer />
 
+      <IndexNav />
       <CommandPalette />
     </main>
   );
