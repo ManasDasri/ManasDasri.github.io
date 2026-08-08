@@ -23,7 +23,7 @@ export default function Socials() {
         {socials.map((s) => {
           const Icon = ICONS[s.label];
           const pill = (
-            
+            <a
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"

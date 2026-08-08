@@ -38,7 +38,7 @@ export default function IndexNav() {
     >
       <span className="font-display text-xs text-mute tracking-widest mb-1">INDEX</span>
       {SECTIONS.map((s) => (
-        
+        <a
           key={s.id}
           href={`#${s.id}`}
           className={`font-display text-xs no-underline transition-colors ${

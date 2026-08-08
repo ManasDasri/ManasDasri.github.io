@@ -75,13 +75,13 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="flex gap-3.5 flex-wrap mb-9"
         >
-          
+          <a
             href="mailto:dasarimanas049@gmail.com"
             className="font-display text-sm font-bold px-6 py-3 rounded-lg bg-signal text-[#0B1210] hover:brightness-110 no-underline"
           >
             Send an email
           </a>
-          
+          <a
             href="/Manas_Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
