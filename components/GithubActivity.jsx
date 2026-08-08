@@ -14,16 +14,16 @@ const GITHUB_USERNAME = 'ManasDasri';
 
 const CALENDAR_THEME = {
   dark: [
-    '#0B0F14',
-    '#17212B',
-    '#1E3A4C',
-    '#287A9A',
-    '#58C4E8'
+    '#151A20',
+    '#193B3A',
+    '#26705F',
+    '#3FAF8F',
+    '#72E0B8',
   ],
 };
 
 
-const MONTHS_TO_SHOW = 6;
+const MONTHS_TO_SHOW = 10;
 
 function filterToRecentMonths(contributions) {
   const cutoff = new Date();
