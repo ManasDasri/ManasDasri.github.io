@@ -23,7 +23,7 @@ const CALENDAR_THEME = {
 };
 
 
-const MONTHS_TO_SHOW = 10;
+const MONTHS_TO_SHOW = 9;
 
 function filterToRecentMonths(contributions) {
   const cutoff = new Date();
