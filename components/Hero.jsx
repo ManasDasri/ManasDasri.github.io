@@ -64,6 +64,7 @@ export default function Hero() {
             <span>
               Contributing to Open-source Projects, actively contributing to <strong className = "text-text">Exercism/vbnet</strong>
             </span>
+          </li>
           <li className="flex gap-2.5 text-mute">
             <span className="text-signal flex-shrink-0">▸</span>
             <span>
