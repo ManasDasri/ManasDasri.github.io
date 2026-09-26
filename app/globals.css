@@ -100,3 +100,95 @@ body {
   color: #8B93A1;
   font-size: 0.85rem;
 }
+
+/* ---------- motion layer ---------- */
+
+@keyframes blink { 50% { opacity: 0; } }
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.15em;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
+}
+
+.cursor-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(520px circle at var(--cx, -999px) var(--cy, -999px), rgba(79, 209, 165, 0.06), transparent 45%);
+}
+@media (hover: none) { .cursor-glow { display: none; } }
+
+/* project cards: cursor spotlight + glowing border */
+.spotlight {
+  position: relative;
+  transition: transform 0.25s ease-out;
+  will-change: transform;
+}
+.spotlight::before,
+.spotlight::after {
+  content: '';
+  position: absolute;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.spotlight::before {
+  inset: 0;
+  background: radial-gradient(420px circle at var(--mx) var(--my), rgba(79, 209, 165, 0.09), transparent 45%);
+}
+.spotlight::after {
+  inset: -1px;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx) var(--my), rgba(79, 209, 165, 0.9), rgba(199, 146, 234, 0.5) 45%, transparent 75%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.spotlight:hover::before,
+.spotlight:hover::after { opacity: 1; }
+
+/* spinning gradient ring behind the avatar */
+@keyframes spin { to { transform: rotate(360deg); } }
+.avatar-ring {
+  position: relative;
+  padding: 2px;
+  overflow: hidden;
+}
+.avatar-ring::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(from 0deg, transparent 0 60%, #4FD1A5, #C792EA, transparent 90%);
+  animation: spin 4s linear infinite;
+}
+
+/* terminal boot screen, first view per session */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #14171C;
+  padding: 2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: #8B93A1;
+  pointer-events: none;
+  animation: boot-out 0.4s ease 1.35s forwards;
+}
+.boot div { opacity: 0; animation: boot-line 0.01s linear forwards; }
+.boot div:last-child { color: #4FD1A5; }
+@keyframes boot-line { to { opacity: 1; } }
+@keyframes boot-out { to { opacity: 0; visibility: hidden; } }
+html[data-booted] .boot { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot, .cursor-glow { display: none; }
+  .caret, .avatar-ring::before { animation: none; }
+  .spotlight { transition: none; }
+}

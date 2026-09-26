@@ -7,6 +7,7 @@ import Writing from '@/components/Writing';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import IndexNav from '@/components/IndexNav';
+import { Reveal } from '@/components/Effects';
 
 export default function Home() {
   return (
@@ -14,10 +15,10 @@ export default function Home() {
       <Hero />
 
       <Building />
-      <Skills />
-      <GithubActivity />
-      <ProofOfWork />
-      <Writing />
+      <Reveal><Skills /></Reveal>
+      <Reveal><GithubActivity /></Reveal>
+      <Reveal><ProofOfWork /></Reveal>
+      <Reveal><Writing /></Reveal>
 
       <Footer />
 

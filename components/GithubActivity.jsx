@@ -2,6 +2,7 @@
 
 import { cloneElement } from 'react';
 import dynamic from 'next/dynamic';
+import SectionHeading from './SectionHeading';
 
 const GitHubCalendar = dynamic(
   () => import('react-github-calendar').then((mod) => mod.GitHubCalendar),
@@ -34,7 +35,7 @@ function filterToRecentMonths(contributions) {
 export default function GithubActivity() {
   return (
     <section id="activity" className="max-w-3xl mx-auto px-6 py-16">
-      <h2 className="font-display text-sm text-signal mb-6">// github activity</h2>
+      <SectionHeading>github activity</SectionHeading>
 
       <div className="rounded-xl border border-line bg-paper p-6 sm:p-7 flex justify-center">
         <GitHubCalendar
