@@ -12,6 +12,15 @@ const SECTIONS = [
 
 export default function IndexNav() {
   const [active, setActive] = useState(SECTIONS[0].id);
+  const [shown, setShown] = useState(false);
+
+  // stay out of the way of the hero banner
+  useEffect(() => {
+    const onScroll = () => setShown(window.scrollY > window.innerHeight * 0.6);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,7 +42,7 @@ export default function IndexNav() {
 
   return (
     <nav
-      className="hidden lg:flex flex-col gap-3 fixed top-1/2 -translate-y-1/2 right-8 xl:right-14 z-20"
+      className={`hidden lg:flex flex-col gap-3 fixed top-1/2 -translate-y-1/2 right-8 xl:right-14 z-20 transition-opacity duration-300 ${shown ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       aria-label="Section index"
     >
       <span className="font-display text-xs text-mute tracking-widest mb-1">INDEX</span>

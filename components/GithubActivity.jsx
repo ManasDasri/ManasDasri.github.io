@@ -2,7 +2,7 @@
 
 import { cloneElement } from 'react';
 import dynamic from 'next/dynamic';
-import SectionHeading from './SectionHeading';
+import Section from './Section';
 
 const GitHubCalendar = dynamic(
   () => import('react-github-calendar').then((mod) => mod.GitHubCalendar),
@@ -15,11 +15,11 @@ const GITHUB_USERNAME = 'ManasDasri';
 
 const CALENDAR_THEME = {
   dark: [
-    '#151A20',
-    '#193B3A',
-    '#26705F',
-    '#3FAF8F',
-    '#72E0B8',
+    '#1A1E3A',
+    '#3A2D66',
+    '#7C4DB0',
+    '#E0776A',
+    '#FFC857',
   ],
 };
 
@@ -34,10 +34,9 @@ function filterToRecentMonths(contributions) {
 
 export default function GithubActivity() {
   return (
-    <section id="activity" className="max-w-3xl mx-auto px-6 py-16">
-      <SectionHeading>github activity</SectionHeading>
+    <Section id="activity" title="Activity" note="last 8 months of commits, same colours as the cells up top">
 
-      <div className="rounded-xl border border-line bg-paper p-6 sm:p-7 flex justify-center">
+      <div className="rounded-xl border border-line bg-paper p-5 sm:p-6 flex justify-center overflow-x-auto">
         <GitHubCalendar
           username={GITHUB_USERNAME}
           colorScheme="dark"
@@ -61,15 +60,15 @@ export default function GithubActivity() {
         <Tooltip
           id="github-activity-tooltip"
           style={{
-            backgroundColor: '#1B1F26',
-            color: '#E7E7E2',
-            border: '1px solid #2A2F3A',
+            backgroundColor: '#161A33',
+            color: '#ECE8DF',
+            border: '1px solid #2A3060',
             borderRadius: '8px',
             fontSize: '12px',
             padding: '6px 10px',
           }}
         />
       </div>
-    </section>
+    </Section>
   );
 }

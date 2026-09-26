@@ -7,17 +7,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: '#14171C',
-        paper: '#1B1F26',
-        raised: '#20242C',
-        line: '#2A2F3A',
-        text: '#E7E7E2',
-        mute: '#8B93A1',
-        signal: '#4FD1A5',
-        accent: '#C792EA',
+        ink: '#0F1226',
+        paper: '#161A33',
+        raised: '#1D2242',
+        line: '#2A3060',
+        text: '#ECE8DF',
+        mute: '#8F95BC',
+        signal: '#FFC857',
+        accent: '#9D7BFF',
+        coral: '#FF6B57',
       },
       fontFamily: {
+        head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
         display: ['"JetBrains Mono"', 'monospace'],
+        mono: ['"JetBrains Mono"', 'monospace'],
         body: ['"JetBrains Mono"', 'monospace'],
       },
     },
