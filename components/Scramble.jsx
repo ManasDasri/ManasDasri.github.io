@@ -4,8 +4,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const GLYPHS = '!<>-_\\/[]{}=+*^?#01';
 
-// Text "decodes" from random glyphs. trigger: 'mount' | 'view'. Re-runs on hover.
-export default function Scramble({ text, trigger = 'mount', duration = 800, className = '' }) {
+// Text "decodes" from random glyphs. trigger: 'mount' | 'view'.
+// The real text stays in the flow (invisible) and the glyphs are overlaid on it,
+// so the scramble never changes the element's size or reflows the page.
+export default function Scramble({ text, trigger = 'mount', duration = 800, hover = true, className = '' }) {
   const ref = useRef(null);
   const raf = useRef(0);
   const [out, setOut] = useState(text);
@@ -37,14 +39,19 @@ export default function Scramble({ text, trigger = 'mount', duration = 800, clas
         }
       });
       io.observe(ref.current);
-      return () => io.disconnect();
+      return () => {
+        io.disconnect();
+        cancelAnimationFrame(raf.current);
+      };
     }
     return () => cancelAnimationFrame(raf.current);
   }, [run, trigger]);
 
   return (
-    <span ref={ref} className={className} onMouseEnter={run} aria-label={text}>
-      <span aria-hidden="true">{out}</span>
+    <span ref={ref} className={`relative inline-block ${className}`} onMouseEnter={hover ? run : undefined}>
+      <span className="sr-only">{text}</span>
+      <span className="invisible" aria-hidden="true">{text}</span>
+      <span className="absolute inset-0" aria-hidden="true">{out}</span>
     </span>
   );
 }
