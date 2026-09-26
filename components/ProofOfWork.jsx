@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import SectionHeading from './SectionHeading';
+import Section from './Section';
 
 // No token needed — GitHub's REST search API works unauthenticated for
 // public data. Rate limit is lower (10 req/min per IP vs ~30 authenticated),
@@ -50,9 +50,8 @@ export default function ProofOfWork() {
   const visible = prs.slice(0, showAll ? prs.length : INITIAL_COUNT);
 
   return (
-    <section id="proof-of-work" className="max-w-3xl mx-auto px-6 py-16">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <SectionHeading className="">proof of work</SectionHeading>
+    <Section id="proof-of-work" title="Proof of work" note="my pull requests, live from GitHub">
+      <div className="flex mb-5">
 
         <div className="flex gap-1 p-1 rounded-lg border border-line bg-paper">
           {Object.keys(FILTERS).map((key) => (
@@ -80,7 +79,7 @@ export default function ProofOfWork() {
           {visible.map((pr) => {
             const isMerged = !!pr.pull_request?.merged_at;
             const isOpen = pr.state === 'open';
-            const dotColor = isMerged ? 'bg-[#C792EA]' : isOpen ? 'bg-signal' : 'bg-[#FF5F57]';
+            const dotColor = isMerged ? 'bg-[#9D7BFF]' : isOpen ? 'bg-signal' : 'bg-[#FF6B57]';
             const repo = pr.repository_url?.split('/repos/')[1] ?? '';
 
             return (
@@ -110,6 +109,6 @@ export default function ProofOfWork() {
           {showAll ? '↑ collapse' : `↓ show ${prs.length - INITIAL_COUNT} more`}
         </button>
       )}
-    </section>
+    </Section>
   );
 }

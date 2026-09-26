@@ -2,9 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import HeroBanner from './HeroBanner';
 import Socials from './Socials';
-import Scramble from './Scramble';
 import Typewriter from './Typewriter';
 
 const ITEM = { hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } };
@@ -27,78 +25,72 @@ export default function Hero() {
   const uptime = useUptime();
 
   return (
-    <section id="hero" className="relative">
-      <HeroBanner />
+    <section id="hero" className="relative px-6 sm:px-9 pt-8 pb-16 sm:pb-20">
+      <h1 className="sr-only">Manas Dasari</h1>
 
-      <div className="px-6 sm:px-9 -mt-10 sm:-mt-12 relative z-10">
-        <div className="avatar-ring w-20 h-20 sm:w-24 sm:h-24 rounded-xl">
-          <img
-            src="/pfp_main.jpeg"
-            alt="Manas"
-            className="relative w-full h-full rounded-xl border-2 border-ink object-cover shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)]"
-          />
+      <div className="flex items-center gap-4 mb-8">
+        <img
+          src="/pfp_main.jpeg"
+          alt="Manas"
+          className="w-16 h-16 rounded-xl object-cover ring-1 ring-line"
+        />
+        <div>
+          <p className="font-head text-xl sm:text-2xl font-semibold tracking-tight">
+            <span className="text-mute">$ whoami</span> <Typewriter words={ROLES} />
+          </p>
+          <p className="font-mono text-xs text-mute mt-1">
+            5th sem, Amrita School of Engineering · coding for {uptime}
+          </p>
         </div>
       </div>
 
-      <div className="px-6 sm:px-9 pt-5 pb-16 max-w-2xl">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold mb-1">
-          <Scramble text="Manas" className="text-signal" />{' '}
-          <Scramble text="Dasari" className="text-accent" duration={1100} />
-        </h1>
-        <p className="font-display text-xs text-mute mb-6">
-          5th sem · Amrita School of Engineering · uptime {uptime}
-        </p>
-
-        <p className="text-text mb-4 min-h-[1.5em]">
-          <span className="text-mute">$ whoami →</span> <Typewriter words={ROLES} />
-        </p>
-
+      <div className="grid gap-10 md:grid-cols-[1fr_auto] md:items-start">
         <motion.ul
-          initial="hidden"
-          animate="show"
-          variants={{ show: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } } }}
-          className="list-none p-0 m-0 mb-7 flex flex-col gap-2.5"
-        >
-          <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
-            <span className="text-signal flex-shrink-0">▸</span>
-            <span>
-              Building <strong className="text-text">Flow</strong> (virtual study rooms) and{' '}
-              <strong className="text-text">Atmos</strong> (air quality sensor optimization),
-              sketching a bigger concept around a live physics + ML life simulator.
-            </span>
-          </motion.li>
-          <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
-            <span className="text-signal flex-shrink-0">▸</span>
-            <span>
-              Competing in hackathons run by Kaggle, Hack2skill, WeMakeDevs, and Guidewire —
-              sharpening DSA fundamentals daily on LeetCode in Python.
-            </span>
-          </motion.li>
-          <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
-            <span className="text-signal flex-shrink-0">▸</span>
-            <span>
-              Contributing to Open-source Projects, actively contributing to <strong className = "text-text">Exercism/vbnet</strong>
-            </span>
-          </motion.li>
-          <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
-            <span className="text-signal flex-shrink-0">▸</span>
-            <span>
-              Off the keyboard: coordinating animal welfare events with{' '}
-              <strong className="text-text">Barket</strong>, and deep in a KDE Plasma ricing
-              phase on Linux.
-            </span>
-          </motion.li>
-        </motion.ul>
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: 0.12, delayChildren: 0.5 } } }}
+            className="list-none p-0 m-0 flex flex-col gap-3 text-sm leading-relaxed max-w-[62ch]"
+          >
+            <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
+              <span className="text-signal flex-shrink-0">▸</span>
+              <span>
+                Building <strong className="text-text">Flow</strong> (virtual study rooms) and{' '}
+                <strong className="text-text">Atmos</strong> (air quality sensor optimization),
+                sketching a bigger concept around a live physics + ML life simulator.
+              </span>
+            </motion.li>
+            <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
+              <span className="text-signal flex-shrink-0">▸</span>
+              <span>
+                Competing in hackathons run by Kaggle, Hack2skill, WeMakeDevs, and Guidewire —
+                sharpening DSA fundamentals daily on LeetCode in Python.
+              </span>
+            </motion.li>
+            <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
+              <span className="text-signal flex-shrink-0">▸</span>
+              <span>
+                Contributing to Open-source Projects, actively contributing to <strong className = "text-text">Exercism/vbnet</strong>
+              </span>
+            </motion.li>
+            <motion.li variants={ITEM} className="flex gap-2.5 text-mute">
+              <span className="text-signal flex-shrink-0">▸</span>
+              <span>
+                Off the keyboard: coordinating animal welfare events with{' '}
+                <strong className="text-text">Barket</strong>, and deep in a KDE Plasma ricing
+                phase on Linux.
+              </span>
+            </motion.li>
+          </motion.ul>
 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex gap-3.5 flex-wrap mb-9"
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="flex md:flex-col gap-3 flex-wrap"
         >
           <a
             href="mailto:dasarimanas049@gmail.com"
-            className="font-display text-sm font-bold px-6 py-3 rounded-lg bg-signal text-[#0B1210] hover:brightness-110 no-underline"
+            className="font-head text-base font-bold text-center px-6 py-3 rounded-lg bg-signal text-[#1A1206] hover:brightness-110 transition no-underline"
           >
             Send an email
           </a>
@@ -106,12 +98,14 @@ export default function Hero() {
             href="/Manas_Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-display text-sm px-6 py-3 rounded-lg border border-line text-text hover:border-mute no-underline"
+            className="font-head text-base font-semibold text-center px-6 py-3 rounded-lg border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
           >
-            Resume
+            Resume (PDF)
           </a>
         </motion.div>
+      </div>
 
+      <div className="mt-10">
         <Socials />
       </div>
     </section>

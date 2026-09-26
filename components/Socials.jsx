@@ -1,7 +1,8 @@
 'use client';
 
 import { socials } from '@/lib/data';
-import { SiGithub, SiX, SiLinkedin, SiLeetcode, SiReddit } from 'react-icons/si';
+import { SiGithub, SiX, SiLeetcode, SiReddit } from 'react-icons/si';
+import { FaLinkedin } from 'react-icons/fa6';
 import GithubHoverCard from './GithubHoverCard';
 import RedditHoverCard from './RedditHoverCard';
 import LeetCodeHoverCard from './LeetCodeHoverCard';
@@ -10,7 +11,7 @@ import SocialHoverCard from './SocialHoverCard';
 const ICONS = {
   GitHub: SiGithub,
   X: SiX,
-  LinkedIn: SiLinkedin,
+  LinkedIn: FaLinkedin,
   LeetCode: SiLeetcode,
   Reddit: SiReddit,
 };

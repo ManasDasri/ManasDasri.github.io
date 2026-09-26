@@ -1,20 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
-
-// Soft glow that follows the cursor across the whole page (mouse only, via CSS).
-export function CursorGlow() {
-  useEffect(() => {
-    const onMove = (e) => {
-      document.documentElement.style.setProperty('--cx', `${e.clientX}px`);
-      document.documentElement.style.setProperty('--cy', `${e.clientY}px`);
-    };
-    window.addEventListener('pointermove', onMove);
-    return () => window.removeEventListener('pointermove', onMove);
-  }, []);
-  return <div className="cursor-glow" aria-hidden="true" />;
-}
 
 export function ScrollProgress() {
   const { scrollYProgress } = useScroll();
@@ -22,23 +9,8 @@ export function ScrollProgress() {
   return (
     <motion.div
       style={{ scaleX }}
-      className="fixed top-0 left-0 right-0 h-[2px] origin-left z-50 bg-gradient-to-r from-signal to-accent"
+      className="fixed top-0 left-0 right-0 h-[2px] origin-left z-50 bg-gradient-to-r from-signal via-coral to-accent"
     />
-  );
-}
-
-export function Reveal({ children, delay = 0 }) {
-  const reduce = useReducedMotion();
-  if (reduce) return children;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.6, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
-    >
-      {children}
-    </motion.div>
   );
 }
 
