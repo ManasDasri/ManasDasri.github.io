@@ -1,6 +1,7 @@
 import HeroBanner from '@/components/HeroBanner';
 import Hero from '@/components/Hero';
 import Building from '@/components/Building';
+import Now from '@/components/Now';
 import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
 import ProofOfWork from '@/components/ProofOfWork';
@@ -17,6 +18,7 @@ export default function Home() {
         <Hero />
 
         <Building />
+        <Now />
         <Skills />
         <GithubActivity />
         <ProofOfWork />

@@ -3,6 +3,7 @@
 import { cloneElement } from 'react';
 import dynamic from 'next/dynamic';
 import Section from './Section';
+import GithubStats from './GithubStats';
 
 const GitHubCalendar = dynamic(
   () => import('react-github-calendar').then((mod) => mod.GitHubCalendar),
@@ -34,7 +35,8 @@ function filterToRecentMonths(contributions) {
 
 export default function GithubActivity() {
   return (
-    <Section id="activity" title="Activity" note="last 8 months of commits, same colours as the cells up top">
+    <Section id="activity" title="Activity" note="live from GitHub; the calendar uses the same colours as the cells up top">
+      <GithubStats />
 
       <div className="rounded-xl border border-line bg-paper p-5 sm:p-6 flex justify-center overflow-x-auto">
         <GitHubCalendar
