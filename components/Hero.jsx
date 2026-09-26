@@ -27,7 +27,7 @@ export default function Hero() {
 
       <div className="px-6 sm:px-9 -mt-10 sm:-mt-12 relative z-10">
         <img
-          src="/berserk-pfp.jpg"
+          src="/pfp_main.jpeg"
           alt="Manas"
           className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl border-2 border-ink object-cover shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)]"
         />
