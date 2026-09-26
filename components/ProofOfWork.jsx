@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import SectionHeading from './SectionHeading';
 
 // No token needed — GitHub's REST search API works unauthenticated for
 // public data. Rate limit is lower (10 req/min per IP vs ~30 authenticated),
@@ -51,7 +52,7 @@ export default function ProofOfWork() {
   return (
     <section id="proof-of-work" className="max-w-3xl mx-auto px-6 py-16">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 className="font-display text-sm text-signal">// proof of work</h2>
+        <SectionHeading className="">proof of work</SectionHeading>
 
         <div className="flex gap-1 p-1 rounded-lg border border-line bg-paper">
           {Object.keys(FILTERS).map((key) => (
