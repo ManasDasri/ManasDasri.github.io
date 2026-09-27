@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 const N = 6;
 const PATTERNS = {
   glider: [[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]],
+  blinker: [[1, 2], [2, 2], [3, 2]],
   toad: [[2, 2], [3, 2], [4, 2], [1, 3], [2, 3], [3, 3]],
   beacon: [[1, 1], [2, 1], [1, 2], [2, 2], [3, 3], [4, 3], [3, 4], [4, 4]],
 };

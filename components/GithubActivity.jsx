@@ -33,7 +33,40 @@ function filterToRecentMonths(contributions) {
   return contributions.filter((day) => new Date(day.date) >= cutoff);
 }
 
-export default function GithubActivity() {
+const LEVELS = [
+  ['easy', 'bg-signal'],
+  ['medium', 'bg-coral'],
+  ['hard', 'bg-accent'],
+];
+
+function LeetCodeStats({ stats }) {
+  if (!stats?.all) return null;
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+      <a href="https://leetcode.com/u/ManasDasari/" target="_blank" rel="noopener noreferrer" className="no-underline">
+        <span className="font-head text-3xl font-extrabold tracking-tight text-text">{stats.all}</span>
+        <span className="block font-mono text-xs text-mute mt-0.5">LeetCode problems solved</span>
+      </a>
+      <div className="flex-1 min-w-[200px]">
+        <div className="flex h-2 rounded-full overflow-hidden bg-line/50" aria-hidden="true">
+          {LEVELS.map(([k, bg]) => (
+            <span key={k} className={bg} style={{ width: `${(100 * stats[k]) / stats.all}%` }} />
+          ))}
+        </div>
+        <div className="flex gap-4 mt-2 font-mono text-xs text-mute">
+          {LEVELS.map(([k, bg]) => (
+            <span key={k} className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-[1px] ${bg}`} aria-hidden="true" />
+              {stats[k]} {k}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GithubActivity({ leetcode }) {
   return (
     <Section id="activity" title="Activity" note="live from GitHub; the calendar uses the same colours as the cells up top">
       <GithubStats />
@@ -71,6 +104,7 @@ export default function GithubActivity() {
           }}
         />
       </div>
+      <LeetCodeStats stats={leetcode} />
     </Section>
   );
 }

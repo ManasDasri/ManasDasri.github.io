@@ -1,48 +1,84 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { projects } from '@/lib/data';
 
 // Real output: sprout 0.2.0 run on this portfolio's own repo.
-const TABS = {
-  install: {
-    cmd: 'brew install sprout-devlabs/tap/sprout',
-    out: [
-      '# windows',
-      'scoop bucket add sprout https://github.com/Sprout-DevLabs/scoop-bucket',
-      'scoop install sprout',
-      '# anywhere with go 1.22+',
-      'go install github.com/Sprout-DevLabs/sprout@latest',
-    ],
-  },
-  tree: {
-    cmd: 'sprout -L 1',
-    out: [
-      '.',
-      '├── README.md',
-      '├── app/',
-      '├── components/',
-      '├── lib/',
-      '├── next.config.mjs',
-      '├── package.json',
-      '├── public/',
-      '└── tailwind.config.js',
-      '',
-      '4 directories, 9 files (6 hidden or ignored, --all to show)',
-    ],
-  },
-  entry: {
-    cmd: 'sprout --entry',
-    out: [
-      'Reading order for ManasDasri.github.io',
-      '',
-      '  1. README.md                  what the project is',
-      '  2. components/Section.jsx     used by 5 files',
-      '  3. components/Scramble.jsx    used by 2 files',
-      '  4. components/Effects.jsx     used by 1 file',
-      '  5. components/LifeCanvas.jsx  used by 1 file',
-    ],
-  },
-};
+const TREE = [
+  '.',
+  '├── README.md',
+  '├── app/',
+  '├── components/',
+  '├── lib/',
+  '├── next.config.mjs',
+  '├── package.json',
+  '├── public/',
+  '└── tailwind.config.js',
+  '',
+  '4 directories, 9 files (6 hidden or ignored, --all to show)',
+];
+const ENTRY = [
+  'Reading order for ManasDasri.github.io',
+  '',
+  '  1. README.md                  what the project is',
+  '  2. components/Section.jsx     used by 5 files',
+  '  3. components/Scramble.jsx    used by 2 files',
+  '  4. components/Effects.jsx     used by 1 file',
+  '  5. components/LifeCanvas.jsx  used by 1 file',
+];
+const INSTALL = [
+  '# this terminal is a demo; run these in yours',
+  'brew install sprout-devlabs/tap/sprout',
+  '# windows',
+  'scoop bucket add sprout https://github.com/Sprout-DevLabs/scoop-bucket',
+  'scoop install sprout',
+  '# anywhere with go 1.22+',
+  'go install github.com/Sprout-DevLabs/sprout@latest',
+];
+const HELP = [
+  'sprout             tree of this site’s repo',
+  'sprout --entry     where to start reading it',
+  'install            how to get sprout',
+  'ls                 my projects',
+  'open <project>     project details, e.g. open flow',
+  'whoami, contact, clear',
+];
+const SUGGESTIONS = ['sprout --entry', 'install', 'ls', 'help'];
+
+function run(input) {
+  const [cmd, ...args] = input.trim().split(/\s+/);
+  const rest = args.join(' ');
+  switch (cmd) {
+    case '':
+      return [];
+    case 'help':
+      return HELP;
+    case 'sprout':
+      if (!rest || rest === '-L 1') return TREE;
+      if (rest === '--entry') return ENTRY;
+      if (rest === '--version') return ['sprout 0.2.0'];
+      return [`sprout ${rest} works in the real thing. Try: install`];
+    case 'install':
+    case 'brew':
+      return INSTALL;
+    case 'ls':
+      return projects.map((p) => `${p.name.toLowerCase().padEnd(10)} ${p.status}`);
+    case 'open': {
+      const p = projects.find((p) => p.slug === rest.toLowerCase());
+      if (!p) return [`no project called "${rest}". Try: ls`];
+      setTimeout(() => (window.location.href = `/projects/${p.slug}/`), 500);
+      return [`opening ${p.name}…`];
+    }
+    case 'whoami':
+      return ['Manas Dasari: engineer, fintech enthusiast, artist, writer'];
+    case 'contact':
+      return ['email   dasarimanas049@gmail.com', 'github  github.com/ManasDasri', 'x       x.com/ManasDmg9'];
+    case 'sudo':
+      return ['nice try.'];
+    default:
+      return [`command not found: ${cmd}. Try: help`];
+  }
+}
 
 function lineClass(l) {
   if (l.startsWith('#')) return 'text-mute/60';
@@ -53,102 +89,146 @@ function lineClass(l) {
 
 export default function SproutTerminal() {
   const ref = useRef(null);
-  const [tab, setTab] = useState('tree');
-  const [typed, setTyped] = useState(0);
-  const [lines, setLines] = useState(0);
-  const [started, setStarted] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const { cmd, out } = TABS[tab];
+  const bodyRef = useRef(null);
+  const inputRef = useRef(null);
+  const [history, setHistory] = useState([]); // [{ cmd, out }]
+  const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(null); // command being auto-typed
+  const [recall, setRecall] = useState(-1);
 
-  // start typing the first time the terminal scrolls into view
+  // animate a command being typed, then run it
+  function type(cmd) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return submit(cmd);
+    setTyping(cmd);
+    setInput('');
+  }
+
+  function submit(cmd) {
+    if (cmd.trim() === 'clear') return setHistory([]);
+    setHistory((h) => [...h, { cmd, out: run(cmd) }]);
+  }
+
   useEffect(() => {
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && (setStarted(true), io.disconnect()), {
-      threshold: 0.4,
-    });
+    if (typing === null) return;
+    if (input.length < typing.length) {
+      const t = setTimeout(() => setInput(typing.slice(0, input.length + 1)), 32);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => {
+      submit(typing);
+      setTyping(null);
+      setInput('');
+    }, 250);
+    return () => clearTimeout(t);
+  }, [typing, input]);
+
+  // first time on screen: run the tree so it looks alive
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          type('sprout');
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 }
+    );
     io.observe(ref.current);
-    return () => io.disconnect();
+    const onRun = (e) => type(e.detail);
+    window.addEventListener('terminal-run', onRun);
+    return () => {
+      io.disconnect();
+      window.removeEventListener('terminal-run', onRun);
+    };
   }, []);
 
+  // keep the newest output in view by scrolling the terminal, never the page
   useEffect(() => {
-    if (!started) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setTyped(cmd.length);
-      setLines(out.length);
-      return;
-    }
-    if (typed < cmd.length) {
-      const t = setTimeout(() => setTyped(typed + 1), 28);
-      return () => clearTimeout(t);
-    }
-    if (lines < out.length) {
-      const t = setTimeout(() => setLines(lines + 1), lines === 0 ? 220 : 45);
-      return () => clearTimeout(t);
-    }
-  }, [started, typed, lines, cmd, out]);
+    bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [history, input]);
 
-  function show(next) {
-    setTab(next);
-    setTyped(0);
-    setLines(0);
-    setStarted(true);
+  function onKeyDown(e) {
+    const cmds = history.map((h) => h.cmd);
+    if (e.key === 'Enter') {
+      submit(input);
+      setInput('');
+      setRecall(-1);
+    } else if (e.key === 'ArrowUp' && cmds.length) {
+      e.preventDefault();
+      const i = recall < 0 ? cmds.length - 1 : Math.max(0, recall - 1);
+      setRecall(i);
+      setInput(cmds[i]);
+    } else if (e.key === 'ArrowDown' && recall >= 0) {
+      e.preventDefault();
+      const i = recall + 1;
+      setRecall(i < cmds.length ? i : -1);
+      setInput(i < cmds.length ? cmds[i] : '');
+    }
   }
 
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(TABS.install.cmd);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {}
-  }
+  const prompt = <span className="text-signal select-none">❯ </span>;
 
   return (
-    <div ref={ref} className="rounded-lg border border-line bg-ink overflow-hidden">
-      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-line bg-raised/60">
-        <span className="flex gap-1.5 px-2" aria-hidden="true">
-          <span className="w-2.5 h-2.5 rounded-full bg-coral/80" />
-          <span className="w-2.5 h-2.5 rounded-full bg-signal/80" />
-          <span className="w-2.5 h-2.5 rounded-full bg-accent/80" />
-        </span>
-        <div role="tablist" aria-label="Sprout examples" className="flex gap-1">
-          {Object.keys(TABS).map((k) => (
-            <button
-              key={k}
-              role="tab"
-              aria-selected={tab === k}
-              onClick={() => show(k)}
-              className={`font-mono text-xs px-2.5 py-1 rounded transition-colors ${
-                tab === k ? 'bg-paper text-signal' : 'text-mute hover:text-text'
-              }`}
-            >
-              {k}
-            </button>
-          ))}
+    <div id="terminal" ref={ref}>
+      <div className="rounded-lg border border-line bg-ink overflow-hidden">
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-line bg-raised/60">
+          <span className="flex gap-1.5" aria-hidden="true">
+            <span className="w-2.5 h-2.5 rounded-full bg-coral/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-signal/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-accent/80" />
+          </span>
+          <span className="font-mono text-xs text-mute">~/ManasDasri.github.io</span>
+          <span className="ml-auto font-mono text-[11px] text-mute/70">type help</span>
         </div>
-        <button
-          onClick={copy}
-          className="ml-auto font-mono text-xs px-2.5 py-1 rounded text-mute hover:text-signal transition-colors"
+        <div
+          ref={bodyRef}
+          onClick={() => inputRef.current?.focus({ preventScroll: true })}
+          className="font-mono text-[12px] sm:text-[13px] leading-relaxed p-4 sm:p-5 h-[270px] overflow-auto cursor-text"
         >
-          {copied ? 'copied' : 'copy install'}
-        </button>
-      </div>
-      <pre className="font-mono text-[12px] sm:text-[13px] leading-relaxed p-4 sm:p-5 h-[250px] overflow-x-auto" aria-live="polite">
-        <div>
-          <span className="text-signal">❯ </span>
-          <span className="text-text">{cmd.slice(0, typed)}</span>
-          {typed < cmd.length && <span className="caret text-text" aria-hidden="true" />}
+          <div aria-live="polite">
+            {history.map((h, i) => (
+              <div key={i} className="mb-2">
+                <div className="whitespace-pre">
+                  {prompt}
+                  <span className="text-text">{h.cmd}</span>
+                </div>
+                {h.out.map((l, j) => (
+                  <div key={j} className={`whitespace-pre ${lineClass(l)}`}>
+                    {l || ' '}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <label className="flex items-center whitespace-pre">
+            {prompt}
+            <input
+              ref={inputRef}
+              aria-label="Terminal command"
+              value={input}
+              onChange={(e) => typing === null && setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              readOnly={typing !== null}
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="off"
+              className="flex-1 min-w-0 bg-transparent border-none outline-none text-text caret-signal p-0"
+            />
+          </label>
         </div>
-        {out.slice(0, lines).map((l, i) => (
-          <div key={i} className={lineClass(l)}>
-            {l || ' '}
-          </div>
+      </div>
+      <div className="flex flex-wrap gap-2 mt-3">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            onClick={() => type(s)}
+            disabled={typing !== null}
+            className="font-mono text-xs text-mute border border-line rounded px-2.5 py-1 hover:text-signal hover:border-signal transition-colors disabled:opacity-50"
+          >
+            {s}
+          </button>
         ))}
-        {typed === cmd.length && lines === out.length && (
-          <div>
-            <span className="text-signal">❯ </span>
-            <span className="caret text-text" aria-hidden="true" />
-          </div>
-        )}
-      </pre>
+      </div>
     </div>
   );
 }

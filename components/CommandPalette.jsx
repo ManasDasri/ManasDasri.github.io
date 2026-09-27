@@ -15,13 +15,23 @@ export default function CommandPalette() {
       }
       if (e.key === 'Escape') setOpen(false);
     }
+    const openPalette = () => setOpen(true);
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('open-palette', openPalette);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('open-palette', openPalette);
+    };
   }, []);
 
   function runCommand(cmd) {
     setOpen(false);
-    if (cmd.href) {
+    if (cmd.terminal) {
+      document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.dispatchEvent(new CustomEvent('terminal-run', { detail: cmd.terminal }));
+    } else if (cmd.href?.startsWith('/')) {
+      window.location.href = cmd.href;
+    } else if (cmd.href) {
       window.open(cmd.href, '_blank', 'noopener');
     } else if (cmd.section) {
       document.getElementById(cmd.section)?.scrollIntoView({ behavior: 'smooth' });
@@ -30,14 +40,6 @@ export default function CommandPalette() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-30 font-display text-xs text-mute border border-line bg-paper rounded-lg px-3.5 py-2 hover:text-signal hover:border-signal transition-colors"
-        aria-label="Open command palette"
-      >
-        ⌘K
-      </button>
-
       <Command.Dialog open={open} onOpenChange={setOpen} label="Command palette">
         <Command.Input placeholder="Search for a command…" />
         <Command.List>
