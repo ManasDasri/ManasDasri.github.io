@@ -1,4 +1,5 @@
 import Scramble from './Scramble';
+import NowPlaying from './NowPlaying';
 
 export default function Footer() {
   return (
@@ -7,6 +8,9 @@ export default function Footer() {
         <Scramble text="“You have power over your mind - not outside events.”" trigger="view" duration={1400} hover={false} />
       </p>
       <p className="font-mono text-xs text-mute">Marcus Aurelius</p>
+      <div className="mt-12 empty:hidden">
+        <NowPlaying />
+      </div>
     </footer>
   );
 }

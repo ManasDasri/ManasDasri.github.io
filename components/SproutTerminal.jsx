@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { projects } from '@/lib/data';
 import { RULES, SHAPES, ruleCode } from './LifeCanvas';
+import { shareColony } from '@/lib/lifeShare';
 
 // Real output: sprout 0.2.0 run on this portfolio's own repo.
 const TREE = [
@@ -50,6 +51,7 @@ const SUGGESTIONS = ['sprout --entry', 'life', 'life rule highlife', 'ls', 'help
 const LIFE_HELP = [
   'life                  status + a live snapshot of the grid',
   'life pause | resume | reseed',
+  'life share            copy a link to this exact colony',
   `life rule [${Object.keys(RULES).join(' | ')}]`,
   `life drop [${Object.keys(SHAPES).join(' | ')}]`,
 ];
@@ -59,6 +61,10 @@ function life(args) {
   const [sub, value] = args;
   const actions = { pause: ['pause', true], resume: ['pause', false], reseed: ['reseed'], rule: ['rule', value], drop: ['drop', value] };
   if (sub === 'help') return LIFE_HELP;
+  if (sub === 'share')
+    return shareColony().then((r) =>
+      r ? [`link ${r.how === 'copied' ? 'copied' : r.how === 'shared' ? 'shared' : 'is in the address bar'}:`, r.url] : ['the grid isn’t running on this page.']
+    );
   if (sub && !actions[sub]) return [`unknown: life ${sub}`, ...LIFE_HELP];
   if (sub === 'rule' && value && !RULES[value]) return [`no rule "${value}". Try: ${Object.keys(RULES).join(', ')}`];
   if (sub === 'drop' && !SHAPES[value]) return [`drop what? ${Object.keys(SHAPES).join(', ')}`];
@@ -139,7 +145,12 @@ export default function SproutTerminal() {
 
   function submit(cmd) {
     if (cmd.trim() === 'clear') return setHistory([]);
-    setHistory((h) => [...h, { cmd, out: run(cmd) }]);
+    const out = run(cmd);
+    if (!(out instanceof Promise)) return setHistory((h) => [...h, { cmd, out }]);
+    // async commands (life share) show a placeholder, then their real output
+    const id = Symbol();
+    setHistory((h) => [...h, { id, cmd, out: ['…'] }]);
+    out.then((lines) => setHistory((h) => h.map((e) => (e.id === id ? { ...e, out: lines } : e))));
   }
 
   useEffect(() => {
@@ -207,9 +218,9 @@ export default function SproutTerminal() {
       <div className="rounded-lg border border-line bg-ink overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-2 border-b border-line bg-raised/60">
           <span className="flex gap-1.5" aria-hidden="true">
-            <span className="w-2.5 h-2.5 rounded-full bg-coral/80" />
-            <span className="w-2.5 h-2.5 rounded-full bg-signal/80" />
             <span className="w-2.5 h-2.5 rounded-full bg-accent/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-signal/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-mature/80" />
           </span>
           <span className="font-mono text-xs text-mute">~/ManasDasri.github.io</span>
           <span className="ml-auto font-mono text-[11px] text-mute/70">type help</span>

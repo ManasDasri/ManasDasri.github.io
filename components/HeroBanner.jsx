@@ -3,7 +3,7 @@ import LifeCanvas from './LifeCanvas';
 export default function HeroBanner() {
   return (
     <header id="top" className="relative w-full h-[clamp(260px,40svh,380px)] overflow-hidden cursor-crosshair bg-ink">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(157,123,255,0.16),transparent_65%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(43,179,177,0.16),transparent_65%)]" />
       <LifeCanvas />
       <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-ink via-ink/70 to-transparent pointer-events-none" />
       <div className="absolute inset-x-0 bottom-0 pointer-events-none">

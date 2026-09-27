@@ -14,7 +14,7 @@ export default function Skills() {
                 return (
                   <span
                     key={item.label}
-                    className="group font-display text-xs border border-line bg-paper rounded-md px-3 py-1.5 flex items-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-signal hover:text-signal hover:shadow-[0_8px_24px_-10px_rgba(255,200,87,0.6)]"
+                    className="group font-display text-xs border border-line bg-paper rounded-md px-3 py-1.5 flex items-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-signal hover:text-signal hover:shadow-[0_8px_24px_-10px_rgba(124,245,228,0.6)]"
                   >
                     {Icon && <Icon className="w-3.5 h-3.5 text-mute transition-colors group-hover:text-signal" aria-hidden="true" />}
                     {item.label}

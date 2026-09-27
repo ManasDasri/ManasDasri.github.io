@@ -79,7 +79,7 @@ export default function ProofOfWork() {
           {visible.map((pr) => {
             const isMerged = !!pr.pull_request?.merged_at;
             const isOpen = pr.state === 'open';
-            const dotColor = isMerged ? 'bg-[#9D7BFF]' : isOpen ? 'bg-signal' : 'bg-[#FF6B57]';
+            const dotColor = isMerged ? 'bg-mature' : isOpen ? 'bg-signal' : 'bg-accent';
             const repo = pr.repository_url?.split('/repos/')[1] ?? '';
 
             return (

@@ -54,7 +54,7 @@ export default function Hero() {
         <motion.div {...rise(0.45)} className="flex md:flex-col gap-3 flex-wrap">
           <a
             href="mailto:dasarimanas049@gmail.com"
-            className="font-head text-base font-bold text-center px-6 py-3 rounded-lg bg-signal text-[#1A1206] hover:brightness-110 transition no-underline"
+            className="font-head text-base font-bold text-center px-6 py-3 rounded-lg bg-signal text-[#032420] hover:brightness-110 transition no-underline"
           >
             Send an email
           </a>

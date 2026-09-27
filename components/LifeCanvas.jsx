@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { decode, shareColony } from '@/lib/lifeShare';
 
 // Life-like cellular automaton. It starts as a handful of acorns — 7-cell seeds
 // that grow for thousands of generations — over a thin soup, so the banner
@@ -29,11 +30,26 @@ export const RULES = {
   seeds: { name: 'Seeds', b: [2], s: [] },
 };
 export const ruleCode = (r) => `B${r.b.join('')}/S${r.s.join('')}`;
-const HEAT = ['#FFC857', '#FF6B57', '#9D7BFF']; // born → maturing → old
+const HEAT = ['#7CF5E4', '#2BB3B1', '#1F5F8B']; // born → maturing → old
 
 const Key = ({ children }) => (
   <kbd className="font-mono text-[10px] text-text/80 border border-line rounded px-1 mx-0.5">{children}</kbd>
 );
+
+function ShareButton() {
+  const [note, setNote] = useState(null);
+  async function share() {
+    const result = await shareColony();
+    if (!result) return;
+    setNote({ shared: 'shared', copied: 'link copied', 'address bar': 'link is in the address bar' }[result.how]);
+    setTimeout(() => setNote(null), 2500);
+  }
+  return (
+    <button onClick={share} className="block ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4">
+      {note ?? 'share this colony'}
+    </button>
+  );
+}
 
 export default function LifeCanvas() {
   const canvasRef = useRef(null);
@@ -46,7 +62,7 @@ export default function LifeCanvas() {
     const ctx = canvas.getContext('2d');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let cell, cols = 0, rows = 0, grid, age, gen = 0, pop = 0, raf, last = 0, onScreen = true;
-    let paused = false, lastCell = null, ruleKey = 'conway', born, survive;
+    let paused = false, lastCell = null, ruleKey = 'conway', born, survive, shared = false;
 
     const idx = (x, y) => ((y + rows) % rows) * cols + ((x + cols) % cols);
     const stamp = (shape, x, y) => shape.forEach(([dx, dy]) => (grid[idx(x + dx, y + dy)] = 1));
@@ -115,7 +131,7 @@ export default function LifeCanvas() {
 
     function showStats() {
       if (statsRef.current)
-        statsRef.current.textContent = `${paused ? 'paused · ' : ''}generation ${gen} · ${pop} alive`;
+        statsRef.current.textContent = `${shared ? 'shared colony · ' : ''}${paused ? 'paused · ' : ''}generation ${gen} · ${pop} alive`;
     }
 
     // ASCII view of the busiest w×h window of the grid, for the terminal
@@ -135,12 +151,17 @@ export default function LifeCanvas() {
     function draw() {
       ctx.clearRect(0, 0, cols * cell, rows * cell);
       const s = cell - 1;
+      // bioluminescence: a faint halo behind newborn cells
+      ctx.fillStyle = HEAT[0];
+      ctx.globalAlpha = 0.14;
+      for (let i = 0; i < grid.length; i++)
+        if (grid[i] && age[i] <= 1) ctx.fillRect((i % cols) * cell - 2, ((i / cols) | 0) * cell - 2, s + 4, s + 4);
       for (let i = 0; i < grid.length; i++) {
         if (!grid[i]) continue;
         const a = age[i];
         if (a <= 1) (ctx.fillStyle = HEAT[0]), (ctx.globalAlpha = 0.9);
         else if (a <= 6) (ctx.fillStyle = HEAT[1]), (ctx.globalAlpha = 0.65);
-        else (ctx.fillStyle = HEAT[2]), (ctx.globalAlpha = Math.max(0.22, 0.55 - a * 0.006));
+        else (ctx.fillStyle = HEAT[2]), (ctx.globalAlpha = Math.max(0.4, 0.8 - a * 0.008));
         ctx.fillRect((i % cols) * cell, ((i / cols) | 0) * cell, s, s);
       }
       ctx.globalAlpha = 1;
@@ -162,6 +183,19 @@ export default function LifeCanvas() {
         const keys = Object.keys(RULES);
         setRule(RULES[value] ? value : keys[(keys.indexOf(ruleKey) + 1) % keys.length]);
       } else if (action === 'drop' && SHAPES[value]) drop(value);
+      else if (action === 'export') {
+        const cells = [];
+        for (let i = 0; i < grid.length; i++) if (grid[i]) cells.push([i % cols, (i / cols) | 0]);
+        return reply?.({ rule: ruleKey, cells });
+      } else if (action === 'import') {
+        // a shared colony replaces the soup, centred on this screen's grid
+        grid = new Uint8Array(cols * rows);
+        age = new Uint8Array(cols * rows);
+        stamp(value.cells, (cols - value.w) >> 1, (rows - value.h) >> 1);
+        if (RULES[value.rule]) setRule(value.rule);
+        gen = 0;
+        shared = true;
+      }
       draw();
       showStats();
       reply?.({ gen, pop, paused, rule: ruleKey, grid: snapshot() });
@@ -197,6 +231,9 @@ export default function LifeCanvas() {
 
     setRule('conway');
     resize();
+    // opened from a shared link: load that colony instead of the random soup
+    const code = new URLSearchParams(location.search).get('life');
+    if (code) decode(code).then((colony) => colony && control({ action: 'import', value: colony }));
     window.addEventListener('resize', resize);
     window.addEventListener('life', onLife);
     if (reduce)
@@ -235,6 +272,7 @@ export default function LifeCanvas() {
         >
           rule: <span ref={ruleRef}>Conway B3/S23</span>
         </button>
+        <ShareButton />
         <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute/70 pointer-events-none">
           <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
         </div>

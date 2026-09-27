@@ -5,6 +5,7 @@ import Section from '@/components/Section';
 import Sigil from '@/components/Sigil';
 import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
+import LiveStatus from '@/components/LiveStatus';
 import CommandPalette from '@/components/CommandPalette';
 
 const detailed = projects.filter((p) => p.slug);
@@ -39,7 +40,11 @@ export default function ProjectPage({ params }) {
           </a>
           <div className="flex items-center gap-5 mt-8 mb-4">
             <Sigil pattern={p.pattern} playing />
-            <span className="font-mono text-xs text-signal">{p.status}</span>
+            {p.statusUrl ? (
+              <LiveStatus url={p.statusUrl} label={p.status} />
+            ) : (
+              <span className="font-mono text-xs text-mute">{p.status}</span>
+            )}
           </div>
           <h1 className="rise font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)]">
             {p.name}

@@ -28,7 +28,7 @@ export default function GithubStats() {
   if (!stats) return null;
 
   return (
-    <dl className="flex flex-wrap gap-x-10 gap-y-4 mb-6">
+    <dl className="flex flex-wrap gap-x-10 gap-y-4 m-0">
       {stats.map(([n, label]) => (
         <div key={label}>
           <dt className="sr-only">{label}</dt>
