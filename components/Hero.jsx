@@ -59,7 +59,7 @@ export default function Hero() {
             Send an email
           </a>
           <a
-            href="/Manas_Resume.pdf"
+            href="/Manas_resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="font-head text-base font-semibold text-center px-6 py-3 rounded-lg border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
