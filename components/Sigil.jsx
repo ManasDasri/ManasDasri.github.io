@@ -27,7 +27,7 @@ function step(g) {
   });
 }
 
-export default function Sigil({ pattern, playing, dim }) {
+export default function Sigil({ pattern, playing, dim, name }) {
   const [cells, setCells] = useState(() => seed(pattern));
 
   useEffect(() => {
@@ -37,7 +37,11 @@ export default function Sigil({ pattern, playing, dim }) {
   }, [playing]);
 
   return (
-    <div className="grid grid-cols-6 gap-[2px] w-[46px] h-[46px] p-[3px] rounded-md bg-ink border border-line flex-shrink-0" aria-hidden="true">
+    <div
+      className="grid grid-cols-6 gap-[2px] w-[46px] h-[46px] p-[3px] rounded-md bg-ink border border-line flex-shrink-0"
+      style={name ? { viewTransitionName: name } : undefined}
+      aria-hidden="true"
+    >
       {cells.map((c, i) => (
         <span
           key={i}

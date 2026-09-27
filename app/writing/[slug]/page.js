@@ -41,7 +41,7 @@ export default function PostPage({ params }) {
             <p className="font-mono text-xs text-mute">
               {fmt(post.date)} · {post.readMins} min read
             </p>
-            <h1 className="rise font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
+            <h1 style={{ viewTransitionName: `post-${post.slug}` }} className="rise font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
               {post.title}
             </h1>
             <p className="text-mute leading-relaxed mt-5">{post.summary}</p>

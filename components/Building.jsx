@@ -43,10 +43,12 @@ function Featured({ p }) {
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       <SpotlightCard tilt={false} className="rounded-xl border border-signal/30 bg-paper p-6 sm:p-8">
         <div className="flex gap-5 mb-5">
-          <Sigil pattern={p.pattern} playing={hover} />
+          <Sigil pattern={p.pattern} playing={hover} name={`sigil-${p.slug}`} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h3 className="font-head text-3xl sm:text-4xl font-extrabold tracking-tight">{p.name}</h3>
+              <h3 className="font-head text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ viewTransitionName: `project-${p.slug}` }}>
+                {p.name}
+              </h3>
               <a href={`https://github.com/${p.repo}/releases`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-ink bg-signal rounded px-1.5 py-0.5 no-underline hover:brightness-110">
                 {version}
               </a>
@@ -78,10 +80,12 @@ function Project({ p }) {
   const [hover, setHover] = useState(false);
   const body = (
     <div className="flex gap-5">
-      <Sigil pattern={p.pattern} playing={hover} dim={!p.active} />
+      <Sigil pattern={p.pattern} playing={hover} dim={!p.active} name={p.slug && `sigil-${p.slug}`} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
-          <h3 className="font-head text-2xl font-bold tracking-tight">{p.name}</h3>
+          <h3 className="font-head text-2xl font-bold tracking-tight" style={p.slug ? { viewTransitionName: `project-${p.slug}` } : undefined}>
+            {p.name}
+          </h3>
           {p.statusUrl ? (
             <LiveStatus url={p.statusUrl} label={p.status} />
           ) : (

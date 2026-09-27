@@ -52,6 +52,7 @@ const LIFE_HELP = [
   'life                  status + a live snapshot of the grid',
   'life pause | resume | reseed',
   'life share            copy a link to this exact colony',
+  'life sound [on | off] let the colony play music',
   `life rule [${Object.keys(RULES).join(' | ')}]`,
   `life drop [${Object.keys(SHAPES).join(' | ')}]`,
 ];
@@ -59,7 +60,7 @@ const LIFE_HELP = [
 // Talks to the banner through its 'life' event; the reply comes back synchronously.
 function life(args) {
   const [sub, value] = args;
-  const actions = { pause: ['pause', true], resume: ['pause', false], reseed: ['reseed'], rule: ['rule', value], drop: ['drop', value] };
+  const actions = { sound: ['sound', value === 'on' ? true : value === 'off' ? false : undefined], pause: ['pause', true], resume: ['pause', false], reseed: ['reseed'], rule: ['rule', value], drop: ['drop', value] };
   if (sub === 'help') return LIFE_HELP;
   if (sub === 'share')
     return shareColony().then((r) =>
@@ -74,7 +75,7 @@ function life(args) {
   if (!status) return ['the grid isn’t running on this page. Try it on the homepage.'];
   const r = RULES[status.rule];
   return [
-    `${r.name} ${ruleCode(r)} · generation ${status.gen} · ${status.pop} alive${status.paused ? ' · paused' : ''}`,
+    `${r.name} ${ruleCode(r)} · generation ${status.gen} · ${status.pop} alive${status.paused ? ' · paused' : ''}${status.sound ? ' · sound on' : ''}`,
     '',
     ...status.grid,
     '',
