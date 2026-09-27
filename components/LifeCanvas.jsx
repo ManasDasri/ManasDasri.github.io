@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { decode, shareColony } from '@/lib/lifeShare';
+import { createSynth } from '@/lib/lifeSound';
 
 // Life-like cellular automaton. It starts as a handful of acorns — 7-cell seeds
 // that grow for thousands of generations — over a thin soup, so the banner
@@ -9,7 +10,7 @@ import { decode, shareColony } from '@/lib/lifeShare';
 //
 // Controls, from the keyboard (while the banner is on screen) or from anywhere
 // via window.dispatchEvent(new CustomEvent('life', { detail: { action, value, reply } })):
-//   P pause · R reseed · L next rule · 1 glider gun · 2 pulsar · 3 acorn
+//   P pause · R reseed · L next rule · M sound · 1 glider gun · 2 pulsar · 3 acorn
 // `reply`, if given, is called with a status snapshot (used by the terminal).
 const TICK_MS = 110;
 const ACORN = [[1, 0], [3, 1], [0, 2], [1, 2], [4, 2], [5, 2], [6, 2]];
@@ -55,6 +56,7 @@ export default function LifeCanvas() {
   const canvasRef = useRef(null);
   const statsRef = useRef(null);
   const ruleRef = useRef(null);
+  const soundRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -63,6 +65,8 @@ export default function LifeCanvas() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let cell, cols = 0, rows = 0, grid, age, gen = 0, pop = 0, raf, last = 0, onScreen = true;
     let paused = false, lastCell = null, ruleKey = 'conway', born, survive, shared = false;
+    let synth = null, soundOn = false; // synth is created on the first toggle (needs a user gesture)
+    const NOTES_PER_GEN = 3;
 
     const idx = (x, y) => ((y + rows) % rows) * cols + ((x + cols) % cols);
     const stamp = (shape, x, y) => shape.forEach(([dx, dy]) => (grid[idx(x + dx, y + dy)] = 1));
@@ -108,6 +112,9 @@ export default function LifeCanvas() {
     function step() {
       const next = new Uint8Array(cols * rows);
       pop = 0;
+      // reservoir-sample a few births so notes come from across the whole colony
+      let births = 0;
+      const picked = [];
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           let n = 0;
@@ -116,6 +123,11 @@ export default function LifeCanvas() {
           const i = y * cols + x;
           if (grid[i] ? survive[n] : born[n]) {
             next[i] = 1;
+            if (!grid[i] && soundOn) {
+              births++;
+              if (picked.length < NOTES_PER_GEN) picked.push(x);
+              else if (Math.random() < NOTES_PER_GEN / births) picked[(Math.random() * NOTES_PER_GEN) | 0] = x;
+            }
             age[i] = Math.min(age[i] + 1, 60);
             pop++;
           } else age[i] = 0;
@@ -126,7 +138,16 @@ export default function LifeCanvas() {
       // colony settled into still lifes → plant a fresh acorn
       if (gen % 150 === 0 || pop < grid.length * 0.02)
         stamp(ACORN, (Math.random() * cols) | 0, (Math.random() * rows) | 0);
+      // every other generation, so the music breathes
+      if (soundOn && gen % 2 === 0) synth.play(picked.map((x) => x / cols), births, ruleKey);
       showStats();
+    }
+
+    function setSound(on) {
+      if (on && !synth) synth = createSynth();
+      soundOn = on;
+      synth?.setOn(on);
+      if (soundRef.current) soundRef.current.textContent = on ? 'sound: on' : 'sound: off';
     }
 
     function showStats() {
@@ -183,6 +204,7 @@ export default function LifeCanvas() {
         const keys = Object.keys(RULES);
         setRule(RULES[value] ? value : keys[(keys.indexOf(ruleKey) + 1) % keys.length]);
       } else if (action === 'drop' && SHAPES[value]) drop(value);
+      else if (action === 'sound') setSound(value ?? !soundOn);
       else if (action === 'export') {
         const cells = [];
         for (let i = 0; i < grid.length; i++) if (grid[i]) cells.push([i % cols, (i / cols) | 0]);
@@ -198,7 +220,7 @@ export default function LifeCanvas() {
       }
       draw();
       showStats();
-      reply?.({ gen, pop, paused, rule: ruleKey, grid: snapshot() });
+      reply?.({ gen, pop, paused, sound: soundOn, rule: ruleKey, grid: snapshot() });
     }
 
     function cellAt(e) {
@@ -225,6 +247,7 @@ export default function LifeCanvas() {
       if (k === 'p') control({ action: 'pause' });
       else if (k === 'r') control({ action: 'reseed' });
       else if (k === 'l') control({ action: 'rule' });
+      else if (k === 'm') control({ action: 'sound' });
       else if (KEY_SHAPES[k]) control({ action: 'drop', value: KEY_SHAPES[k] });
     }
     const onLife = (e) => control(e.detail);
@@ -250,6 +273,7 @@ export default function LifeCanvas() {
     raf = requestAnimationFrame(loop);
 
     return () => {
+      synth?.setOn(false);
       cancelAnimationFrame(raf);
       io.disconnect();
       window.removeEventListener('resize', resize);
@@ -273,8 +297,16 @@ export default function LifeCanvas() {
           rule: <span ref={ruleRef}>Conway B3/S23</span>
         </button>
         <ShareButton />
+        <button
+          ref={soundRef}
+          onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'sound' } }))}
+          className="block ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
+          title="Play the colony: each birth is a note"
+        >
+          sound: off
+        </button>
         <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute/70 pointer-events-none">
-          <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
+          <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>M</Key> sound <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
         </div>
       </div>
     </>

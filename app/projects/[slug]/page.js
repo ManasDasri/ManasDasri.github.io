@@ -39,14 +39,17 @@ export default function ProjectPage({ params }) {
             ← all projects
           </a>
           <div className="flex items-center gap-5 mt-8 mb-4">
-            <Sigil pattern={p.pattern} playing />
+            <Sigil pattern={p.pattern} playing name={`sigil-${p.slug}`} />
             {p.statusUrl ? (
               <LiveStatus url={p.statusUrl} label={p.status} />
             ) : (
               <span className="font-mono text-xs text-mute">{p.status}</span>
             )}
           </div>
-          <h1 className="rise font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)]">
+          <h1
+            className="rise font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)] w-fit"
+            style={{ viewTransitionName: `project-${p.slug}` }}
+          >
             {p.name}
           </h1>
           {p.tagline && <p className="font-head text-xl sm:text-2xl text-text mt-4">{p.tagline}</p>}
@@ -107,7 +110,10 @@ export default function ProjectPage({ params }) {
           className="group block px-6 sm:px-9 py-14 border-t border-line/60 no-underline"
         >
           <span className="font-mono text-xs text-mute">next project</span>
-          <span className="block font-head text-4xl font-extrabold tracking-tight text-text group-hover:text-signal transition-colors mt-1">
+          <span
+            className="block w-fit font-head text-4xl font-extrabold tracking-tight text-text group-hover:text-signal transition-colors mt-1"
+            style={{ viewTransitionName: `project-${next.slug}` }}
+          >
             {next.name}
           </span>
         </a>

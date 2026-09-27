@@ -188,3 +188,16 @@ body {
 .post-body code { font-size: 0.9em; background: #0F2C35; border: 1px solid #16404A; border-radius: 4px; padding: 0.1em 0.35em; }
 .post-body pre { background: #0A222A; border: 1px solid #16404A; border-radius: 8px; padding: 1rem 1.25rem; overflow-x: auto; }
 .post-body pre code { background: none; border: 0; padding: 0; }
+
+/* cross-page transitions: matching view-transition-names morph between pages
+   (project names and badges, post titles, the dock). Browsers without support
+   just navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+::view-transition-group(*) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* the morph is the entrance, so skip the load-in animation during one */
+html:active-view-transition .rise { animation: none; }
