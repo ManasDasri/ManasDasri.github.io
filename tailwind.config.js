@@ -7,15 +7,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: '#0F1226',
-        paper: '#161A33',
-        raised: '#1D2242',
-        line: '#2A3060',
-        text: '#ECE8DF',
-        mute: '#8F95BC',
-        signal: '#FFC857',
-        accent: '#9D7BFF',
-        coral: '#FF6B57',
+        ink: '#041419',
+        paper: '#0A222A',
+        raised: '#0F2C35',
+        line: '#16404A',
+        text: '#E6F4F1',
+        mute: '#86A9AC',
+        signal: '#7CF5E4',
+        accent: '#FF7A6B', // coral: tags and secondary highlights
+        // cell age ramp: born (signal) → mature → old
+        mature: '#2BB3B1',
+        old: '#1F5F8B',
       },
       fontFamily: {
         head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],

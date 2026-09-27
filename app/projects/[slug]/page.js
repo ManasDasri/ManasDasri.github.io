@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation';
 import { projects } from '@/lib/data';
-import TopNav from '@/components/TopNav';
+import Dock from '@/components/Dock';
 import Section from '@/components/Section';
 import Sigil from '@/components/Sigil';
 import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
+import LiveStatus from '@/components/LiveStatus';
 import CommandPalette from '@/components/CommandPalette';
 
 const detailed = projects.filter((p) => p.slug);
@@ -31,15 +32,19 @@ export default function ProjectPage({ params }) {
 
   return (
     <>
-      <TopNav solid />
-      <main className="max-w-5xl mx-auto border-x border-line/60 relative pt-12">
+      <Dock />
+      <main className="max-w-5xl mx-auto border-x border-line/60 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
           <a href="/#building" className="font-mono text-xs text-mute hover:text-signal">
             ← all projects
           </a>
           <div className="flex items-center gap-5 mt-8 mb-4">
             <Sigil pattern={p.pattern} playing />
-            <span className="font-mono text-xs text-signal">{p.status}</span>
+            {p.statusUrl ? (
+              <LiveStatus url={p.statusUrl} label={p.status} />
+            ) : (
+              <span className="font-mono text-xs text-mute">{p.status}</span>
+            )}
           </div>
           <h1 className="rise font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)]">
             {p.name}

@@ -1,6 +1,6 @@
 // Layered architecture sketch: each layer feeds the one below it.
 // Layers take the cell colours in order (new → maturing → old).
-const TONES = ['border-l-signal', 'border-l-coral', 'border-l-accent'];
+const TONES = ['border-l-signal', 'border-l-mature', 'border-l-old'];
 
 export default function Diagram({ layers }) {
   return (

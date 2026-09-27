@@ -1,5 +1,5 @@
 import HeroBanner from '@/components/HeroBanner';
-import TopNav from '@/components/TopNav';
+import Dock from '@/components/Dock';
 import Hero from '@/components/Hero';
 import Building from '@/components/Building';
 import Now from '@/components/Now';
@@ -17,7 +17,7 @@ export default async function Home() {
 
   return (
     <>
-      <TopNav />
+      <Dock />
       <HeroBanner />
       <main className="max-w-5xl mx-auto border-x border-line/60 relative">
         <Hero />

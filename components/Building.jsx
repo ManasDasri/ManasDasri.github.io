@@ -6,6 +6,7 @@ import { SpotlightCard } from './Effects';
 import Section from './Section';
 import Sigil from './Sigil';
 import SproutTerminal from './SproutTerminal';
+import LiveStatus from './LiveStatus';
 
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 
@@ -49,7 +50,9 @@ function Featured({ p }) {
               <a href={`https://github.com/${p.repo}/releases`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-ink bg-signal rounded px-1.5 py-0.5 no-underline hover:brightness-110">
                 {version}
               </a>
-              <span className="font-mono text-xs text-signal ml-auto">{p.status}</span>
+              <span className="ml-auto">
+                <LiveStatus url={p.statusUrl} label={p.status} />
+              </span>
             </div>
             <p className="font-head text-lg text-text mt-1">{p.tagline}</p>
           </div>
@@ -79,15 +82,11 @@ function Project({ p }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
           <h3 className="font-head text-2xl font-bold tracking-tight">{p.name}</h3>
-          <span className={`font-mono text-xs flex items-center gap-2 ${p.active ? 'text-signal' : 'text-mute'}`}>
-            {p.active && (
-              <span className="relative flex w-2 h-2">
-                <span className="absolute inset-0 rounded-full bg-signal animate-ping opacity-60" />
-                <span className="relative w-2 h-2 rounded-full bg-signal" />
-              </span>
-            )}
-            {p.status}
-          </span>
+          {p.statusUrl ? (
+            <LiveStatus url={p.statusUrl} label={p.status} />
+          ) : (
+            <span className="font-mono text-xs text-mute">{p.status}</span>
+          )}
         </div>
         <p className="text-mute text-sm leading-relaxed mb-4 max-w-[62ch]">{p.description}</p>
         <div className="flex flex-wrap items-center gap-2">
