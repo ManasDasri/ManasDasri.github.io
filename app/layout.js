@@ -5,7 +5,7 @@ const description =
   'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
 
 export const metadata = {
-  metadataBase: new URL('https://algorithmicbit.tech'),
+  metadataBase: new URL('https://www.algorithmicbit.tech'), // canonical host; the bare domain 301s here
   title: 'Manas Dasari',
   description,
   openGraph: { title: 'Manas Dasari', description, url: '/', siteName: 'Manas Dasari', type: 'website' },
