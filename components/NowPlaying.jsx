@@ -59,9 +59,13 @@ export default function NowPlaying() {
         .catch(() => alive && setSong(null));
     load();
     const t = setInterval(load, POLL_MS);
+    // hidden tabs skip polling; catch up as soon as the tab is looked at
+    const onVisible = () => !document.hidden && load();
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       alive = false;
       clearInterval(t);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 
