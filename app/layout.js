@@ -1,10 +1,15 @@
 import './globals.css';
 import { ScrollProgress } from '@/components/Effects';
 
+const description =
+  'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
+
 export const metadata = {
-  title: 'Manas — Personal Portfolio',
-  description:
-    'Manas — CS undergrad, engineer, fintech enthusiast, artist, and writer. Building Flow and other projects.',
+  metadataBase: new URL('https://algorithmicbit.tech'),
+  title: 'Manas Dasari',
+  description,
+  openGraph: { title: 'Manas Dasari', description, url: '/', siteName: 'Manas Dasari', type: 'website' },
+  twitter: { card: 'summary_large_image', creator: '@ManasDmg9' },
 };
 
 export default function RootLayout({ children }) {

@@ -144,7 +144,14 @@ body {
 .spotlight:hover::before,
 .spotlight:hover::after { opacity: 1; }
 
+/* one-shot entrance for server-rendered elements */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.rise { animation: rise 0.7s cubic-bezier(0.21, 0.47, 0.32, 0.98) both; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
-  .caret { animation: none; }
+  .caret, .rise { animation: none; }
   .spotlight { transition: none; }
 }

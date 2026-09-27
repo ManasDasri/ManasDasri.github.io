@@ -61,6 +61,7 @@ function Featured({ p }) {
         <div className="flex flex-wrap items-center gap-2">
           <Tags tags={p.tags} />
           <span className="ml-auto flex flex-wrap gap-4">
+            <a href={`/projects/${p.slug}/`} className={linkClass}>how it works</a>
             <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>website and docs</a>
             <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener noreferrer" className={linkClass}>source on GitHub</a>
           </span>
@@ -91,16 +92,18 @@ function Project({ p }) {
         <p className="text-mute text-sm leading-relaxed mb-4 max-w-[62ch]">{p.description}</p>
         <div className="flex flex-wrap items-center gap-2">
           <Tags tags={p.tags} />
-          {p.active && (
-            <a
-              href={p.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`ml-auto ${linkClass}`}
-            >
-              {hostOf(p.link)}
-            </a>
-          )}
+          <span className="ml-auto flex flex-wrap gap-4">
+            {p.slug && (
+              <a href={`/projects/${p.slug}/`} className={linkClass}>
+                details
+              </a>
+            )}
+            {p.active && (
+              <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {hostOf(p.link)}
+              </a>
+            )}
+          </span>
         </div>
       </div>
     </div>
