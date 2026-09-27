@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { projects } from '@/lib/data';
-import TopNav from '@/components/TopNav';
+import Dock from '@/components/Dock';
 import Section from '@/components/Section';
 import Sigil from '@/components/Sigil';
 import Diagram from '@/components/Diagram';
@@ -31,8 +31,8 @@ export default function ProjectPage({ params }) {
 
   return (
     <>
-      <TopNav solid />
-      <main className="max-w-5xl mx-auto border-x border-line/60 relative pt-12">
+      <Dock />
+      <main className="max-w-5xl mx-auto border-x border-line/60 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
           <a href="/#building" className="font-mono text-xs text-mute hover:text-signal">
             ← all projects

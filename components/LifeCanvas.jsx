@@ -2,10 +2,14 @@
 
 import { useEffect, useRef } from 'react';
 
-// Conway's Game of Life. It starts as a handful of acorns — 7-cell seeds that
-// grow for thousands of generations — over a thin soup, so the banner visibly
-// sprouts on load. Move the cursor to seed cells, click to launch a glider.
-// Keys while the banner is on screen: P pauses, R reseeds, 1–3 drop a pattern where the cursor last was.
+// Life-like cellular automaton. It starts as a handful of acorns — 7-cell seeds
+// that grow for thousands of generations — over a thin soup, so the banner
+// visibly sprouts on load. Move the cursor to seed cells, click to launch a glider.
+//
+// Controls, from the keyboard (while the banner is on screen) or from anywhere
+// via window.dispatchEvent(new CustomEvent('life', { detail: { action, value, reply } })):
+//   P pause · R reseed · L next rule · 1 glider gun · 2 pulsar · 3 acorn
+// `reply`, if given, is called with a status snapshot (used by the terminal).
 const TICK_MS = 110;
 const ACORN = [[1, 0], [3, 1], [0, 2], [1, 2], [4, 2], [5, 2], [6, 2]];
 const GLIDER = [[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]];
@@ -14,7 +18,17 @@ const GUN = [[24,0],[22,1],[24,1],[12,2],[13,2],[20,2],[21,2],[34,2],[35,2],[11,
 // Pulsar: period-3 oscillator, built from its four mirrored arms
 const PULSAR = [];
 for (const a of [0, 5, 7, 12]) for (const b of [2, 3, 4, 8, 9, 10]) PULSAR.push([b, a], [a, b]);
-const PATTERNS = { 1: GUN, 2: PULSAR, 3: ACORN };
+export const SHAPES = { gun: GUN, pulsar: PULSAR, acorn: ACORN, glider: GLIDER };
+const KEY_SHAPES = { 1: 'gun', 2: 'pulsar', 3: 'acorn' };
+
+// B = neighbour counts that give birth, S = counts that let a cell survive
+export const RULES = {
+  conway: { name: 'Conway', b: [3], s: [2, 3] },
+  highlife: { name: 'HighLife', b: [3, 6], s: [2, 3] },
+  daynight: { name: 'Day & Night', b: [3, 6, 7, 8], s: [3, 4, 6, 7, 8] },
+  seeds: { name: 'Seeds', b: [2], s: [] },
+};
+export const ruleCode = (r) => `B${r.b.join('')}/S${r.s.join('')}`;
 const HEAT = ['#FFC857', '#FF6B57', '#9D7BFF']; // born → maturing → old
 
 const Key = ({ children }) => (
@@ -24,17 +38,26 @@ const Key = ({ children }) => (
 export default function LifeCanvas() {
   const canvasRef = useRef(null);
   const statsRef = useRef(null);
+  const ruleRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const host = canvas.parentElement;
     const ctx = canvas.getContext('2d');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let cell, cols = 0, rows = 0, grid, age, gen = 0, raf, last = 0, onScreen = true;
-    let paused = false, lastCell = null;
+    let cell, cols = 0, rows = 0, grid, age, gen = 0, pop = 0, raf, last = 0, onScreen = true;
+    let paused = false, lastCell = null, ruleKey = 'conway', born, survive;
 
     const idx = (x, y) => ((y + rows) % rows) * cols + ((x + cols) % cols);
     const stamp = (shape, x, y) => shape.forEach(([dx, dy]) => (grid[idx(x + dx, y + dy)] = 1));
+
+    function setRule(key) {
+      ruleKey = key;
+      const r = RULES[key];
+      born = Array.from({ length: 9 }, (_, n) => r.b.includes(n));
+      survive = Array.from({ length: 9 }, (_, n) => r.s.includes(n));
+      if (ruleRef.current) ruleRef.current.textContent = `${r.name} ${ruleCode(r)}`;
+    }
 
     function seed() {
       grid = new Uint8Array(cols * rows).map(() => (Math.random() < 0.035 ? 1 : 0));
@@ -42,6 +65,13 @@ export default function LifeCanvas() {
       const acorns = Math.max(4, Math.round((cols * rows) / 900));
       for (let k = 0; k < acorns; k++) stamp(ACORN, (Math.random() * cols) | 0, (Math.random() * rows) | 0);
       gen = 0;
+    }
+
+    function drop(name) {
+      const shape = SHAPES[name];
+      const w = Math.max(...shape.map(([x]) => x)), h = Math.max(...shape.map(([, y]) => y));
+      const [x, y] = lastCell ?? [cols >> 1, rows >> 1];
+      stamp(shape, x - (w >> 1), y - (h >> 1));
     }
 
     function resize() {
@@ -61,14 +91,14 @@ export default function LifeCanvas() {
 
     function step() {
       const next = new Uint8Array(cols * rows);
-      let pop = 0;
+      pop = 0;
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           let n = 0;
           for (let dy = -1; dy <= 1; dy++)
             for (let dx = -1; dx <= 1; dx++) if (dx || dy) n += grid[idx(x + dx, y + dy)];
           const i = y * cols + x;
-          if (n === 3 || (n === 2 && grid[i])) {
+          if (grid[i] ? survive[n] : born[n]) {
             next[i] = 1;
             age[i] = Math.min(age[i] + 1, 60);
             pop++;
@@ -80,12 +110,26 @@ export default function LifeCanvas() {
       // colony settled into still lifes → plant a fresh acorn
       if (gen % 150 === 0 || pop < grid.length * 0.02)
         stamp(ACORN, (Math.random() * cols) | 0, (Math.random() * rows) | 0);
-      showStats(pop);
+      showStats();
     }
 
-    function showStats(pop = grid.reduce((a, b) => a + b, 0)) {
+    function showStats() {
       if (statsRef.current)
         statsRef.current.textContent = `${paused ? 'paused · ' : ''}generation ${gen} · ${pop} alive`;
+    }
+
+    // ASCII view of the busiest w×h window of the grid, for the terminal
+    function snapshot(w = 48, h = 10) {
+      let x0 = 0, y0 = 0, best = -1;
+      for (let y = 0; y < rows; y += 2)
+        for (let x = 0; x < cols; x += 4) {
+          let n = 0;
+          for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) n += grid[idx(x + dx, y + dy)];
+          if (n > best) (best = n), (x0 = x), (y0 = y);
+        }
+      return Array.from({ length: h }, (_, y) =>
+        Array.from({ length: w }, (_, x) => (grid[idx(x0 + x, y0 + y)] ? '■' : '·')).join('')
+      );
     }
 
     function draw() {
@@ -110,6 +154,19 @@ export default function LifeCanvas() {
       draw();
     }
 
+    // one entry point for keys, the rule button, the terminal and the palette
+    function control({ action, value, reply }) {
+      if (action === 'pause') paused = value ?? !paused;
+      else if (action === 'reseed') seed();
+      else if (action === 'rule') {
+        const keys = Object.keys(RULES);
+        setRule(RULES[value] ? value : keys[(keys.indexOf(ruleKey) + 1) % keys.length]);
+      } else if (action === 'drop' && SHAPES[value]) drop(value);
+      draw();
+      showStats();
+      reply?.({ gen, pop, paused, rule: ruleKey, grid: snapshot() });
+    }
+
     function cellAt(e) {
       const r = host.getBoundingClientRect();
       return [((e.clientX - r.left) / cell) | 0, ((e.clientY - r.top) / cell) | 0];
@@ -121,6 +178,7 @@ export default function LifeCanvas() {
         grid[idx(x + ((Math.random() * 3) | 0) - 1, y + ((Math.random() * 3) | 0) - 1)] = 1;
     }
     function onClick(e) {
+      if (e.target.closest('button')) return;
       const [x, y] = cellAt(e);
       stamp(GLIDER, x, y);
       draw();
@@ -130,23 +188,22 @@ export default function LifeCanvas() {
       if (!onScreen || e.metaKey || e.ctrlKey || e.altKey) return;
       if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName)) return;
       const k = e.key.toLowerCase();
-      if (k === 'p') {
-        paused = !paused;
-      } else if (k === 'r') {
-        seed();
-      } else if (PATTERNS[k]) {
-        const shape = PATTERNS[k];
-        const w = Math.max(...shape.map(([x]) => x)), h = Math.max(...shape.map(([, y]) => y));
-        const [x, y] = lastCell ?? [(cols - w) >> 1, (rows - h) >> 1];
-        stamp(shape, x - (w >> 1), y - (h >> 1));
-      } else return;
-      draw();
-      showStats();
+      if (k === 'p') control({ action: 'pause' });
+      else if (k === 'r') control({ action: 'reseed' });
+      else if (k === 'l') control({ action: 'rule' });
+      else if (KEY_SHAPES[k]) control({ action: 'drop', value: KEY_SHAPES[k] });
     }
+    const onLife = (e) => control(e.detail);
 
+    setRule('conway');
     resize();
     window.addEventListener('resize', resize);
-    if (reduce) return () => window.removeEventListener('resize', resize);
+    window.addEventListener('life', onLife);
+    if (reduce)
+      return () => {
+        window.removeEventListener('resize', resize);
+        window.removeEventListener('life', onLife);
+      };
 
     const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
     io.observe(host);
@@ -159,6 +216,7 @@ export default function LifeCanvas() {
       cancelAnimationFrame(raf);
       io.disconnect();
       window.removeEventListener('resize', resize);
+      window.removeEventListener('life', onLife);
       host.removeEventListener('pointermove', onMove);
       host.removeEventListener('click', onClick);
       window.removeEventListener('keydown', onKey);
@@ -168,11 +226,17 @@ export default function LifeCanvas() {
   return (
     <>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
-      <div className="absolute top-16 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right pointer-events-none select-none">
-        <div ref={statsRef}>generation 0 · 0 alive</div>
-        <div className="hidden sm:block text-mute/70">move to seed cells, click to launch a glider</div>
-        <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute/70">
-          <Key>P</Key> pause <Key>R</Key> reseed <Key>1</Key> glider gun <Key>2</Key> pulsar <Key>3</Key> acorn
+      <div className="absolute top-4 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right select-none">
+        <div ref={statsRef} className="pointer-events-none">generation 0 · 0 alive</div>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'rule' } }))}
+          className="text-signal hover:underline underline-offset-4"
+          title="Switch to the next rule"
+        >
+          rule: <span ref={ruleRef}>Conway B3/S23</span>
+        </button>
+        <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute/70 pointer-events-none">
+          <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
         </div>
       </div>
     </>
