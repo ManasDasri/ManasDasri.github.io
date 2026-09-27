@@ -26,7 +26,10 @@ export default function CommandPalette() {
 
   function runCommand(cmd) {
     setOpen(false);
-    if (cmd.terminal) {
+    if (cmd.life) {
+      window.dispatchEvent(new CustomEvent('life', { detail: cmd.life }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (cmd.terminal) {
       document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       window.dispatchEvent(new CustomEvent('terminal-run', { detail: cmd.terminal }));
     } else if (cmd.href?.startsWith('/')) {
