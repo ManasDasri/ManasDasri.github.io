@@ -16,6 +16,7 @@ The portfolio itself is static (GitHub Pages), so the Spotify credentials live h
    ```
 
    Open the link it prints, log in, approve. The terminal prints your refresh token once.
+   Add `--save-to-vercel` (after `vercel link` in step 3) to send it straight to Vercel without printing it.
    The only scopes requested are `user-read-currently-playing` and `user-read-recently-played`.
 
 3. **Deploy.** In Vercel, import this repo as a new project and set **Root Directory** to `now-playing`.
