@@ -24,6 +24,12 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-body">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-signal focus:px-4 focus:py-2 focus:font-mono focus:text-sm focus:text-ink"
+        >
+          Skip to content
+        </a>
         <ScrollProgress />
         <div className="grain" />
         {children}

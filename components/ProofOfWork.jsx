@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Section from './Section';
+import OpenSource from './OpenSource';
 
 // No token needed — GitHub's REST search API works unauthenticated for
 // public data. Rate limit is lower (10 req/min per IP vs ~30 authenticated),
@@ -51,6 +52,7 @@ export default function ProofOfWork() {
 
   return (
     <Section id="proof-of-work" title="Proof of work" note="my pull requests, live from GitHub">
+      <OpenSource />
       <div className="flex mb-5">
 
         <div className="flex gap-1 p-1 rounded-lg border border-line bg-paper">

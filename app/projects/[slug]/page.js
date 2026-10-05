@@ -33,7 +33,7 @@ export default function ProjectPage({ params }) {
   return (
     <>
       <Dock />
-      <main className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
           <a href="/#building" className="font-mono text-xs text-mute hover:text-signal">
             ← all projects
