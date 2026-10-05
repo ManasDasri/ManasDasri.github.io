@@ -32,7 +32,7 @@ export default function PostPage({ params }) {
   return (
     <>
       <Dock />
-      <main className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
           <a href="/#writing" className="font-mono text-xs text-mute hover:text-signal">
             ← all writing
