@@ -44,6 +44,8 @@ const HELP = [
   'ls                 my projects',
   'open <project>     project details, e.g. open flow',
   'life               control the Game of Life up top',
+  'neofetch           what this site runs on',
+  'startx             boot the desktop',
   'whoami, contact, clear',
 ];
 const SUGGESTIONS = ['sprout --entry', 'life', 'life rule highlife', 'ls', 'help'];
@@ -83,6 +85,28 @@ function life(args) {
   ];
 }
 
+const inDesktop = () => typeof document !== 'undefined' && document.documentElement.dataset.desktop === 'on';
+
+// the obligatory ricer screenshot, with real values from the site
+function neofetch() {
+  const days = Math.floor((Date.now() - new Date('2026-01-01')) / 86400000);
+  const logo = ['  ·■·  ', '  ··■  ', '  ■■■  ', '       ', ' glider'];
+  const info = [
+    'manas@algorithmicbit',
+    '────────────────────',
+    'OS: algorithmicbit.tech',
+    'Host: GitHub Pages',
+    'Kernel: Next.js 14 (static export)',
+    'Shell: sprout-term',
+    `DE: Plasma (simulated)${inDesktop() ? '' : ', try startx'}`,
+    'WM: Life B3/S23',
+    'Theme: Bioluminescent',
+    `Uptime: coding for ${days} days`,
+    `Projects: ${projects.length}`,
+  ];
+  return info.map((line, i) => `${(logo[i] ?? '').padEnd(10)}${line}`);
+}
+
 function run(input) {
   const [cmd, ...args] = input.trim().split(/\s+/);
   const rest = args.join(' ');
@@ -109,6 +133,17 @@ function run(input) {
     }
     case 'life':
       return life(args);
+    case 'neofetch':
+      return neofetch();
+    case 'startx':
+      if (inDesktop()) return ['a desktop is already running.'];
+      setTimeout(() => window.dispatchEvent(new Event('startx')), 300);
+      return ['starting Plasma…'];
+    case 'exit':
+    case 'logout':
+      if (!inDesktop()) return ['nothing to exit. Try: startx'];
+      setTimeout(() => window.dispatchEvent(new Event('desktop-exit')), 200);
+      return ['logging out…'];
     case 'whoami':
       return ['Manas Dasari: engineer, fintech enthusiast, artist, writer'];
     case 'contact':
@@ -128,7 +163,9 @@ function lineClass(l) {
   return 'text-mute';
 }
 
-export default function SproutTerminal() {
+// `embedded` is the copy inside the desktop: no page-level id, no auto-run,
+// and it doesn't take commands meant for the page's terminal.
+export default function SproutTerminal({ embedded = false }) {
   const ref = useRef(null);
   const bodyRef = useRef(null);
   const inputRef = useRef(null);
@@ -170,6 +207,10 @@ export default function SproutTerminal() {
 
   // first time on screen: run the tree so it looks alive
   useEffect(() => {
+    if (embedded) {
+      type('neofetch');
+      return;
+    }
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
@@ -215,7 +256,7 @@ export default function SproutTerminal() {
   const prompt = <span className="text-signal select-none">❯ </span>;
 
   return (
-    <div id="terminal" ref={ref}>
+    <div id={embedded ? undefined : 'terminal'} ref={ref}>
       <div className="rounded-lg border border-line bg-ink overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-2 border-b border-line bg-raised/60">
           <span className="flex gap-1.5" aria-hidden="true">

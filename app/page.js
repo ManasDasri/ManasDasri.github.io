@@ -11,6 +11,8 @@ import Writing from '@/components/Writing';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
+import { getPosts } from '@/lib/posts';
+import Desktop from '@/components/desktop/Desktop';
 
 export default async function Home() {
   const leetcode = await getLeetCodeStats('ManasDasari');
@@ -33,6 +35,7 @@ export default async function Home() {
         <Footer />
         <CommandPalette />
       </main>
+      <Desktop posts={getPosts().map(({ slug, title, date, readMins }) => ({ slug, title, date, readMins }))} />
     </>
   );
 }

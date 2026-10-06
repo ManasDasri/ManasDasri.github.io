@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
-// Projects I've landed code in that I don't own, live from GitHub search.
-// Only merged and still-open PRs count; closed-unmerged ones are left out.
+// Projects I've opened PRs on that I don't own, live from GitHub search.
+// Each repo shows merged / in-review / closed counts, so nothing overclaims.
 const USER = 'ManasDasri';
 const OWN = ['ManasDasri', 'Sprout-DevLabs', 'FieldLensAI']; // my own accounts and orgs
 
@@ -18,11 +18,12 @@ export default function OpenSource() {
         const byRepo = {};
         for (const pr of items) {
           const name = pr.repository_url.split('/repos/')[1];
-          const r = (byRepo[name] ??= { name, merged: 0, open: 0 });
+          const r = (byRepo[name] ??= { name, merged: 0, open: 0, closed: 0 });
           if (pr.pull_request?.merged_at) r.merged++;
           else if (pr.state === 'open') r.open++;
+          else r.closed++;
         }
-        setRepos(Object.values(byRepo).filter((r) => r.merged || r.open).sort((a, b) => b.merged - a.merged || b.open - a.open));
+        setRepos(Object.values(byRepo).sort((a, b) => b.merged - a.merged || b.open - a.open || b.closed - a.closed));
       })
       .catch(() => setRepos([]));
   }, []);
@@ -50,7 +51,9 @@ export default function OpenSource() {
                     {name}
                   </span>
                   <span className="block font-mono text-xs text-mute">
-                    {[r.merged && `${r.merged} merged`, r.open && `${r.open} in review`].filter(Boolean).join(' · ')}
+                    {[r.merged && `${r.merged} merged`, r.open && `${r.open} in review`, r.closed && `${r.closed} closed`]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                 </span>
               </a>
