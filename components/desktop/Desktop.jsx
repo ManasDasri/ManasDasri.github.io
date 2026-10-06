@@ -7,6 +7,7 @@ import { getWeather } from '@/lib/weather';
 import SproutTerminal from '../SproutTerminal';
 import Sigil from '../Sigil';
 import MiniLife from './MiniLife';
+import { BitLoader } from '../Bits';
 
 // `startx` boots this: a Plasma-style desktop over the page, with a launcher,
 // a taskbar, a system tray and draggable windows for a few small apps.
@@ -267,7 +268,7 @@ export default function Desktop({ posts }) {
         <div className="scale-150">
           <Sigil pattern="glider" playing />
         </div>
-        <p className="font-mono text-xs text-mute">starting Plasma…</p>
+        <BitLoader label="starting Plasma…" />
       </div>
     );
 

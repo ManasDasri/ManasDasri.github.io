@@ -51,7 +51,7 @@ export default function ProofOfWork() {
   const visible = prs.slice(0, showAll ? prs.length : INITIAL_COUNT);
 
   return (
-    <Section id="proof-of-work" title="Proof of work" note="my pull requests, live from GitHub">
+    <Section id="proof-of-work" index={7} title="Proof of work" note="my pull requests, live from GitHub">
       <OpenSource />
       <div className="flex mb-5">
 

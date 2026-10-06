@@ -3,7 +3,7 @@ import Section from './Section';
 
 export default function Now() {
   return (
-    <Section id="now" title="Now" note="what's on my plate this semester">
+    <Section id="now" index={2} title="Now" note="what's on my plate this semester">
       <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
         {now.map((group) => (
           <div key={group.label}>

@@ -5,7 +5,7 @@ const fmt = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { mont
 
 export default function Writing() {
   return (
-    <Section id="writing" title="Writing">
+    <Section id="writing" index={8} title="Writing">
       <ul className="list-none p-0 m-0">
         {getPosts().map((post) => (
           <li key={post.slug} className="py-4 first:pt-0 border-b border-line">
