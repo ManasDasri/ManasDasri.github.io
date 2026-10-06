@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { decode, shareColony } from '@/lib/lifeShare';
 import { createSynth } from '@/lib/lifeSound';
+import { getWeather } from '@/lib/weather';
 
 // Life-like cellular automaton. It starts as a handful of acorns — 7-cell seeds
 // that grow for thousands of generations — over a thin soup, so the banner
@@ -57,6 +58,7 @@ export default function LifeCanvas() {
   const statsRef = useRef(null);
   const ruleRef = useRef(null);
   const soundRef = useRef(null);
+  const weatherRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -67,6 +69,9 @@ export default function LifeCanvas() {
     let paused = false, lastCell = null, ruleKey = 'conway', born, survive, shared = false;
     let synth = null, soundOn = false; // synth is created on the first toggle (needs a user gesture)
     const NOTES_PER_GEN = 3;
+    // live Bengaluru weather: rain seeds cells, heat sets the pace, night dims,
+    // thunderstorms strike lightning
+    let tickMs = TICK_MS, dim = 1, raindrops = 0, storm = false, flashUntil = 0, lastStrike = 0;
 
     const idx = (x, y) => ((y + rows) % rows) * cols + ((x + cols) % cols);
     const stamp = (shape, x, y) => shape.forEach(([dx, dy]) => (grid[idx(x + dx, y + dy)] = 1));
@@ -135,6 +140,7 @@ export default function LifeCanvas() {
       }
       grid = next;
       gen++;
+      for (let k = 0; k < raindrops; k++) grid[(Math.random() * grid.length) | 0] = 1;
       // colony settled into still lifes → plant a fresh acorn
       if (gen % 150 === 0 || pop < grid.length * 0.02)
         stamp(ACORN, (Math.random() * cols) | 0, (Math.random() * rows) | 0);
@@ -185,12 +191,56 @@ export default function LifeCanvas() {
         else (ctx.fillStyle = HEAT[2]), (ctx.globalAlpha = Math.max(0.4, 0.8 - a * 0.008));
         ctx.fillRect((i % cols) * cell, ((i / cols) | 0) * cell, s, s);
       }
+      if (dim < 1) {
+        ctx.fillStyle = '#041419';
+        ctx.globalAlpha = 1 - dim;
+        ctx.fillRect(0, 0, cols * cell, rows * cell);
+      }
+      if (performance.now() < flashUntil) {
+        ctx.fillStyle = '#E6F4F1';
+        ctx.globalAlpha = 0.12;
+        ctx.fillRect(0, 0, cols * cell, rows * cell);
+      }
       ctx.globalAlpha = 1;
+    }
+
+    // a jagged bolt of live cells from the top edge down, plus a brief flash
+    function lightning() {
+      let x = (Math.random() * cols) | 0;
+      for (let y = 0; y < rows; y++) {
+        x += ((Math.random() * 3) | 0) - 1;
+        grid[idx(x, y)] = 1;
+        grid[idx(x + 1, y)] = 1;
+      }
+      flashUntil = performance.now() + 140;
+    }
+
+    function applyWeather(w) {
+      if (!w) return;
+      tickMs = Math.min(170, Math.max(70, TICK_MS - (w.temp - 24) * 5));
+      dim = w.night ? 0.65 : 1;
+      raindrops = w.rain ? Math.min(20, Math.max(2, Math.round(2 + w.precip * 15))) : 0;
+      storm = w.storm;
+      const effects = [
+        w.storm ? 'watch for lightning' : w.rain && 'rain is seeding cells',
+        w.temp >= 30 ? 'the heat speeds it up' : w.temp <= 20 && 'the cool slows it down',
+        w.night && 'dimmed for the night',
+      ].filter(Boolean);
+      if (weatherRef.current)
+        weatherRef.current.textContent = `Bengaluru ${Math.round(w.temp)}°C, ${w.text}${w.night ? ' night' : ''}${
+          effects.length ? ` · ${effects.join(', ')}` : ''
+        }`;
     }
 
     function loop(t) {
       raf = requestAnimationFrame(loop);
-      if (paused || !onScreen || document.hidden || t - last < TICK_MS) return;
+      if (paused || !onScreen || document.hidden) return;
+      if (storm && t - lastStrike > 6000 && Math.random() < 0.01) {
+        lastStrike = t;
+        lightning();
+        draw();
+      }
+      if (t - last < tickMs) return;
       last = t;
       step();
       draw();
@@ -241,7 +291,7 @@ export default function LifeCanvas() {
     }
     function onKey(e) {
       const t = e.target;
-      if (!onScreen || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!onScreen || e.metaKey || e.ctrlKey || e.altKey || document.documentElement.dataset.desktop) return;
       if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName)) return;
       const k = e.key.toLowerCase();
       if (k === 'p') control({ action: 'pause' });
@@ -254,6 +304,9 @@ export default function LifeCanvas() {
 
     setRule('conway');
     resize();
+    const loadWeather = () => getWeather().then(applyWeather);
+    loadWeather();
+    const weatherTimer = setInterval(loadWeather, 15 * 60 * 1000);
     // opened from a shared link: load that colony instead of the random soup
     const code = new URLSearchParams(location.search).get('life');
     if (code) decode(code).then((colony) => colony && control({ action: 'import', value: colony }));
@@ -263,6 +316,7 @@ export default function LifeCanvas() {
       return () => {
         window.removeEventListener('resize', resize);
         window.removeEventListener('life', onLife);
+        clearInterval(weatherTimer);
       };
 
     const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
@@ -274,6 +328,7 @@ export default function LifeCanvas() {
 
     return () => {
       synth?.setOn(false);
+      clearInterval(weatherTimer);
       cancelAnimationFrame(raf);
       io.disconnect();
       window.removeEventListener('resize', resize);
@@ -289,6 +344,7 @@ export default function LifeCanvas() {
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
       <div className="absolute top-4 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right select-none">
         <div ref={statsRef} className="pointer-events-none">generation 0 · 0 alive</div>
+        <div ref={weatherRef} className="pointer-events-none text-mute/80 max-w-[60vw] sm:max-w-none" aria-live="polite" />
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'rule' } }))}
           className="text-signal hover:underline underline-offset-4"
