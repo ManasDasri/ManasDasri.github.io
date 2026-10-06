@@ -3,7 +3,7 @@ import Section from './Section';
 
 export default function Skills() {
   return (
-    <Section id="skills" title="Stack">
+    <Section id="skills" index={4} title="Stack">
       <div className="flex flex-col">
         {skills.map((group) => (
           <div key={group.group} className="sm:grid sm:grid-cols-[150px_1fr] gap-4 py-4 border-b border-line/60 first:pt-0 last:border-none">

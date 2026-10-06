@@ -8,6 +8,7 @@ import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
 import ProofOfWork from '@/components/ProofOfWork';
 import Writing from '@/components/Writing';
+import CodeArt from '@/components/CodeArt';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
@@ -29,6 +30,7 @@ export default async function Home() {
         <Log />
         <Skills />
         <GithubActivity leetcode={leetcode} />
+        <CodeArt />
         <ProofOfWork />
         <Writing />
 

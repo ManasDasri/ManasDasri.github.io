@@ -8,7 +8,7 @@ const fmt = (d) =>
 
 export default function Log() {
   return (
-    <Section id="log" title="Log" note="dated milestones, newest first">
+    <Section id="log" index={3} title="Log" note="dated milestones, newest first">
       <ol className="list-none p-0 m-0 relative">
         <span className="absolute left-[5px] top-2 bottom-2 w-px bg-line" aria-hidden="true" />
         {log.map((e) => {
