@@ -1,6 +1,7 @@
 'use client';
 
-import { cloneElement } from 'react';
+import { cloneElement, useEffect, useState } from 'react';
+import { cssColor } from '@/lib/themes';
 import dynamic from 'next/dynamic';
 import Section from './Section';
 import GithubStats from './GithubStats';
@@ -16,7 +17,6 @@ const MONTHS_TO_SHOW = 8;
 // Both grids share the look of the cells up top.
 const CALENDAR = {
   colorScheme: 'dark',
-  theme: { dark: ['#0B2A31', '#12505A', '#1F8C8C', '#2BB3B1', '#7CF5E4'] },
   fontSize: 12,
   blockSize: 11,
   blockMargin: 4,
@@ -61,6 +61,7 @@ const panel = 'rounded-xl border border-line bg-paper p-5 sm:p-6';
 const grid = 'flex justify-center overflow-x-auto mt-6';
 
 function LeetCodePanel({ stats }) {
+  const theme = useCalendarTheme(); // before any early return (rules of hooks)
   if (!stats?.all && stats?.all !== 0) return null;
   return (
     <div className={`${panel} mt-5`}>
@@ -87,6 +88,7 @@ function LeetCodePanel({ stats }) {
       <div className={grid}>
         <ActivityCalendar
           {...CALENDAR}
+            theme={theme ?? undefined}
           data={stats.days}
           labels={{ ...CALENDAR.labels, totalCount: '{{count}} submissions in the last 8 months' }}
           renderBlock={withTooltip('submission')}
@@ -96,7 +98,21 @@ function LeetCodePanel({ stats }) {
   );
 }
 
+// the calendar library needs real colour values, so read the theme's and re-read on change
+function useCalendarTheme() {
+  const read = () => ({ dark: [cssColor('raised'), cssColor('old'), cssColor('mature'), cssColor('signal', 0.7), cssColor('signal')] });
+  const [theme, setTheme] = useState(null);
+  useEffect(() => {
+    const update = () => setTheme(read());
+    update();
+    window.addEventListener('theme-change', update);
+    return () => window.removeEventListener('theme-change', update);
+  }, []);
+  return theme;
+}
+
 export default function GithubActivity({ leetcode }) {
+  const theme = useCalendarTheme();
   return (
     <Section id="activity" index={5} title="Activity" note="GitHub live; LeetCode as of the last daily build">
       <div className={panel}>
@@ -105,6 +121,7 @@ export default function GithubActivity({ leetcode }) {
         <div className={grid}>
           <GitHubCalendar
             {...CALENDAR}
+            theme={theme ?? undefined}
             username={GITHUB_USERNAME}
             transformData={filterToRecentMonths}
             renderBlock={withTooltip('contribution')}
@@ -115,9 +132,9 @@ export default function GithubActivity({ leetcode }) {
       <Tooltip
         id="activity-tooltip"
         style={{
-          backgroundColor: '#0A222A',
-          color: '#E6F4F1',
-          border: '1px solid #16404A',
+          backgroundColor: 'rgb(var(--c-paper))',
+          color: 'rgb(var(--c-text))',
+          border: '1px solid rgb(var(--c-line))',
           borderRadius: '8px',
           fontSize: '12px',
           padding: '6px 10px',

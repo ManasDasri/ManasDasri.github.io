@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { cssColor } from '@/lib/themes';
 
 // First load of a visit: a field of LED dots switches on in a diagonal sweep,
 // then the overlay fades (the fade is pure CSS, so it clears even without JS).
@@ -20,6 +21,8 @@ export default function Entrance() {
     canvas.height = h * dpr;
     ctx.scale(dpr, dpr);
     const cols = Math.ceil(w / PITCH), rows = Math.ceil(h / PITCH);
+    const UNLIT = cssColor('raised');
+    const SIGNAL = cssColor('signal').slice(4, -1); // "R G B", read once rather than per dot
     let raf, start;
     const frame = (t) => {
       start ??= t;
@@ -30,7 +33,7 @@ export default function Entrance() {
           const d = (x / cols + y / rows) / 2; // 0 top-left → 1 bottom-right
           const lit = Math.max(0, Math.min(1, (p - d) * 6));
           // the wavefront burns bright, then settles to a dim glow behind it
-          ctx.fillStyle = lit > 0 ? `rgba(124,245,228,${0.18 + 0.75 * lit * Math.max(0, 1 - Math.max(0, p - d - 0.12) * 3)})` : '#0B2A31';
+          ctx.fillStyle = lit > 0 ? `rgb(${SIGNAL} / ${0.18 + 0.75 * lit * Math.max(0, 1 - Math.max(0, p - d - 0.12) * 3)})` : UNLIT;
           ctx.fillRect(x * PITCH, y * PITCH, 3, 3);
         }
       if (p < 1.6) raf = requestAnimationFrame(frame);

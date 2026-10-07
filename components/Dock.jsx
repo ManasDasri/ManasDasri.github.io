@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
-import { FiActivity, FiClock, FiCommand, FiCpu, FiFeather, FiGitPullRequest, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { FiActivity, FiClock, FiCommand, FiCpu, FiDroplet, FiFeather, FiGitPullRequest, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { THEMES, THEME_ORDER, readTheme } from '@/lib/themes';
+import { setTheme, themeName } from './Daylight';
 
 const ITEMS = [
   { id: 'top', label: 'Top', icon: FiHome },
@@ -22,7 +24,7 @@ function useLayout() {
   useEffect(() => {
     const wide = window.matchMedia('(min-width: 1280px)');
     const narrow = window.matchMedia('(max-width: 480px)');
-    const update = () => setLayout({ vertical: wide.matches, base: narrow.matches ? 32 : 40 });
+    const update = () => setLayout({ vertical: wide.matches, base: narrow.matches ? 30 : 40 });
     update();
     wide.addEventListener('change', update);
     narrow.addEventListener('change', update);
@@ -79,6 +81,80 @@ function DockItem({ label, icon: Icon, href, onClick, active, mouse, vertical, b
   );
 }
 
+// Opens a menu of colour themes; Auto follows the time of day in Bengaluru.
+function ThemeItem({ common }) {
+  const [theme, setThemeState] = useState('auto');
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const sync = () => setThemeState(readTheme());
+    sync();
+    window.addEventListener('theme-change', sync);
+    return () => window.removeEventListener('theme-change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => (e.key === 'Escape' || (e.type === 'pointerdown' && !ref.current?.contains(e.target))) && setOpen(false);
+    window.addEventListener('keydown', close);
+    window.addEventListener('pointerdown', close);
+    return () => {
+      window.removeEventListener('keydown', close);
+      window.removeEventListener('pointerdown', close);
+    };
+  }, [open]);
+
+  const swatches = (key) => {
+    const t = THEMES[key === 'auto' ? 'bioluminescent' : key];
+    return [t.paper, t.signal, t.mature, t.accent];
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      <DockItem {...common} label={`Theme: ${themeName(theme)}`} icon={FiDroplet} onClick={() => setOpen((o) => !o)} />
+      {open && (
+        <div
+          role="menu"
+          aria-label="Colour theme"
+          className={`absolute z-50 w-56 rounded-xl border border-line bg-paper/95 backdrop-blur-md p-1.5 shadow-2xl ${
+            common.vertical ? 'left-full ml-3 bottom-0' : 'bottom-full mb-3 right-0'
+          }`}
+        >
+          {THEME_ORDER.map((key) => (
+            <button
+              key={key}
+              role="menuitemradio"
+              aria-checked={theme === key}
+              onClick={() => {
+                setTheme(key);
+                setOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                theme === key ? 'bg-raised text-signal' : 'text-text hover:bg-raised'
+              }`}
+            >
+              <span
+                className="flex shrink-0 rounded overflow-hidden ring-1 ring-black/30"
+                // undo the page-wide hue rotation (Auto) so the swatches show each theme's true colours
+                style={{ filter: 'hue-rotate(calc(var(--hue, 0deg) * -1))' }}
+                aria-hidden="true"
+              >
+                {swatches(key).map((c, i) => (
+                  <span key={i} className="w-2.5 h-4" style={{ background: c }} />
+                ))}
+              </span>
+              <span className="flex-1">{themeName(key)}</span>
+              {key === 'auto' && <span className="font-mono text-[10px] text-mute">clock</span>}
+              {theme === key && <span aria-hidden="true">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dock() {
   const { vertical, base } = useLayout();
   const mouse = useMotionValue(Infinity);
@@ -118,6 +194,7 @@ export default function Dock() {
         <DockItem key={item.id} {...item} {...common} href={`/#${item.id}`} active={active === item.id} />
       ))}
       <span className={`bg-line self-center ${vertical ? 'h-px w-6 my-0.5' : 'w-px h-6 mx-0.5'}`} aria-hidden="true" />
+      <ThemeItem common={common} />
       <DockItem
         {...common}
         label="Command palette (⌘K)"

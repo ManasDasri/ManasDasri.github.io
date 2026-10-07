@@ -288,7 +288,7 @@ export default function Desktop({ posts }) {
       className="fixed inset-0 z-[45] overflow-hidden outline-none bg-ink"
       style={{
         backgroundImage:
-          'radial-gradient(ellipse at 20% 15%, rgba(124,245,228,0.16), transparent 55%), radial-gradient(ellipse at 85% 80%, rgba(31,95,139,0.35), transparent 60%), radial-gradient(circle, rgba(124,245,228,0.08) 1px, transparent 1px)',
+          'radial-gradient(ellipse at 20% 15%, rgb(var(--c-signal) / 0.16), transparent 55%), radial-gradient(ellipse at 85% 80%, rgb(var(--c-old) / 0.35), transparent 60%), radial-gradient(circle, rgb(var(--c-signal) / 0.08) 1px, transparent 1px)',
         backgroundSize: 'auto, auto, 18px 18px',
       }}
       onPointerDown={(e) => e.target === e.currentTarget && setLauncher(false)}

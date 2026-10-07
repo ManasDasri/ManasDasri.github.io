@@ -2,35 +2,55 @@
 
 import { useEffect, useState } from 'react';
 import { daylight } from '@/lib/daylight';
+import { THEMES, THEME_ORDER, applyTheme, readTheme } from '@/lib/themes';
 
-// Rotates the whole palette with the time in Bengaluru (see lib/daylight.js).
+// Applies the colour theme. The head script already set it before paint; this
+// keeps 'auto' in step with the clock and reacts to theme changes.
+export function setTheme(theme) {
+  try {
+    localStorage.setItem('theme', theme);
+  } catch {}
+  applyTheme(theme);
+  window.dispatchEvent(new Event('theme-change'));
+}
+
+export const themeName = (key) => (key === 'auto' ? 'Auto' : THEMES[key].name);
+export const nextTheme = (theme) => THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length];
+
 export default function Daylight() {
   useEffect(() => {
-    const apply = () => {
-      const { hue, phase } = daylight();
-      document.documentElement.style.setProperty('--hue', `${hue.toFixed(1)}deg`);
-      document.documentElement.dataset.phase = phase;
-    };
+    const html = document.documentElement;
+    const apply = () => applyTheme(readTheme());
     apply();
-    const t = setInterval(apply, 60000);
+    // only animate changes made after load, so pages never fade in
+    requestAnimationFrame(() => html.classList.add('palette-ready'));
+    const t = setInterval(apply, 60000); // 'auto' drifts with the clock
     return () => clearInterval(t);
   }, []);
   return null;
 }
 
-// "palette · dusk (IST 18:20)" for the footer
+// "palette · dusk (auto, IST 18:20)" or "palette · Dracula" for the footer
 export function DaylightLabel() {
-  const [d, setD] = useState(null);
+  const [state, setState] = useState(null);
   useEffect(() => {
-    const update = () => setD(daylight());
+    const update = () => setState({ theme: readTheme(), ...daylight() });
     update();
     const t = setInterval(update, 60000);
-    return () => clearInterval(t);
+    window.addEventListener('theme-change', update);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener('theme-change', update);
+    };
   }, []);
-  if (!d) return null;
+  if (!state) return null;
   return (
-    <span title="The site's colours follow the time of day in Bengaluru">
-      palette · {d.phase} (IST {d.time})
-    </span>
+    <button
+      onClick={() => setTheme(nextTheme(state.theme))}
+      className="hover:text-signal"
+      title="Change theme. Auto follows the time of day in Bengaluru."
+    >
+      palette · {state.theme === 'auto' ? `${state.phase} (auto, IST ${state.time})` : themeName(state.theme)}
+    </button>
   );
 }

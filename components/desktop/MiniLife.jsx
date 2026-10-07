@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { cssColor } from '@/lib/themes';
 
 // Draw your own colony: click or drag to paint cells, then play it.
 const W = 48, H = 30, CELL = 10, TICK_MS = 110;
@@ -14,11 +15,11 @@ export default function MiniLife() {
 
   const draw = () => {
     const ctx = ref.current.getContext('2d');
-    ctx.fillStyle = '#041419';
+    ctx.fillStyle = cssColor('ink');
     ctx.fillRect(0, 0, W * CELL, H * CELL);
-    ctx.fillStyle = '#0B2A31';
+    ctx.fillStyle = cssColor('raised');
     for (let i = 0; i < W * H; i++) if (!grid.current[i]) ctx.fillRect((i % W) * CELL, ((i / W) | 0) * CELL, CELL - 1, CELL - 1);
-    ctx.fillStyle = '#7CF5E4';
+    ctx.fillStyle = cssColor('signal');
     for (let i = 0; i < W * H; i++) if (grid.current[i]) ctx.fillRect((i % W) * CELL, ((i / W) | 0) * CELL, CELL - 1, CELL - 1);
   };
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { decode, shareColony } from '@/lib/lifeShare';
 import { createSynth } from '@/lib/lifeSound';
 import { getWeather } from '@/lib/weather';
+import { cssColor } from '@/lib/themes';
 
 // Life-like cellular automaton. It starts as a handful of acorns — 7-cell seeds
 // that grow for thousands of generations — over a thin soup, so the banner
@@ -32,7 +33,6 @@ export const RULES = {
   seeds: { name: 'Seeds', b: [2], s: [] },
 };
 export const ruleCode = (r) => `B${r.b.join('')}/S${r.s.join('')}`;
-const HEAT = ['#7CF5E4', '#2BB3B1', '#1F5F8B']; // born → maturing → old
 
 const Key = ({ children }) => (
   <kbd className="font-mono text-[10px] text-text/80 border border-line rounded px-1 mx-0.5">{children}</kbd>
@@ -76,6 +76,10 @@ export default function LifeCanvas() {
     } catch {}
     const glyph = (a) => (a <= 1 ? '@' : a <= 3 ? '#' : a <= 6 ? '+' : a <= 15 ? ':' : '.');
     const NOTES_PER_GEN = 3;
+    // cell age ramp (born → maturing → old) and backdrop, from the active theme
+    let HEAT, INK, TEXT;
+    const loadColours = () => ((HEAT = [cssColor('signal'), cssColor('mature'), cssColor('old')]), (INK = cssColor('ink')), (TEXT = cssColor('text')));
+    loadColours();
     // live Bengaluru weather: rain seeds cells, heat sets the pace, night dims,
     // thunderstorms strike lightning
     let tickMs = TICK_MS, dim = 1, raindrops = 0, storm = false, flashUntil = 0, lastStrike = 0;
@@ -215,12 +219,12 @@ export default function LifeCanvas() {
         else ctx.fillRect(x, y, s, s);
       }
       if (dim < 1) {
-        ctx.fillStyle = '#041419';
+        ctx.fillStyle = INK;
         ctx.globalAlpha = 1 - dim;
         ctx.fillRect(0, 0, cols * cell, rows * cell);
       }
       if (performance.now() < flashUntil) {
-        ctx.fillStyle = '#E6F4F1';
+        ctx.fillStyle = TEXT;
         ctx.globalAlpha = 0.12;
         ctx.fillRect(0, 0, cols * cell, rows * cell);
       }
@@ -326,6 +330,8 @@ export default function LifeCanvas() {
       else if (KEY_SHAPES[k]) control({ action: 'drop', value: KEY_SHAPES[k] });
     }
     const onLife = (e) => control(e.detail);
+    const onTheme = () => (loadColours(), draw());
+    window.addEventListener('theme-change', onTheme);
 
     setRule('conway');
     setView(ascii);
@@ -342,6 +348,7 @@ export default function LifeCanvas() {
       return () => {
         window.removeEventListener('resize', resize);
         window.removeEventListener('life', onLife);
+        window.removeEventListener('theme-change', onTheme);
         clearInterval(weatherTimer);
       };
 
@@ -355,6 +362,7 @@ export default function LifeCanvas() {
     return () => {
       synth?.setOn(false);
       clearInterval(weatherTimer);
+      window.removeEventListener('theme-change', onTheme);
       cancelAnimationFrame(raf);
       io.disconnect();
       window.removeEventListener('resize', resize);

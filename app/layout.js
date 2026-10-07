@@ -2,9 +2,12 @@ import './globals.css';
 import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
 import Entrance from '@/components/Entrance';
+import { THEME_SCRIPT } from '@/lib/themes';
 
-// Runs before paint: the entrance plays once per visit, not on every page.
-const ENTRANCE_ONCE = `try{if(sessionStorage.getItem('entered'))document.documentElement.dataset.entered='1';sessionStorage.setItem('entered','1')}catch(e){}`;
+// Runs before paint: the entrance plays once per visit, not on every page. It hides
+// the overlay with a constructable stylesheet: those live outside the DOM, so React's
+// hydration of <html> can't undo them (a data attribute on <html> got wiped).
+const ENTRANCE_ONCE = `try{if(sessionStorage.getItem('entered')){var s=new CSSStyleSheet();s.replaceSync('.entrance{display:none}');document.adoptedStyleSheets=document.adoptedStyleSheets.concat(s)}sessionStorage.setItem('entered','1')}catch(e){}`;
 
 const description =
   'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
@@ -22,6 +25,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: ENTRANCE_ONCE }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
