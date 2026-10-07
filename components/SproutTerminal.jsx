@@ -166,7 +166,7 @@ function lineClass(l) {
 
 // `embedded` is the copy inside the desktop: no page-level id, no auto-run,
 // and it doesn't take commands meant for the page's terminal.
-export default function SproutTerminal({ embedded = false }) {
+export default function SproutTerminal({ embedded = false, greet = 'neofetch' }) {
   const ref = useRef(null);
   const bodyRef = useRef(null);
   const inputRef = useRef(null);
@@ -209,7 +209,7 @@ export default function SproutTerminal({ embedded = false }) {
   // first time on screen: run the tree so it looks alive
   useEffect(() => {
     if (embedded) {
-      type('neofetch');
+      type(greet);
       return;
     }
     const io = new IntersectionObserver(

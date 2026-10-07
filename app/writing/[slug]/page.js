@@ -4,9 +4,17 @@ import Dock from '@/components/Dock';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import GradientDescent from '@/components/demos/GradientDescent';
+import SproutTerminal from '@/components/SproutTerminal';
 
 // "::demo <name>" in a post renders the matching component
-const DEMOS = { 'gradient-descent': GradientDescent };
+const DEMOS = {
+  'gradient-descent': GradientDescent,
+  'sprout-entry': () => (
+    <div className="not-prose my-8">
+      <SproutTerminal embedded greet="sprout --entry" />
+    </div>
+  ),
+};
 
 const fmt = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
