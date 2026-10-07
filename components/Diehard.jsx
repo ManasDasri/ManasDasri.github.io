@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { cssColor } from '@/lib/themes';
 
 // "Diehard": seven cells that evolve for exactly 130 generations, then vanish.
 // The grid is sized so it never touches an edge (which would change the outcome).
 const W = 40, H = 28, CELL = 9, TICK_MS = 70;
 const SEED = [[6, 0], [0, 1], [1, 1], [1, 2], [5, 2], [6, 2], [7, 2]].map(([x, y]) => [x + 14, y + 5]);
-const HEAT = ['#7CF5E4', '#2BB3B1', '#1F5F8B'];
 
 export default function Diehard() {
   const ref = useRef(null);
@@ -15,6 +15,7 @@ export default function Diehard() {
 
   useEffect(() => {
     const ctx = ref.current.getContext('2d');
+    const HEAT = [cssColor('signal'), cssColor('mature'), cssColor('old')];
     let grid = new Uint8Array(W * H), age = new Uint8Array(W * H), g = 0, t;
     SEED.forEach(([x, y]) => (grid[y * W + x] = 1));
 

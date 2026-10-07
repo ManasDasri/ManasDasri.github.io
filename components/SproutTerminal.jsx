@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { projects } from '@/lib/data';
 import { RULES, SHAPES, ruleCode } from './LifeCanvas';
 import { shareColony } from '@/lib/lifeShare';
-import { THEME_ORDER, readTheme } from '@/lib/daylight';
+import { THEME_ORDER, readTheme } from '@/lib/themes';
 import { setTheme } from './Daylight';
 
 // Real output: sprout 0.2.0 run on this portfolio's own repo.
@@ -48,7 +48,7 @@ const HELP = [
   'life               control the Game of Life up top',
   'neofetch           what this site runs on',
   'startx             boot the desktop',
-  'theme [name]       auto, bioluminescent, ember or midnight',
+  'theme [name]       colour theme: auto, dracula, nord, gruvbox…',
   'whoami, contact, clear',
 ];
 const SUGGESTIONS = ['sprout --entry', 'life', 'life rule highlife', 'ls', 'help'];
@@ -141,7 +141,7 @@ function run(input) {
       if (!rest) return [`theme: ${readTheme()}`, `options: ${THEME_ORDER.join(', ')}`];
       if (!THEME_ORDER.includes(rest)) return [`no theme "${rest}". Try: ${THEME_ORDER.join(', ')}`];
       setTheme(rest);
-      return [rest === 'auto' ? 'theme: auto (follows the time in Bengaluru)' : `theme: ${rest}`];
+      return [rest === 'auto' ? 'theme: auto (follows the time of day in Bengaluru)' : `theme: ${rest}`];
     }
     case 'neofetch':
       return neofetch();

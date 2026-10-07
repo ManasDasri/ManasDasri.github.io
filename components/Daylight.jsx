@@ -1,43 +1,36 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { THEMES, THEME_ORDER, daylight, hueFor, readTheme } from '@/lib/daylight';
+import { daylight } from '@/lib/daylight';
+import { THEMES, THEME_ORDER, applyTheme, readTheme } from '@/lib/themes';
 
-// Applies the palette: the visitor's pinned theme, or (default) the time of day
-// in Bengaluru. The head script already set it before paint; this keeps it
-// current and reacts to theme changes.
+// Applies the colour theme. The head script already set it before paint; this
+// keeps 'auto' in step with the clock and reacts to theme changes.
 export function setTheme(theme) {
   try {
     localStorage.setItem('theme', theme);
   } catch {}
+  applyTheme(theme);
   window.dispatchEvent(new Event('theme-change'));
 }
 
+export const themeName = (key) => (key === 'auto' ? 'Auto' : THEMES[key].name);
 export const nextTheme = (theme) => THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length];
 
 export default function Daylight() {
   useEffect(() => {
     const html = document.documentElement;
-    const apply = () => {
-      const theme = readTheme();
-      html.style.setProperty('--hue', `${hueFor(theme).toFixed(1)}deg`);
-      html.dataset.theme = theme;
-      html.dataset.phase = theme === 'auto' ? daylight().phase : theme;
-    };
+    const apply = () => applyTheme(readTheme());
     apply();
     // only animate changes made after load, so pages never fade in
     requestAnimationFrame(() => html.classList.add('palette-ready'));
-    const t = setInterval(apply, 60000);
-    window.addEventListener('theme-change', apply);
-    return () => {
-      clearInterval(t);
-      window.removeEventListener('theme-change', apply);
-    };
+    const t = setInterval(apply, 60000); // 'auto' drifts with the clock
+    return () => clearInterval(t);
   }, []);
   return null;
 }
 
-// "palette · dusk (auto, IST 18:20)" or "palette · ember (pinned)" for the footer
+// "palette · dusk (auto, IST 18:20)" or "palette · Dracula" for the footer
 export function DaylightLabel() {
   const [state, setState] = useState(null);
   useEffect(() => {
@@ -51,16 +44,13 @@ export function DaylightLabel() {
     };
   }, []);
   if (!state) return null;
-  const auto = state.theme === 'auto';
   return (
     <button
       onClick={() => setTheme(nextTheme(state.theme))}
       className="hover:text-signal"
       title="Change theme. Auto follows the time of day in Bengaluru."
     >
-      palette · {auto ? `${state.phase} (auto, IST ${state.time})` : `${state.theme} (pinned)`}
+      palette · {state.theme === 'auto' ? `${state.phase} (auto, IST ${state.time})` : themeName(state.theme)}
     </button>
   );
 }
-
-export { THEMES };

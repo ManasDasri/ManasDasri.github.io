@@ -91,17 +91,17 @@ export default function GradientDescent() {
         role="img"
         aria-label={`Loss curve with gradient descent path. ${status}`}
       >
-        <path d={CURVE} fill="none" stroke="#16404A" strokeWidth="2" />
+        <path d={CURVE} fill="none" style={{ stroke: 'rgb(var(--c-line))' }} strokeWidth="2" />
         {path.map((p, i) => {
           if (!Number.isFinite(p) || Math.abs(p) > 6) return null;
           const age = path.length - 1 - i; // newest cell is brightest, like the grid up top
-          const fill = age === 0 ? '#7CF5E4' : age < 6 ? '#2BB3B1' : '#1F5F8B';
-          return <rect key={i} x={x(p) - 5} y={y(f(p)) - 5} width="10" height="10" rx="1.5" fill={fill} opacity={age === 0 ? 1 : 0.8} />;
+          const fill = `rgb(var(--c-${age === 0 ? 'signal' : age < 6 ? 'mature' : 'old'}))`;
+          return <rect key={i} x={x(p) - 5} y={y(f(p)) - 5} width="10" height="10" rx="1.5" style={{ fill }} opacity={age === 0 ? 1 : 0.8} />;
         })}
         {path.length > 1 &&
           path.slice(1).map((p, i) =>
             Number.isFinite(p) && Math.abs(p) <= 6 ? (
-              <line key={i} x1={x(path[i])} y1={y(f(path[i]))} x2={x(p)} y2={y(f(p))} stroke="#2BB3B1" strokeOpacity="0.35" strokeDasharray="3 3" />
+              <line key={i} x1={x(path[i])} y1={y(f(path[i]))} x2={x(p)} y2={y(f(p))} style={{ stroke: 'rgb(var(--c-mature))' }} strokeOpacity="0.35" strokeDasharray="3 3" />
             ) : null
           )}
       </svg>
@@ -121,7 +121,7 @@ export default function GradientDescent() {
               setRate(+e.target.value);
               reset();
             }}
-            className="accent-[#7CF5E4] w-32"
+            className="accent-signal w-32"
           />
           <span className="text-text w-8">{rate.toFixed(2)}</span>
         </label>

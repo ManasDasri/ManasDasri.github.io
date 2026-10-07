@@ -6,18 +6,18 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // every colour comes from the active theme (lib/themes.js) via CSS variables
       colors: {
-        ink: '#041419',
-        paper: '#0A222A',
-        raised: '#0F2C35',
-        line: '#16404A',
-        text: '#E6F4F1',
-        mute: '#86A9AC',
-        signal: '#7CF5E4',
-        accent: '#FF7A6B', // coral: tags and secondary highlights
-        // cell age ramp: born (signal) → mature → old
-        mature: '#2BB3B1',
-        old: '#1F5F8B',
+        ink: 'rgb(var(--c-ink) / <alpha-value>)',
+        paper: 'rgb(var(--c-paper) / <alpha-value>)',
+        raised: 'rgb(var(--c-raised) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        text: 'rgb(var(--c-text) / <alpha-value>)',
+        mute: 'rgb(var(--c-mute) / <alpha-value>)',
+        signal: 'rgb(var(--c-signal) / <alpha-value>)',
+        mature: 'rgb(var(--c-mature) / <alpha-value>)',
+        old: 'rgb(var(--c-old) / <alpha-value>)',
+        accent: 'rgb(var(--c-accent) / <alpha-value>)',
       },
       fontFamily: {
         head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],

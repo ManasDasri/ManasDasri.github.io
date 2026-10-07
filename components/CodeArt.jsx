@@ -19,8 +19,10 @@ const WORLD_W = 960, WORLD_H = 540;
 // characters are ~1.83× taller than wide (0.6em wide, 1.1 line-height), so 120×37 keeps the shape undistorted
 const COLS = 120, ROWS = 37;
 const RAMP = ' ·:-=+*#%@';
-const COLOURS = { Go: '#FF7A6B', Python: '#2BB3B1', JavaScript: '#7CF5E4', HTML: '#5B9BD5', Astro: '#B9F3EA', Ruby: '#FFB4A8' };
-const OTHER = '#86A9AC';
+// language colours come from the active theme
+const mix = (a, b, pct) => `color-mix(in srgb, rgb(var(--c-${a})) ${pct}%, rgb(var(--c-${b})))`;
+const COLOURS = { Go: 'rgb(var(--c-accent))', Python: 'rgb(var(--c-mature))', JavaScript: 'rgb(var(--c-signal))', HTML: mix('old', 'text', 55), Astro: mix('signal', 'text', 40), Ruby: mix('accent', 'text', 55) };
+const OTHER = 'rgb(var(--c-mute))';
 const colourOf = (r) => COLOURS[r.language] ?? OTHER;
 
 function mulberry32(a) {

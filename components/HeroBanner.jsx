@@ -4,7 +4,7 @@ import LifeTouchBar from './LifeTouchBar';
 export default function HeroBanner() {
   return (
     <header id="top" className="relative w-full h-[clamp(260px,40svh,380px)] overflow-hidden cursor-crosshair bg-ink">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(43,179,177,0.16),transparent_65%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgb(var(--c-mature)_/_0.16),transparent_65%)]" />
       <LifeCanvas />
       <LifeTouchBar />
       <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-ink via-ink/70 to-transparent pointer-events-none" />
