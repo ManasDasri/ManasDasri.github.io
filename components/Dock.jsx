@@ -182,7 +182,8 @@ export default function Dock() {
     <nav
       aria-label="Sections"
       style={{ viewTransitionName: 'dock' }}
-      onMouseMove={(e) => mouse.set(vertical ? e.clientY : e.clientX)}
+      // the theme menu lives inside the dock; browsing it shouldn't magnify the icons
+      onMouseMove={(e) => mouse.set(e.target.closest('[role=menu]') ? Infinity : vertical ? e.clientY : e.clientX)}
       onMouseLeave={() => mouse.set(Infinity)}
       className={`fixed z-40 flex gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-ink/75 backdrop-blur-md border border-line/80 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] ${
         vertical

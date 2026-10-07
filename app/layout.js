@@ -9,6 +9,10 @@ import { THEME_SCRIPT } from '@/lib/themes';
 // hydration of <html> can't undo them (a data attribute on <html> got wiped).
 const ENTRANCE_ONCE = `try{if(sessionStorage.getItem('entered')){var s=new CSSStyleSheet();s.replaceSync('.entrance{display:none}');document.adoptedStyleSheets=document.adoptedStyleSheets.concat(s)}sessionStorage.setItem('entered','1')}catch(e){}`;
 
+// A page reached through a view transition already morphed in, so its load-in animation
+// stays off for good (a rule that only matched during the morph restarted it afterwards).
+const NO_RISE_AFTER_MORPH = `addEventListener('pagereveal',function(e){if(e.viewTransition){var s=new CSSStyleSheet();s.replaceSync('.rise{animation:none}');document.adoptedStyleSheets=document.adoptedStyleSheets.concat(s)}})`;
+
 const description =
   'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
 
@@ -26,6 +30,7 @@ export default function RootLayout({ children }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: ENTRANCE_ONCE }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
