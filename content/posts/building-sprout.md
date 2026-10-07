@@ -3,12 +3,11 @@ title: Building Sprout: a map of your codebase, for you and your AI agent
 date: 2026-10-07
 summary: What Sprout does, what changed between v0.1 and v0.3, and what I learned making a codebase legible to people and coding agents alike
 tags: go, cli, developer-tools, mcp
-draft: true
 ---
 
-> ✏️ **Manas, your words here:** why you started Sprout. The moment or problem that made you want it (opening an unfamiliar repo? watching an AI agent wander through files?). Two or three sentences in your own voice. Delete this note when done.
+I'd always wanted to get into open source. What I hadn't realised is that forking and cloning a repo is only the beginning. The real hurdle when you pick up an issue is understanding the codebase well enough to know what to change: where the entry points are, and how one file affects the others.
 
-Sprout is a single Go binary that maps a project the way you'd want someone to explain it to you. It answers three questions I kept asking whenever I opened a codebase I didn't know.
+Sprout is a single Go binary that maps a project the way you'd want someone to explain it to you. It started as a fast, git-aware alternative to `tree` that hides meta files unless you ask for them, and grew from there: structured JSON output, pull requests shown as a tree, when each file last changed, and more. Along the way it learned to answer three questions I kept asking whenever I opened a codebase I didn't know.
 
 ### Where do I start?
 
@@ -17,6 +16,8 @@ Sprout is a single Go binary that maps a project the way you'd want someone to e
 ::demo sprout-entry
 
 ### What does an AI agent actually need to know?
+
+While building Sprout, I thought: why not hand this same map to an AI agent, so it understands my codebase too, with as much context as I'm willing to spend? That's where the AI side of Sprout came from.
 
 `sprout --ai` builds a structure-first map of the project sized to a token budget (2,000 by default): the stack, entry points, config and CI, uncommitted work, recent hotspots, and the most-used files with their function and type signatures. It never includes file bodies, so it stays small enough to paste into any chat.
 
@@ -54,4 +55,4 @@ sprout impact                            # what your uncommitted change could br
 
 Windows, Linux packages and `go install` are in the [docs](https://sprout-devlabs.github.io/sprout-web/docs.html).
 
-> ✏️ **Manas, your words here:** what's next for Sprout, or what building it taught you. Delete this note when done.
+For now, Sprout is a modest tool, benchmarked on codebases as large as llvm-project. But I have so much more planned for it.
