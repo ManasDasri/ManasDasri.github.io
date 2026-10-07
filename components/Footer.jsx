@@ -32,11 +32,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="mt-20">
-        <img src="/creation-hands.jpg" alt="Two hands reaching for each other" className="mx-auto w-full max-w-[534px]" />
-      </div>
-
-      <div className="mt-10 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+      <div className="mt-20 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <ul className="list-none p-0 m-0 flex gap-1" aria-label="Elsewhere">
           {socials.map((s) => {
             const Icon = SOCIAL_ICONS[s.label];
