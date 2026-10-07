@@ -42,18 +42,18 @@ export default function PostPage({ params }) {
       <Dock />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
-          <a href="/#writing" className="font-mono text-xs text-mute hover:text-signal">
+          <a href="/#writing" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all writing
           </a>
           <header className="mt-8 mb-10 max-w-[68ch]">
-            <p className="font-mono text-xs text-mute">
+            <p className="rise font-mono text-xs text-mute" style={{ '--i': 1 }}>
               {fmt(post.date)} · {post.readMins} min read
             </p>
-            <h1 style={{ viewTransitionName: `post-${post.slug}` }} className="rise font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
+            <h1 style={{ viewTransitionName: `post-${post.slug}`, '--i': 2 }} className="rise morph font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
               {post.title}
             </h1>
-            <p className="text-mute leading-relaxed mt-5">{post.summary}</p>
-            <div className="flex flex-wrap gap-2 mt-5">
+            <p className="rise text-mute leading-relaxed mt-5" style={{ '--i': 3 }}>{post.summary}</p>
+            <div className="rise flex flex-wrap gap-2 mt-5" style={{ '--i': 4 }}>
               {post.tags.map((t) => (
                 <span key={t} className="font-mono text-xs text-accent bg-accent/10 rounded px-2 py-1">
                   {t}

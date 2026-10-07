@@ -101,7 +101,7 @@ function Featured({ p }) {
           <div className="flex gap-5">
             <Sigil pattern={p.pattern} playing={hover} name={`sigil-${p.slug}`} />
             <div className="min-w-0">
-              <h3 className="shimmer font-head text-4xl sm:text-5xl font-extrabold tracking-tight w-fit" style={{ viewTransitionName: `project-${p.slug}` }}>
+              <h3 className="shimmer font-head text-4xl sm:text-5xl font-extrabold tracking-[-0.04em] leading-[0.9] w-fit" style={{ viewTransitionName: `project-${p.slug}` }}>
                 {p.name}
               </h3>
               <p className="font-head text-lg text-text mt-1">{p.tagline}</p>
@@ -131,7 +131,7 @@ function Specimen({ p, wide }) {
         <div className="flex items-center gap-4 mb-3">
           <Sigil pattern={p.pattern} playing={hover} dim={!p.active} name={p.slug && `sigil-${p.slug}`} />
           <div className="min-w-0">
-            <h3 className="shimmer font-head text-3xl font-extrabold tracking-tight w-fit" style={p.slug ? { viewTransitionName: `project-${p.slug}` } : undefined}>
+            <h3 className="shimmer font-head text-3xl font-extrabold tracking-[-0.04em] leading-[0.9] w-fit" style={p.slug ? { viewTransitionName: `project-${p.slug}` } : undefined}>
               {p.name}
             </h3>
             {p.badge && (

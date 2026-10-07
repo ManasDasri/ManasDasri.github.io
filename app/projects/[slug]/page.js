@@ -35,10 +35,10 @@ export default function ProjectPage({ params }) {
       <Dock />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
-          <a href="/#building" className="font-mono text-xs text-mute hover:text-signal">
+          <a href="/#building" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all projects
           </a>
-          <div className="flex items-center gap-5 mt-8 mb-4">
+          <div className="rise morph flex items-center gap-5 mt-8 mb-4" style={{ '--i': 1 }}>
             <Sigil pattern={p.pattern} playing name={`sigil-${p.slug}`} />
             {p.statusUrl ? (
               <LiveStatus url={p.statusUrl} label={p.status} />
@@ -47,14 +47,14 @@ export default function ProjectPage({ params }) {
             )}
           </div>
           <h1
-            className="rise font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)] w-fit"
-            style={{ viewTransitionName: `project-${p.slug}` }}
+            className="rise morph font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)] w-fit"
+            style={{ viewTransitionName: `project-${p.slug}`, '--i': 2 }}
           >
             {p.name}
           </h1>
-          {p.tagline && <p className="font-head text-xl sm:text-2xl text-text mt-4">{p.tagline}</p>}
-          <p className="text-mute leading-relaxed mt-5 max-w-[68ch]">{p.description}</p>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 mt-6">
+          {p.tagline && <p className="rise font-head text-xl sm:text-2xl text-text mt-4" style={{ '--i': 3 }}>{p.tagline}</p>}
+          <p className="rise text-mute leading-relaxed mt-5 max-w-[68ch]" style={{ '--i': 4 }}>{p.description}</p>
+          <div className="rise flex flex-wrap gap-x-6 gap-y-2 mt-6" style={{ '--i': 5 }}>
             {p.link && !p.link.includes('github.com') && (
               <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>
                 {hostOf(p.link)}
@@ -110,11 +110,14 @@ export default function ProjectPage({ params }) {
           className="group block px-6 sm:px-9 py-14 border-t border-line/60 no-underline"
         >
           <span className="font-mono text-xs text-mute">next project</span>
-          <span
-            className="block w-fit font-head text-4xl font-extrabold tracking-tight text-text group-hover:text-signal transition-colors mt-1"
-            style={{ viewTransitionName: `project-${next.slug}` }}
-          >
-            {next.name}
+          <span className="flex items-center gap-4 mt-2">
+            <Sigil pattern={next.pattern} name={`sigil-${next.slug}`} />
+            <span
+              className="block w-fit font-head text-4xl font-extrabold tracking-[-0.04em] leading-[0.9] text-text group-hover:text-signal transition-colors"
+              style={{ viewTransitionName: `project-${next.slug}` }}
+            >
+              {next.name}
+            </span>
           </span>
         </a>
 
