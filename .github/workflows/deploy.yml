@@ -30,6 +30,8 @@ jobs:
         run: npm ci
       - name: Build (static export)
         run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # build-time API calls only; never shipped to the browser
       - name: Add .nojekyll
         run: touch ./out/.nojekyll
       - name: Setup Pages
