@@ -55,6 +55,7 @@ const LIFE_HELP = [
   'life pause | resume | reseed',
   'life share            copy a link to this exact colony',
   'life sound [on | off] let the colony play music',
+  'life ascii [on | off] draw the colony in characters',
   `life rule [${Object.keys(RULES).join(' | ')}]`,
   `life drop [${Object.keys(SHAPES).join(' | ')}]`,
 ];
@@ -62,7 +63,7 @@ const LIFE_HELP = [
 // Talks to the banner through its 'life' event; the reply comes back synchronously.
 function life(args) {
   const [sub, value] = args;
-  const actions = { sound: ['sound', value === 'on' ? true : value === 'off' ? false : undefined], pause: ['pause', true], resume: ['pause', false], reseed: ['reseed'], rule: ['rule', value], drop: ['drop', value] };
+  const actions = { ascii: ['view', value === 'on' ? 'ascii' : value === 'off' ? 'cells' : undefined], sound: ['sound', value === 'on' ? true : value === 'off' ? false : undefined], pause: ['pause', true], resume: ['pause', false], reseed: ['reseed'], rule: ['rule', value], drop: ['drop', value] };
   if (sub === 'help') return LIFE_HELP;
   if (sub === 'share')
     return shareColony().then((r) =>

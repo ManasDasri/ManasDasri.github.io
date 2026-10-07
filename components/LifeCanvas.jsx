@@ -58,6 +58,7 @@ export default function LifeCanvas() {
   const statsRef = useRef(null);
   const ruleRef = useRef(null);
   const soundRef = useRef(null);
+  const viewRef = useRef(null);
   const weatherRef = useRef(null);
 
   useEffect(() => {
@@ -68,6 +69,12 @@ export default function LifeCanvas() {
     let cell, cols = 0, rows = 0, grid, age, gen = 0, pop = 0, raf, last = 0, onScreen = true;
     let paused = false, lastCell = null, ruleKey = 'conway', born, survive, shared = false;
     let synth = null, soundOn = false; // synth is created on the first toggle (needs a user gesture)
+    // ASCII view: cells drawn as characters that fade with age; remembered between visits
+    let ascii = false;
+    try {
+      ascii = localStorage.getItem('lifeView') === 'ascii';
+    } catch {}
+    const glyph = (a) => (a <= 1 ? '@' : a <= 3 ? '#' : a <= 6 ? '+' : a <= 15 ? ':' : '.');
     const NOTES_PER_GEN = 3;
     // live Bengaluru weather: rain seeds cells, heat sets the pace, night dims,
     // thunderstorms strike lightning
@@ -149,6 +156,14 @@ export default function LifeCanvas() {
       showStats();
     }
 
+    function setView(on) {
+      ascii = on;
+      try {
+        localStorage.setItem('lifeView', on ? 'ascii' : 'cells');
+      } catch {}
+      if (viewRef.current) viewRef.current.textContent = on ? 'view: ascii' : 'view: cells';
+    }
+
     function setSound(on) {
       if (on && !synth) synth = createSynth();
       soundOn = on;
@@ -178,18 +193,26 @@ export default function LifeCanvas() {
     function draw() {
       ctx.clearRect(0, 0, cols * cell, rows * cell);
       const s = cell - 1;
-      // bioluminescence: a faint halo behind newborn cells
-      ctx.fillStyle = HEAT[0];
-      ctx.globalAlpha = 0.14;
-      for (let i = 0; i < grid.length; i++)
-        if (grid[i] && age[i] <= 1) ctx.fillRect((i % cols) * cell - 2, ((i / cols) | 0) * cell - 2, s + 4, s + 4);
+      if (ascii) {
+        ctx.font = `bold ${cell + 2}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+      } else {
+        // bioluminescence: a faint halo behind newborn cells
+        ctx.fillStyle = HEAT[0];
+        ctx.globalAlpha = 0.14;
+        for (let i = 0; i < grid.length; i++)
+          if (grid[i] && age[i] <= 1) ctx.fillRect((i % cols) * cell - 2, ((i / cols) | 0) * cell - 2, s + 4, s + 4);
+      }
       for (let i = 0; i < grid.length; i++) {
         if (!grid[i]) continue;
         const a = age[i];
         if (a <= 1) (ctx.fillStyle = HEAT[0]), (ctx.globalAlpha = 0.9);
         else if (a <= 6) (ctx.fillStyle = HEAT[1]), (ctx.globalAlpha = 0.65);
         else (ctx.fillStyle = HEAT[2]), (ctx.globalAlpha = Math.max(0.4, 0.8 - a * 0.008));
-        ctx.fillRect((i % cols) * cell, ((i / cols) | 0) * cell, s, s);
+        const x = (i % cols) * cell, y = ((i / cols) | 0) * cell;
+        if (ascii) ctx.fillText(glyph(a), x + cell / 2, y + cell / 2);
+        else ctx.fillRect(x, y, s, s);
       }
       if (dim < 1) {
         ctx.fillStyle = '#041419';
@@ -255,6 +278,7 @@ export default function LifeCanvas() {
         setRule(RULES[value] ? value : keys[(keys.indexOf(ruleKey) + 1) % keys.length]);
       } else if (action === 'drop' && SHAPES[value]) drop(value);
       else if (action === 'sound') setSound(value ?? !soundOn);
+      else if (action === 'view') setView(value ? value === 'ascii' : !ascii);
       else if (action === 'export') {
         const cells = [];
         for (let i = 0; i < grid.length; i++) if (grid[i]) cells.push([i % cols, (i / cols) | 0]);
@@ -270,7 +294,7 @@ export default function LifeCanvas() {
       }
       draw();
       showStats();
-      reply?.({ gen, pop, paused, sound: soundOn, rule: ruleKey, grid: snapshot() });
+      reply?.({ gen, pop, paused, sound: soundOn, view: ascii ? 'ascii' : 'cells', rule: ruleKey, grid: snapshot() });
     }
 
     function cellAt(e) {
@@ -298,11 +322,13 @@ export default function LifeCanvas() {
       else if (k === 'r') control({ action: 'reseed' });
       else if (k === 'l') control({ action: 'rule' });
       else if (k === 'm') control({ action: 'sound' });
+      else if (k === 'a') control({ action: 'view' });
       else if (KEY_SHAPES[k]) control({ action: 'drop', value: KEY_SHAPES[k] });
     }
     const onLife = (e) => control(e.detail);
 
     setRule('conway');
+    setView(ascii);
     resize();
     const loadWeather = () => getWeather().then(applyWeather);
     loadWeather();
@@ -354,6 +380,14 @@ export default function LifeCanvas() {
         </button>
         <ShareButton />
         <button
+          ref={viewRef}
+          onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'view' } }))}
+          className="block ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
+          title="Draw the colony as characters"
+        >
+          view: cells
+        </button>
+        <button
           ref={soundRef}
           onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'sound' } }))}
           className="block ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
@@ -362,7 +396,7 @@ export default function LifeCanvas() {
           sound: off
         </button>
         <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute/70 pointer-events-none">
-          <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>M</Key> sound <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
+          <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>M</Key> sound <Key>A</Key> ascii <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
         </div>
       </div>
     </>
