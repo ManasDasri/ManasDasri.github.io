@@ -209,3 +209,42 @@ html:active-view-transition .rise { animation: none; }
   border-radius: 4px;
 }
 :focus:not(:focus-visible) { outline: none; }
+
+/* palette follows the time of day in Bengaluru (components/Daylight.jsx). A filter on
+   the root element doesn't re-anchor fixed elements, so the dock and overlays stay put. */
+html {
+  filter: hue-rotate(var(--hue, 0deg));
+  transition: filter 2s ease;
+}
+/* photos keep their real colours */
+img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
+
+/* first-visit entrance: LED dots sweep on, then the overlay fades (no JS needed to clear it) */
+.entrance {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #041419;
+  pointer-events: none;
+  animation: entrance-out 0.45s ease 0.9s forwards;
+}
+@keyframes entrance-out { to { opacity: 0; visibility: hidden; } }
+html[data-entered] .entrance { display: none; }
+
+/* titles: a light sweep across the letters on hover. Scrambled titles draw their text in
+   a positioned span, which a parent's text-clipped background can't reach, so it goes there. */
+.shimmer:hover:not(:has(.scramble-out)),
+.shimmer:hover .scramble-out {
+  color: transparent;
+  background-image: linear-gradient(100deg, #E6F4F1 0%, #E6F4F1 40%, #7CF5E4 50%, #E6F4F1 60%, #E6F4F1 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .entrance { display: none; }
+  .shimmer:hover:not(:has(.scramble-out)), .shimmer:hover .scramble-out { animation: none; }
+}

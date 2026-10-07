@@ -8,7 +8,7 @@ export default function Section({ id, title, note, index, children }) {
       <div className="mb-7 md:mb-0">
         <div className="md:sticky md:top-12">
           {index && <BitIndex value={index} />}
-          <h2 className="font-head text-xl font-bold text-text tracking-tight">
+          <h2 className="shimmer font-head text-xl font-bold text-text tracking-tight w-fit">
             <Scramble text={title} trigger="view" />
           </h2>
           {note && <p className="font-mono text-xs text-mute mt-1.5 leading-relaxed">{note}</p>}

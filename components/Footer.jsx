@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import Scramble from './Scramble';
 import LedTicker from './LedTicker';
+import { DaylightLabel } from './Daylight';
 import { getTickerData } from '@/lib/ticker';
 import NowPlaying from './NowPlaying';
 import { socials } from '@/lib/data';
@@ -70,6 +71,7 @@ export default async function Footer() {
               </>
             )}
           </span>
+          <DaylightLabel />
           <a href="#top" className="text-text/80 hover:text-signal">back to top ↑</a>
         </p>
       </div>
