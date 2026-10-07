@@ -134,6 +134,11 @@ function Specimen({ p, wide }) {
             <h3 className="font-head text-3xl font-extrabold tracking-tight w-fit" style={p.slug ? { viewTransitionName: `project-${p.slug}` } : undefined}>
               {p.name}
             </h3>
+            {p.badge && (
+              <span className="inline-block mt-1.5 font-mono text-[10px] text-accent border border-accent/40 rounded px-1.5 py-0.5">
+                {p.badge}
+              </span>
+            )}
             {p.tagline && <p className="text-sm text-text/80 mt-0.5">{p.tagline}</p>}
           </div>
         </div>
