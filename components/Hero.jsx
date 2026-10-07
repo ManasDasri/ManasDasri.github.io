@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import Socials from './Socials';
 import Typewriter from './Typewriter';
@@ -20,18 +19,12 @@ function useUptime() {
   return uptime;
 }
 
-const rise = (delay) => ({
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, delay, ease: [0.21, 0.47, 0.32, 0.98] },
-});
-
 export default function Hero() {
   const uptime = useUptime();
 
   return (
     <section id="hero" className="relative px-6 sm:px-9 pt-6 pb-16 sm:pb-20">
-      <motion.div {...rise(0.15)} className="flex items-center gap-4 mb-8">
+      <div style={{ '--i': 1 }} className="rise flex items-center gap-4 mb-8">
         <img src="/pfp_main.jpeg" alt="" className="w-14 h-14 rounded-xl object-cover ring-1 ring-line" />
         <div>
           <p className="font-head text-xl sm:text-2xl font-semibold tracking-tight">
@@ -41,17 +34,17 @@ export default function Hero() {
             5th sem CSE, Amrita School of Engineering · coding for {uptime}
           </p>
         </div>
-      </motion.div>
+      </div>
 
       <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-        <motion.p {...rise(0.3)} className="text-text/90 leading-relaxed max-w-[58ch]">
+        <p style={{ '--i': 2 }} className="rise text-text/90 leading-relaxed max-w-[58ch]">
           I build developer tools and real-time web apps, and I like problems where software
           meets finance. Right now that means shipping{' '}
           <a href="#building" className="text-signal font-bold">Sprout</a>, a codebase mapper for
           developers and AI agents, alongside <strong>Flow</strong> and <strong>Atmos</strong>.
-        </motion.p>
+        </p>
 
-        <motion.div {...rise(0.45)} className="flex md:flex-col gap-3 flex-wrap">
+        <div style={{ '--i': 3 }} className="rise flex md:flex-col gap-3 flex-wrap">
           <a
             href="mailto:dasarimanas049@gmail.com"
             className="font-head text-base font-bold text-center px-6 py-3 rounded-lg bg-signal text-ink hover:brightness-110 transition no-underline"
@@ -66,12 +59,12 @@ export default function Hero() {
           >
             Resume (PDF)
           </a>
-        </motion.div>
+        </div>
       </div>
 
-      <motion.div {...rise(0.6)} className="mt-10">
+      <div style={{ '--i': 4 }} className="rise mt-10">
         <Socials />
-      </motion.div>
+      </div>
     </section>
   );
 }

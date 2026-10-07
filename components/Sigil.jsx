@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
-// A project's badge: a classic Life pattern on a tiny 6×6 torus.
+// A project's badge: a classic Life pattern on a tiny 6×6 torus, drawn in ASCII.
+// Live cells are #, newborn ones +, cells that just died :, empty ones .
 const N = 6;
 const PATTERNS = {
   glider: [[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]],
@@ -29,26 +30,28 @@ function step(g) {
 }
 
 export default function Sigil({ pattern, playing, dim, name }) {
-  const [cells, setCells] = useState(() => seed(pattern));
+  const [{ cells, prev }, setGen] = useState(() => ({ cells: seed(pattern), prev: seed(pattern) }));
 
   useEffect(() => {
     if (!playing || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = setInterval(() => setCells(step), 180);
+    const t = setInterval(() => setGen((g) => ({ cells: step(g.cells), prev: g.cells })), 180);
     return () => clearInterval(t);
   }, [playing]);
 
   return (
     <div
-      className="grid grid-cols-6 gap-[2px] w-[46px] h-[46px] p-[3px] rounded-md bg-ink border border-line flex-shrink-0"
+      className="grid grid-cols-6 grid-rows-6 w-[52px] h-[52px] p-[4px] rounded-md bg-ink border border-line flex-shrink-0 font-mono text-[9px] font-bold leading-none overflow-hidden"
       style={name ? { viewTransitionName: name } : undefined}
       aria-hidden="true"
     >
-      {cells.map((c, i) => (
-        <span
-          key={i}
-          className={`rounded-[1px] transition-colors duration-150 ${c ? (dim ? 'bg-mute' : 'bg-signal') : 'bg-line/40'}`}
-        />
-      ))}
+      {cells.map((c, i) => {
+        const [ch, colour] = c ? (prev[i] ? ['#', 'text-signal'] : ['+', 'text-mature']) : prev[i] ? [':', 'text-mute'] : ['.', 'text-line'];
+        return (
+          <span key={i} className={`flex items-center justify-center ${dim && c ? 'text-mute' : colour}`}>
+            {ch}
+          </span>
+        );
+      })}
     </div>
   );
 }

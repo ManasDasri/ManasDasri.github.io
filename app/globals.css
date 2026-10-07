@@ -144,15 +144,21 @@ body {
 .spotlight:hover::before,
 .spotlight:hover::after { opacity: 1; }
 
-/* one-shot entrance for server-rendered elements */
+/* one motion for the whole site: page entrances, scroll reveals and cross-page morphs
+   share this curve and duration. --i staggers a page's entrance, one step per item. */
+:root { --ease: cubic-bezier(0.2, 0.8, 0.2, 1); --dur: 0.6s; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
-.rise { animation: rise 0.7s cubic-bezier(0.21, 0.47, 0.32, 0.98) both; }
+.rise { animation: rise var(--dur) var(--ease) calc(var(--i, 0) * 90ms) backwards; }
+/* sections rise the same way when scrolled to (components/Section.jsx) */
+.reveal:not(.in) { opacity: 0; }
+.reveal.in { animation: rise var(--dur) var(--ease) backwards; }
 
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .caret, .rise { animation: none; }
+  .caret, .rise, .reveal.in { animation: none; }
+  .reveal:not(.in) { opacity: 1; }
   .spotlight { transition: none; }
 }
 
@@ -196,10 +202,10 @@ body {
   @view-transition { navigation: auto; }
 }
 ::view-transition-group(*) {
-  animation-duration: 0.45s;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-duration: var(--dur);
+  animation-timing-function: var(--ease);
 }
-/* the morph is the entrance, so pages reached through one skip .rise (app/layout.js) */
+/* a title that morphs in skips its own rise (app/layout.js); the rest of the page still rises */
 
 /* keyboard focus: visible ring for keyboard users only (not on mouse clicks) */
 :focus-visible {
