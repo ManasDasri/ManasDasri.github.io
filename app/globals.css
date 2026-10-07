@@ -199,8 +199,7 @@ body {
   animation-duration: 0.45s;
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-/* the morph is the entrance, so skip the load-in animation during one */
-html:active-view-transition .rise { animation: none; }
+/* the morph is the entrance, so pages reached through one skip .rise (app/layout.js) */
 
 /* keyboard focus: visible ring for keyboard users only (not on mouse clicks) */
 :focus-visible {
