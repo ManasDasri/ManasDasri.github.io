@@ -212,10 +212,9 @@ html:active-view-transition .rise { animation: none; }
 
 /* palette follows the time of day in Bengaluru (components/Daylight.jsx). A filter on
    the root element doesn't re-anchor fixed elements, so the dock and overlays stay put. */
-html {
-  filter: hue-rotate(var(--hue, 0deg));
-  transition: filter 2s ease;
-}
+html { filter: hue-rotate(var(--hue, 0deg)); }
+/* animate palette changes, but not the first paint (the head script set it already) */
+html.palette-ready { transition: filter 1.2s ease; }
 /* photos keep their real colours */
 img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
@@ -229,7 +228,6 @@ img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
   animation: entrance-out 0.45s ease 0.9s forwards;
 }
 @keyframes entrance-out { to { opacity: 0; visibility: hidden; } }
-html[data-entered] .entrance { display: none; }
 
 /* titles: a light sweep across the letters on hover. Scrambled titles draw their text in
    a positioned span, which a parent's text-clipped background can't reach, so it goes there. */

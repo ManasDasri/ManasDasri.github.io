@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
-import { FiActivity, FiClock, FiCommand, FiCpu, FiFeather, FiGitPullRequest, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { FiActivity, FiClock, FiCommand, FiCpu, FiDroplet, FiFeather, FiGitPullRequest, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { readTheme } from '@/lib/daylight';
+import { setTheme, nextTheme } from './Daylight';
 
 const ITEMS = [
   { id: 'top', label: 'Top', icon: FiHome },
@@ -22,7 +24,7 @@ function useLayout() {
   useEffect(() => {
     const wide = window.matchMedia('(min-width: 1280px)');
     const narrow = window.matchMedia('(max-width: 480px)');
-    const update = () => setLayout({ vertical: wide.matches, base: narrow.matches ? 32 : 40 });
+    const update = () => setLayout({ vertical: wide.matches, base: narrow.matches ? 30 : 40 });
     update();
     wide.addEventListener('change', update);
     narrow.addEventListener('change', update);
@@ -79,6 +81,18 @@ function DockItem({ label, icon: Icon, href, onClick, active, mouse, vertical, b
   );
 }
 
+// Cycles Auto (follows Bengaluru's clock) → Bioluminescent → Ember → Midnight.
+function ThemeItem({ common }) {
+  const [theme, setThemeState] = useState('auto');
+  useEffect(() => {
+    const sync = () => setThemeState(readTheme());
+    sync();
+    window.addEventListener('theme-change', sync);
+    return () => window.removeEventListener('theme-change', sync);
+  }, []);
+  return <DockItem {...common} label={`Theme: ${theme}`} icon={FiDroplet} onClick={() => setTheme(nextTheme(theme))} />;
+}
+
 export default function Dock() {
   const { vertical, base } = useLayout();
   const mouse = useMotionValue(Infinity);
@@ -118,6 +132,7 @@ export default function Dock() {
         <DockItem key={item.id} {...item} {...common} href={`/#${item.id}`} active={active === item.id} />
       ))}
       <span className={`bg-line self-center ${vertical ? 'h-px w-6 my-0.5' : 'w-px h-6 mx-0.5'}`} aria-hidden="true" />
+      <ThemeItem common={common} />
       <DockItem
         {...common}
         label="Command palette (⌘K)"
