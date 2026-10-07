@@ -3,7 +3,6 @@ import Scramble from './Scramble';
 import NowPlaying from './NowPlaying';
 import { socials } from '@/lib/data';
 import { SOCIAL_ICONS } from '@/lib/socialIcons';
-import CreationHands from './CreationHands';
 
 const REPO = 'https://github.com/ManasDasri/ManasDasri.github.io';
 
@@ -34,7 +33,7 @@ export default function Footer() {
       </div>
 
       <div className="mt-20">
-        <CreationHands />
+        <img src="/creation-hands.jpg" alt="Two hands reaching for each other" className="mx-auto w-full max-w-[534px]" />
       </div>
 
       <div className="mt-10 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
