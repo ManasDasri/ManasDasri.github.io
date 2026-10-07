@@ -209,3 +209,15 @@ html:active-view-transition .rise { animation: none; }
   border-radius: 4px;
 }
 :focus:not(:focus-visible) { outline: none; }
+
+/* footer hands: the halves drift toward each other and back; the spark peaks as they meet */
+@keyframes hands-left { 50% { transform: translateX(5px); } }
+@keyframes hands-right { 50% { transform: translateX(-5px); } }
+@keyframes hands-spark { 0%, 100% { opacity: 0.15; } 50% { opacity: 1; } }
+.hands-left > img { animation: hands-left 6s ease-in-out infinite; }
+.hands-right > img { animation: hands-right 6s ease-in-out infinite; }
+.hands-spark { animation: hands-spark 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .hands-left > img, .hands-right > img, .hands-spark { animation: none; }
+  .hands-spark { opacity: 0.6; }
+}
