@@ -3,6 +3,7 @@ import Scramble from './Scramble';
 import NowPlaying from './NowPlaying';
 import { socials } from '@/lib/data';
 import { SOCIAL_ICONS } from '@/lib/socialIcons';
+import { SIGNATURE } from '@/lib/asciiSignature';
 
 const REPO = 'https://github.com/ManasDasri/ManasDasri.github.io';
 
@@ -32,7 +33,17 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="mt-20 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+      <pre
+        role="img"
+        aria-label="algorithmicbit"
+        className="mt-20 mb-0 mx-auto w-fit font-mono leading-[1.05] select-none bg-gradient-to-r from-signal via-mature to-old bg-clip-text text-transparent"
+        // 104 columns at 0.6em each: shrink to fit narrow screens, cap at 10px
+        style={{ fontSize: 'min(10px, calc((100vw - 64px) / 62.4))' }}
+      >
+        {SIGNATURE}
+      </pre>
+
+      <div className="mt-10 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <ul className="list-none p-0 m-0 flex gap-1" aria-label="Elsewhere">
           {socials.map((s) => {
             const Icon = SOCIAL_ICONS[s.label];

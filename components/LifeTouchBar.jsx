@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FiCheck, FiCrosshair, FiPause, FiPlay, FiRefreshCw, FiShare2, FiShuffle, FiVolume2, FiVolumeX } from 'react-icons/fi';
+import { FiType, FiCheck, FiCrosshair, FiPause, FiPlay, FiRefreshCw, FiShare2, FiShuffle, FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { shareColony } from '@/lib/lifeShare';
 
 // Phones have no keyboard shortcuts, so touch devices get the same controls as
@@ -26,6 +26,7 @@ export default function LifeTouchBar() {
     { label: 'Pause', pressed: paused, Icon: paused ? FiPlay : FiPause, onClick: () => sync(life('pause')) },
     { label: 'Reseed', Icon: FiRefreshCw, onClick: () => sync(life('reseed')) },
     { label: 'Next rule', Icon: FiShuffle, onClick: () => sync(life('rule')) },
+    { label: 'ASCII view', Icon: FiType, onClick: () => sync(life('view')) },
     { label: 'Drop a glider gun', Icon: FiCrosshair, onClick: () => sync(life('drop', 'gun')) },
     { label: 'Sound', pressed: sound, Icon: sound ? FiVolume2 : FiVolumeX, onClick: () => sync(life('sound')) },
     {
