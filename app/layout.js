@@ -1,5 +1,10 @@
 import './globals.css';
 import { ScrollProgress } from '@/components/Effects';
+import Daylight from '@/components/Daylight';
+import Entrance from '@/components/Entrance';
+
+// Runs before paint: the entrance plays once per visit, not on every page.
+const ENTRANCE_ONCE = `try{if(sessionStorage.getItem('entered'))document.documentElement.dataset.entered='1';sessionStorage.setItem('entered','1')}catch(e){}`;
 
 const description =
   'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
@@ -14,8 +19,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: ENTRANCE_ONCE }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -30,6 +36,8 @@ export default function RootLayout({ children }) {
         >
           Skip to content
         </a>
+        <Entrance />
+        <Daylight />
         <ScrollProgress />
         <div className="grain" />
         {children}

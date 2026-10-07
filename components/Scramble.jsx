@@ -51,7 +51,7 @@ export default function Scramble({ text, trigger = 'mount', duration = 800, hove
     <span ref={ref} className={`relative inline-block ${className}`} onMouseEnter={hover ? run : undefined}>
       <span className="sr-only">{text}</span>
       <span className="invisible" aria-hidden="true">{text}</span>
-      <span className="absolute inset-0" aria-hidden="true">{out}</span>
+      <span className="scramble-out absolute inset-0" aria-hidden="true">{out}</span>
     </span>
   );
 }
