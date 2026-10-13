@@ -3,6 +3,7 @@ import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
 import Entrance from '@/components/Entrance';
 import { THEME_SCRIPT } from '@/lib/themes';
+import { SITE, socials } from '@/lib/data';
 
 // Runs before paint: the entrance plays once per visit, not on every page. It hides
 // the overlay with a constructable stylesheet: those live outside the DOM, so React's
@@ -17,12 +18,23 @@ const description =
   'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
 
 export const metadata = {
-  metadataBase: new URL('https://www.algorithmicbit.tech'), // canonical host; the bare domain 301s here
+  metadataBase: new URL(SITE),
+  alternates: { types: { 'application/rss+xml': [{ url: '/feed.xml', title: 'Manas Dasari · Writing' }] } },
   title: 'Manas Dasari',
   description,
   openGraph: { title: 'Manas Dasari', description, url: '/', siteName: 'Manas Dasari', type: 'website' },
   twitter: { card: 'summary_large_image', creator: '@ManasDmg9' },
 };
+
+// tells search engines who the site belongs to and which profiles are the same person
+const PERSON = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Manas Dasari',
+  url: SITE,
+  description,
+  sameAs: socials.map((s) => s.href),
+});
 
 export default function RootLayout({ children }) {
   return (
@@ -31,6 +43,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{ __html: ENTRANCE_ONCE }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
