@@ -3,7 +3,6 @@ import Scramble from './Scramble';
 import LedTicker from './LedTicker';
 import { DaylightLabel } from './Daylight';
 import { getTickerData } from '@/lib/ticker';
-import NowPlaying from './NowPlaying';
 import { socials } from '@/lib/data';
 import { SOCIAL_ICONS } from '@/lib/socialIcons';
 
@@ -31,9 +30,6 @@ export default async function Footer() {
           <Scramble text="“You have power over your mind - not outside events.”" trigger="view" duration={1400} hover={false} />
         </p>
         <p className="font-mono text-xs text-mute">Marcus Aurelius</p>
-        <div className="mt-12 empty:hidden">
-          <NowPlaying />
-        </div>
       </div>
 
       <div className="mt-16">
