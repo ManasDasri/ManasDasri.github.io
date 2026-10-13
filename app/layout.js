@@ -1,17 +1,9 @@
 import './globals.css';
 import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
-import Entrance from '@/components/Entrance';
+import Dock from '@/components/Dock';
+import CommandPalette from '@/components/CommandPalette';
 import { THEME_SCRIPT } from '@/lib/themes';
-
-// Runs before paint: the entrance plays once per visit, not on every page. It hides
-// the overlay with a constructable stylesheet: those live outside the DOM, so React's
-// hydration of <html> can't undo them (a data attribute on <html> got wiped).
-const ENTRANCE_ONCE = `try{if(sessionStorage.getItem('entered')){var s=new CSSStyleSheet();s.replaceSync('.entrance{display:none}');document.adoptedStyleSheets=document.adoptedStyleSheets.concat(s)}sessionStorage.setItem('entered','1')}catch(e){}`;
-
-// A title reached through a view transition already morphed in, so its rise stays off for
-// good (a rule that only matched during the morph restarted it afterwards, a visible bounce).
-const NO_RISE_AFTER_MORPH = `addEventListener('pagereveal',function(e){if(e.viewTransition){var s=new CSSStyleSheet();s.replaceSync('.morph{animation:none}');document.adoptedStyleSheets=document.adoptedStyleSheets.concat(s)}})`;
 
 const description =
   'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
@@ -28,9 +20,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: ENTRANCE_ONCE }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-        <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -45,7 +35,8 @@ export default function RootLayout({ children }) {
         >
           Skip to content
         </a>
-        <Entrance />
+        <Dock />
+        <CommandPalette />
         <Daylight />
         <ScrollProgress />
         <div className="grain" />

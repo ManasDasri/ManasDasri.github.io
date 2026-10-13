@@ -189,7 +189,7 @@ export default function CodeArt() {
   useEffect(() => {
     if (!repos?.length) return;
     setDone(false);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (variation === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setFrame(render(repos, seed, 1));
       return setDone(true);
     }

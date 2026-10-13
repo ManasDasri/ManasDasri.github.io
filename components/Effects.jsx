@@ -15,7 +15,7 @@ export function ScrollProgress() {
 }
 
 // Card with a cursor-tracking spotlight, glowing border and a slight 3D tilt.
-export function SpotlightCard({ children, className = '', tilt = true }) {
+export function SpotlightCard({ children, className = '', tilt = false }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
 
