@@ -11,7 +11,7 @@ const ITEMS = [
   { id: 'top', label: 'Top', icon: FiHome },
   { id: 'building', label: 'Building', icon: FiLayers },
   { id: 'now', label: 'Now', icon: FiZap },
-  ...(reading.length ? [{ id: 'reading', label: 'Reading now', icon: FiBookOpen }] : []),
+  ...(reading.length ? [{ id: 'reading', label: 'Reading', icon: FiBookOpen }] : []),
   { id: 'log', label: 'Log', icon: FiClock },
   { id: 'skills', label: 'Stack', icon: FiCpu },
   { id: 'activity', label: 'Activity', icon: FiActivity },

@@ -14,7 +14,7 @@ function Item({ r }) {
   return (
     <li className="text-sm leading-relaxed">
       {title}
-      <span className="block font-mono text-[11px] text-mute mt-0.5">{r.author}</span>
+      {r.author && <span className="block font-mono text-[11px] text-mute mt-0.5">{r.author}</span>}
       {r.note && <span className="block text-mute mt-1">{r.note}</span>}
       {r.progress != null && (
         <span className="flex items-center gap-3 mt-2" aria-label={`${r.progress}% read`}>
@@ -31,16 +31,18 @@ function Item({ r }) {
 export default function Reading() {
   if (!reading.length) return null;
   const groups = [
-    ['books', reading.filter((r) => r.kind === 'book')],
+    ['reading now', reading.filter((r) => r.kind === 'book')],
+    // a fixed year: the site rebuilds hourly, so the build date would relabel this shelf on Jan 1
+    ['read in 2026', reading.filter((r) => r.kind === 'read')],
     ['papers', reading.filter((r) => r.kind === 'paper')],
   ].filter(([, items]) => items.length);
   return (
-    <Section id="reading" index={3} title="Reading now" note="books and papers on my desk">
+    <Section id="reading" index={3} title="Reading" note="books I've finished this year, and papers worth your time">
       <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
         {groups.map(([label, items]) => (
           <div key={label}>
             <h3 className="font-mono text-xs text-signal mb-3">{label}</h3>
-            <ul className="list-none p-0 m-0 flex flex-col gap-5">
+            <ul className="list-none p-0 m-0 flex flex-col gap-4">
               {items.map((r) => (
                 <Item key={r.title} r={r} />
               ))}
