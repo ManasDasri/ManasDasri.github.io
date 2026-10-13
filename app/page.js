@@ -3,6 +3,7 @@ import Dock from '@/components/Dock';
 import Hero from '@/components/Hero';
 import Building from '@/components/Building';
 import Now from '@/components/Now';
+import Reading from '@/components/Reading';
 import Log from '@/components/Log';
 import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
@@ -27,6 +28,7 @@ export default async function Home() {
 
         <Building />
         <Now />
+        <Reading />
         <Log />
         <Skills />
         <GithubActivity leetcode={leetcode} />

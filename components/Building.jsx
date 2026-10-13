@@ -30,6 +30,38 @@ function useLatestRelease(repo, fallback) {
 }
 
 const linkClass = 'font-mono text-xs text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal';
+const ctaClass =
+  'inline-flex items-center gap-1.5 font-mono text-xs text-signal border border-signal/40 rounded-md px-3 py-1.5 no-underline hover:bg-signal hover:text-ink transition-colors';
+
+// A card's preview: the project's own features, printed like a terminal session.
+// Projects without a feature list print their tagline and kind instead.
+function Preview({ p, hover }) {
+  const cmd = (p.slug ?? p.name.toLowerCase().replace(/\s+/g, '-'));
+  const lines = p.features?.slice(0, 3) ?? [p.tagline, p.kind && `kind: ${p.kind.toLowerCase()}`].filter(Boolean);
+  return (
+    <div className="mb-5 rounded-md border border-line bg-ink overflow-hidden" aria-hidden="true">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-line">
+        <span className="w-2 h-2 rounded-full bg-accent/70" />
+        <span className="w-2 h-2 rounded-full bg-mature/70" />
+        <span className="w-2 h-2 rounded-full bg-signal/70" />
+        <span className="ml-2 font-mono text-[10px] text-mute">~/projects/{cmd}</span>
+      </div>
+      <div className="px-3 py-2.5 font-mono text-[11px] leading-relaxed">
+        <p className="m-0 text-signal">
+          $ {cmd} {p.features ? '--features' : '--about'}
+        </p>
+        {lines.map((l) => (
+          <p key={l} className="m-0 text-text/75 truncate">
+            <span className="text-mature">›</span> {l}
+          </p>
+        ))}
+        <p className="m-0 text-signal">
+          $ <span className={hover ? 'caret' : 'inline-block w-[0.55em]'} />
+        </p>
+      </div>
+    </div>
+  );
+}
 
 // corner marks, like the trim marks on a printed plate
 function Crop() {
@@ -111,8 +143,8 @@ function Featured({ p }) {
           <Spec p={p} />
         </div>
         <SproutTerminal />
-        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-6 pt-4 border-t border-dashed border-line">
-          <a href={`/projects/${p.slug}/`} className={linkClass}>how it works</a>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-6 pt-4 border-t border-dashed border-line">
+          <a href={`/projects/${p.slug}/`} className={ctaClass}>view project <span aria-hidden="true">→</span></a>
           <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>website and docs</a>
           <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener noreferrer" className={linkClass}>source on GitHub</a>
         </div>
@@ -143,15 +175,20 @@ function Specimen({ p, wide }) {
           </div>
         </div>
         <p className="text-mute text-sm leading-relaxed mb-5">{p.description}</p>
+        <Preview p={p} hover={hover} />
         <div className="mt-auto">
           <Spec p={p} />
-          <div className="flex flex-wrap gap-x-5 gap-y-2 mt-5 pt-4 border-t border-dashed border-line">
-            {p.slug && (
-              <a href={`/projects/${p.slug}/`} className={linkClass}>
-                details
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-5 pt-4 border-t border-dashed border-line">
+            {p.slug ? (
+              <a href={`/projects/${p.slug}/`} className={ctaClass}>
+                view project <span aria-hidden="true">→</span>
+              </a>
+            ) : (
+              <a href={p.link} target="_blank" rel="noopener noreferrer" className={ctaClass}>
+                view on {hostOf(p.link).split('/')[0]} <span aria-hidden="true">↗</span>
               </a>
             )}
-            {p.active && (
+            {p.slug && p.active && (
               <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>
                 {hostOf(p.link)}
               </a>

@@ -114,7 +114,7 @@ function useCalendarTheme() {
 export default function GithubActivity({ leetcode }) {
   const theme = useCalendarTheme();
   return (
-    <Section id="activity" index={5} title="Activity" note="GitHub live; LeetCode as of the last daily build">
+    <Section id="activity" index={6} title="Activity" note="GitHub live; LeetCode as of the last daily build">
       <div className={panel}>
         <h3 className="sr-only">GitHub</h3>
         <GithubStats />

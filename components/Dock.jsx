@@ -2,14 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
-import { FiActivity, FiClock, FiCommand, FiCpu, FiDroplet, FiFeather, FiGitPullRequest, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { FiActivity, FiBookOpen, FiClock, FiCommand, FiCpu, FiDroplet, FiFeather, FiGitPullRequest, FiHome, FiLayers, FiZap } from 'react-icons/fi';
 import { THEMES, THEME_ORDER, readTheme } from '@/lib/themes';
 import { setTheme, themeName } from './Daylight';
+import { reading } from '@/lib/data';
 
 const ITEMS = [
   { id: 'top', label: 'Top', icon: FiHome },
   { id: 'building', label: 'Building', icon: FiLayers },
   { id: 'now', label: 'Now', icon: FiZap },
+  ...(reading.length ? [{ id: 'reading', label: 'Reading', icon: FiBookOpen }] : []),
   { id: 'log', label: 'Log', icon: FiClock },
   { id: 'skills', label: 'Stack', icon: FiCpu },
   { id: 'activity', label: 'Activity', icon: FiActivity },
