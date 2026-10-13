@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getPost, getPosts } from '@/lib/posts';
+import Dock from '@/components/Dock';
 import Footer from '@/components/Footer';
+import CommandPalette from '@/components/CommandPalette';
 import GradientDescent from '@/components/demos/GradientDescent';
 import SproutTerminal from '@/components/SproutTerminal';
 
@@ -24,12 +26,10 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }) {
   const p = getPost(params.slug);
-  if (!p) notFound();
   return {
-    alternates: { canonical: `/writing/${p.slug}/` },
     title: `${p.title} · Manas Dasari`,
     description: p.summary,
-    openGraph: { url: `/writing/${p.slug}/`, type: 'article', title: p.title, description: p.summary, publishedTime: p.date },
+    openGraph: { type: 'article', title: p.title, description: p.summary, publishedTime: p.date },
   };
 }
 
@@ -39,6 +39,7 @@ export default function PostPage({ params }) {
 
   return (
     <>
+      <Dock />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
           <a href="/#writing" className="rise font-mono text-xs text-mute hover:text-signal">
@@ -48,7 +49,7 @@ export default function PostPage({ params }) {
             <p className="rise font-mono text-xs text-mute" style={{ '--i': 1 }}>
               {fmt(post.date)} · {post.readMins} min read
             </p>
-            <h1 className="rise font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
+            <h1 style={{ viewTransitionName: `post-${post.slug}`, '--i': 2 }} className="rise morph font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
               {post.title}
             </h1>
             <p className="rise text-mute leading-relaxed mt-5" style={{ '--i': 3 }}>{post.summary}</p>
@@ -81,6 +82,7 @@ export default function PostPage({ params }) {
         </article>
 
         <Footer />
+        <CommandPalette />
       </main>
     </>
   );

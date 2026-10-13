@@ -20,15 +20,10 @@ export default function LifeTouchBar() {
   const [shared, setShared] = useState(false);
   const sync = (s) => s && (setPaused(s.paused), setSound(s.sound));
 
-  useEffect(() => {
-    sync(life('status'));
-    const update = (event) => sync(event.detail);
-    window.addEventListener('life-status', update);
-    return () => window.removeEventListener('life-status', update);
-  }, []);
+  useEffect(() => sync(life('status')), []);
 
   const buttons = [
-    { label: paused ? 'Resume animation' : 'Pause animation', pressed: paused, Icon: paused ? FiPlay : FiPause, onClick: () => sync(life('pause')) },
+    { label: 'Pause', pressed: paused, Icon: paused ? FiPlay : FiPause, onClick: () => sync(life('pause')) },
     { label: 'Reseed', Icon: FiRefreshCw, onClick: () => sync(life('reseed')) },
     { label: 'Next rule', Icon: FiShuffle, onClick: () => sync(life('rule')) },
     { label: 'ASCII view', Icon: FiType, onClick: () => sync(life('view')) },
@@ -47,7 +42,7 @@ export default function LifeTouchBar() {
   ];
 
   return (
-    <div role="toolbar" aria-label="Game of Life controls" className="absolute top-3 left-3 z-10 flex sm:hidden [@media(hover:none)]:!flex gap-1 rounded-xl bg-ink/70 backdrop-blur-sm border border-line/80 p-1">
+    <div role="toolbar" aria-label="Game of Life controls" className="absolute top-3 left-3 z-10 hidden [@media(hover:none)]:flex gap-1 rounded-xl bg-ink/70 backdrop-blur-sm border border-line/80 p-1">
       {buttons.map(({ label, pressed, Icon, onClick }) => (
         <button
           key={label}

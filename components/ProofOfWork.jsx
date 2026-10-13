@@ -21,25 +21,23 @@ const FILTERS = {
 export default function ProofOfWork() {
   const [prs, setPrs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [filterType, setFilterType] = useState('all');
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setError(false);
 
     const query = `author:${GITHUB_USERNAME} ${FILTERS[filterType]}`;
-    fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=created&order=desc&per_page=12`, { signal: AbortSignal.timeout(10000) })
-      .then((res) => { if (!res.ok) throw new Error('GitHub unavailable'); return res.json(); })
+    fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=created&order=desc&per_page=12`)
+      .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
         setPrs(Array.isArray(data.items) ? data.items : []);
         setShowAll(false);
       })
       .catch(() => {
-        if (!cancelled) { setPrs([]); setError(true); }
+        if (!cancelled) setPrs([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -53,7 +51,7 @@ export default function ProofOfWork() {
   const visible = prs.slice(0, showAll ? prs.length : INITIAL_COUNT);
 
   return (
-    <Section id="proof-of-work" index={7} title="Contributions" note="my pull requests, live from GitHub">
+    <Section id="proof-of-work" index={7} title="Proof of work" note="my pull requests, live from GitHub">
       <OpenSource />
       <div className="flex mb-5">
 
@@ -62,8 +60,7 @@ export default function ProofOfWork() {
             <button
               key={key}
               onClick={() => setFilterType(key)}
-              aria-pressed={filterType === key}
-              className={`font-display text-xs px-3 min-h-11 rounded-md transition-colors ${
+              className={`font-display text-xs px-3 py-1.5 rounded-md transition-colors ${
                 filterType === key ? 'bg-raised text-signal' : 'text-mute hover:text-text'
               }`}
             >
@@ -75,9 +72,7 @@ export default function ProofOfWork() {
 
       {loading && <p className="font-display text-xs text-mute">loading pull requests…</p>}
 
-      {error && <p className="text-sm text-mute">GitHub is unavailable right now. <a className="text-signal underline" href="https://github.com/pulls?q=is%3Apr+author%3AManasDasri" target="_blank" rel="noopener noreferrer">View pull requests on GitHub</a>.</p>}
-
-      {!loading && !error && visible.length === 0 && (
+      {!loading && visible.length === 0 && (
         <p className="font-display text-xs text-mute">no pull requests found for this filter</p>
       )}
 
@@ -99,7 +94,7 @@ export default function ProofOfWork() {
               >
                 <span className={`mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
                 <div className="min-w-0">
-                  <div className="text-sm text-text break-words group-hover:text-signal">{pr.title}</div>
+                  <div className="text-sm text-text truncate group-hover:text-signal">{pr.title}</div>
                   <div className="font-display text-xs text-mute mt-0.5">{repo}</div>
                 </div>
               </a>
@@ -111,7 +106,6 @@ export default function ProofOfWork() {
       {!loading && prs.length > INITIAL_COUNT && (
         <button
           onClick={() => setShowAll((s) => !s)}
-          aria-expanded={showAll}
           className="mt-4 w-full font-display text-xs text-mute border border-line rounded-lg py-2.5 hover:text-signal hover:border-signal transition-colors"
         >
           {showAll ? '↑ collapse' : `↓ show ${prs.length - INITIAL_COUNT} more`}

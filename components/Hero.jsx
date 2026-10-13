@@ -23,11 +23,11 @@ export default function Hero() {
   const uptime = useUptime();
 
   return (
-    <section id="hero" className="relative px-6 sm:px-9 pt-6 pb-10 sm:pb-14">
-      <div style={{ '--i': 1 }} className="rise flex items-center gap-4 mb-6">
-        <img src="/pfp_main.jpeg" alt="" width="56" height="56" className="w-14 h-14 shrink-0 rounded-xl object-cover ring-1 ring-line" />
+    <section id="hero" className="relative px-6 sm:px-9 pt-6 pb-16 sm:pb-20">
+      <div style={{ '--i': 1 }} className="rise flex items-center gap-4 mb-8">
+        <img src="/pfp_main.jpeg" alt="" className="w-14 h-14 rounded-xl object-cover ring-1 ring-line" />
         <div>
-          <p className="font-head text-lg sm:text-2xl font-semibold tracking-tight">
+          <p className="font-head text-xl sm:text-2xl font-semibold tracking-tight">
             <span className="text-mute">$ whoami</span> <Typewriter words={ROLES} />
           </p>
           <p className="font-mono text-xs text-mute mt-1">
@@ -37,7 +37,7 @@ export default function Hero() {
       </div>
 
       <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-        <p style={{ '--i': 2 }} className="rise font-head text-lg text-text/90 leading-relaxed max-w-[58ch]">
+        <p style={{ '--i': 2 }} className="rise text-text/90 leading-relaxed max-w-[58ch]">
           I build developer tools and real-time web apps, and I like problems where software
           meets finance. Right now that means shipping{' '}
           <a href="#building" className="text-signal font-bold">Sprout</a>, a codebase mapper for
@@ -62,7 +62,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div style={{ '--i': 4 }} className="rise mt-7">
+      <div style={{ '--i': 4 }} className="rise mt-10">
         <Socials />
       </div>
     </section>

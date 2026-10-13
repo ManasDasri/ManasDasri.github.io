@@ -9,7 +9,6 @@ const OWN = ['ManasDasri', 'Sprout-DevLabs', 'FieldLensAI']; // my own accounts 
 
 export default function OpenSource() {
   const [repos, setRepos] = useState(null);
-  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const q = `author:${USER} is:pr ${OWN.map((o) => `-user:${o}`).join(' ')}`;
@@ -35,7 +34,7 @@ export default function OpenSource() {
     <div className="mb-8">
       <h3 className="font-mono text-xs text-mute mb-3">contributed to</h3>
       <ul className="list-none p-0 m-0 grid gap-3 sm:grid-cols-2">
-        {(expanded ? repos : repos.slice(0, 4)).map((r) => {
+        {repos.map((r) => {
           const [owner, name] = r.name.split('/');
           return (
             <li key={r.name}>
@@ -62,7 +61,6 @@ export default function OpenSource() {
           );
         })}
       </ul>
-      {repos.length > 4 && <button className="min-h-11 text-xs text-signal mt-2" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Show fewer repositories' : `Show all ${repos.length} repositories`}</button>}
     </div>
   );
 }

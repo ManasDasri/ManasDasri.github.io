@@ -1,3 +1,4 @@
+import Dock from '@/components/Dock';
 import Diehard from '@/components/Diehard';
 
 export const metadata = { title: 'Page not found · Manas Dasari' };
@@ -5,6 +6,7 @@ export const metadata = { title: 'Page not found · Manas Dasari' };
 export default function NotFound() {
   return (
     <>
+      <Dock />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 min-h-screen px-6 sm:px-9 py-20 grid gap-12 md:grid-cols-[1fr_auto] md:items-center">
         <div className="max-w-[46ch]">
           <p className="font-mono text-xs text-signal">404</p>
