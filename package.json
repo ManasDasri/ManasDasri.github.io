@@ -6,12 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "test": "node --test lib/lifeShare.test.mjs now-playing/api.test.mjs"
   },
   "dependencies": {
     "cmdk": "^1.0.0",
     "framer-motion": "^11.2.0",
-    "gsap": "^3.15.0",
     "marked": "^14.1.4",
     "next": "14.2.35",
     "react": "^18.3.1",

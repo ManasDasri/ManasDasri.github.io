@@ -58,7 +58,7 @@ function Stat({ n, label, href }) {
 }
 
 const panel = 'rounded-xl border border-line bg-paper p-5 sm:p-6';
-const grid = 'flex justify-center overflow-x-auto mt-6';
+const grid = 'overflow-x-auto mt-6';
 
 function LeetCodePanel({ stats }) {
   const theme = useCalendarTheme(); // before any early return (rules of hooks)
@@ -114,8 +114,10 @@ function useCalendarTheme() {
 export default function GithubActivity({ leetcode }) {
   const theme = useCalendarTheme();
   return (
-    <Section id="activity" index={5} title="Activity" note="GitHub live; LeetCode as of the last daily build">
-      <div className={panel}>
+    <Section id="activity" index={5} title="Activity" note="GitHub live; LeetCode refreshed on each build">
+      <details>
+        <summary className="min-h-11 text-sm text-signal">View GitHub and LeetCode activity</summary>
+      <div className={`${panel} mt-4`}>
         <h3 className="sr-only">GitHub</h3>
         <GithubStats />
         <div className={grid}>
@@ -129,6 +131,7 @@ export default function GithubActivity({ leetcode }) {
         </div>
       </div>
       <LeetCodePanel stats={leetcode} />
+      </details>
       <Tooltip
         id="activity-tooltip"
         style={{

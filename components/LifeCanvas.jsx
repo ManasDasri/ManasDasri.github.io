@@ -67,7 +67,7 @@ export default function LifeCanvas() {
     const ctx = canvas.getContext('2d');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let cell, cols = 0, rows = 0, grid, age, gen = 0, pop = 0, raf, last = 0, onScreen = true;
-    let paused = false, lastCell = null, ruleKey = 'conway', born, survive, shared = false;
+    let paused = reduce, lastCell = null, ruleKey = 'conway', born, survive, shared = false;
     let synth = null, soundOn = false; // synth is created on the first toggle (needs a user gesture)
     // ASCII view: cells drawn as characters that fade with age; remembered between visits
     let ascii = false;
@@ -101,6 +101,8 @@ export default function LifeCanvas() {
       const acorns = Math.max(4, Math.round((cols * rows) / 900));
       for (let k = 0; k < acorns; k++) stamp(ACORN, (Math.random() * cols) | 0, (Math.random() * rows) | 0);
       gen = 0;
+      pop = grid.reduce((sum, alive) => sum + alive, 0);
+      showStats();
     }
 
     function drop(name) {
@@ -296,8 +298,10 @@ export default function LifeCanvas() {
         gen = 0;
         shared = true;
       }
+      pop = grid.reduce((sum, alive) => sum + alive, 0);
       draw();
       showStats();
+      window.dispatchEvent(new CustomEvent('life-status', { detail: { paused, sound: soundOn } }));
       reply?.({ gen, pop, paused, sound: soundOn, view: ascii ? 'ascii' : 'cells', rule: ruleKey, grid: snapshot() });
     }
 
@@ -344,14 +348,6 @@ export default function LifeCanvas() {
     if (code) decode(code).then((colony) => colony && control({ action: 'import', value: colony }));
     window.addEventListener('resize', resize);
     window.addEventListener('life', onLife);
-    if (reduce)
-      return () => {
-        window.removeEventListener('resize', resize);
-        window.removeEventListener('life', onLife);
-        window.removeEventListener('theme-change', onTheme);
-        clearInterval(weatherTimer);
-      };
-
     const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
     io.observe(host);
     host.addEventListener('pointermove', onMove);
@@ -376,7 +372,7 @@ export default function LifeCanvas() {
   return (
     <>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
-      <div className="absolute top-4 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right select-none">
+      <div className="hidden sm:block [@media(hover:none)]:!hidden absolute top-4 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right select-none">
         <div ref={statsRef} className="pointer-events-none">generation 0 · 0 alive</div>
         <div ref={weatherRef} className="pointer-events-none text-mute/80 max-w-[60vw] sm:max-w-none" aria-live="polite" />
         <button

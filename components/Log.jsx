@@ -6,12 +6,10 @@ const fmt = (d) =>
     ? 'upcoming'
     : new Date(`${d}-01T00:00:00Z`).toLocaleString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
-export default function Log() {
+function Entries({ entries }) {
   return (
-    <Section id="log" index={3} title="Log" note="dated milestones, newest first">
       <ol className="list-none p-0 m-0 relative">
-        <span className="absolute left-[5px] top-2 bottom-2 w-px bg-line" aria-hidden="true" />
-        {log.map((e) => {
+        {entries.map((e) => {
           const upcoming = e.date === 'upcoming';
           const title = e.href ? (
             <a
@@ -41,6 +39,17 @@ export default function Log() {
           );
         })}
       </ol>
+  );
+}
+
+export default function Log() {
+  return (
+    <Section id="log" title="Log" note="Milestones, newest first.">
+      <Entries entries={log.slice(0, 3)} />
+      <details className="mt-5">
+        <summary className="text-sm text-signal min-h-11">Earlier milestones</summary>
+        <Entries entries={log.slice(3)} />
+      </details>
     </Section>
   );
 }

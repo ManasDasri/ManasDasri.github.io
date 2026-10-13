@@ -10,7 +10,7 @@ export default function Writing() {
         {getPosts().map((post) => (
           <li key={post.slug} className="py-4 first:pt-0 border-b border-line">
             <a href={`/writing/${post.slug}/`} className="group font-head text-lg font-semibold text-text hover:text-signal">
-              <span className="inline-block" style={{ viewTransitionName: `post-${post.slug}` }}>
+              <span className="inline-block">
                 {post.title}
               </span>
               <span className="inline-block ml-2 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0">→</span>

@@ -1,16 +1,14 @@
 import { notFound } from 'next/navigation';
 import { projects } from '@/lib/data';
-import Dock from '@/components/Dock';
 import Section from '@/components/Section';
 import Sigil from '@/components/Sigil';
 import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
 import LiveStatus from '@/components/LiveStatus';
-import CommandPalette from '@/components/CommandPalette';
 
 const detailed = projects.filter((p) => p.slug);
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
-const linkClass = 'font-mono text-sm text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal';
+const linkClass = 'inline-flex min-h-11 items-center font-mono text-sm text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal';
 
 export const dynamicParams = false;
 
@@ -20,7 +18,8 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }) {
   const p = detailed.find((p) => p.slug === params.slug);
-  return { title: `${p.name} · Manas Dasari`, description: p.tagline ?? p.description };
+  if (!p) notFound();
+  return { title: `${p.name} · Manas Dasari`, description: p.summary, alternates: { canonical: `/projects/${p.slug}/` }, openGraph: { title: `${p.name} · Manas Dasari`, description: p.summary, url: `/projects/${p.slug}/` } };
 }
 
 export default function ProjectPage({ params }) {
@@ -32,13 +31,12 @@ export default function ProjectPage({ params }) {
 
   return (
     <>
-      <Dock />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
-        <header className="px-6 sm:px-9 pt-10 pb-14">
+        <header className="px-6 sm:px-9 pt-10 pb-8">
           <a href="/#building" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all projects
           </a>
-          <div className="rise morph flex items-center gap-5 mt-8 mb-4" style={{ '--i': 1 }}>
+          <div className="rise flex items-center gap-5 mt-8 mb-4" style={{ '--i': 1 }}>
             <Sigil pattern={p.pattern} playing name={`sigil-${p.slug}`} />
             {p.statusUrl ? (
               <LiveStatus url={p.statusUrl} label={p.status} />
@@ -47,13 +45,12 @@ export default function ProjectPage({ params }) {
             )}
           </div>
           <h1
-            className="rise morph font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)] w-fit"
-            style={{ viewTransitionName: `project-${p.slug}`, '--i': 2 }}
+            className="rise font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)] w-fit"
           >
             {p.name}
           </h1>
           {p.tagline && <p className="rise font-head text-xl sm:text-2xl text-text mt-4" style={{ '--i': 3 }}>{p.tagline}</p>}
-          <p className="rise text-mute leading-relaxed mt-5 max-w-[68ch]" style={{ '--i': 4 }}>{p.description}</p>
+          <p className="rise font-head text-lg text-mute leading-relaxed mt-5 max-w-[68ch]" style={{ '--i': 4 }}>{p.description}</p>
           <div className="rise flex flex-wrap gap-x-6 gap-y-2 mt-6" style={{ '--i': 5 }}>
             {p.link && !p.link.includes('github.com') && (
               <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>
@@ -72,17 +69,22 @@ export default function ProjectPage({ params }) {
           <div className="px-6 sm:px-9 pb-14 grid gap-4 sm:grid-cols-2">
             {p.screenshots.map((s, k) => (
               <figure key={s.src} className={`m-0 ${k === 0 ? 'sm:col-span-2' : ''}`}>
-                <img src={s.src} alt={s.alt} loading="lazy" className="w-full rounded-lg border border-line" />
+                <img src={s.src} alt={s.alt} width={s.width} height={s.height} loading="lazy" className="w-full rounded-lg border border-line" />
                 <figcaption className="font-mono text-xs text-mute mt-2">{s.alt}</figcaption>
               </figure>
             ))}
           </div>
         )}
 
+        <Section id="evidence" title="Evidence">
+          <p className="font-head text-lg leading-relaxed">{p.evidence.text}</p>
+          <a href={p.evidence.href} target="_blank" rel="noopener noreferrer" className={linkClass}>{p.evidence.label}</a>
+        </Section>
+
         <Section id="features" title="What it does">
           <ul className="list-none p-0 m-0 flex flex-col gap-3 max-w-[68ch]">
             {p.features.map((f) => (
-              <li key={f} className="flex gap-3 text-sm leading-relaxed text-text/90">
+              <li key={f} className="flex gap-3 font-head text-base leading-relaxed text-text/90">
                 <span className="mt-[7px] w-[7px] h-[7px] rounded-[1px] bg-signal flex-shrink-0" aria-hidden="true" />
                 {f}
               </li>
@@ -114,7 +116,6 @@ export default function ProjectPage({ params }) {
             <Sigil pattern={next.pattern} name={`sigil-${next.slug}`} />
             <span
               className="block w-fit font-head text-4xl font-extrabold tracking-[-0.04em] leading-[0.9] text-text group-hover:text-signal transition-colors"
-              style={{ viewTransitionName: `project-${next.slug}` }}
             >
               {next.name}
             </span>
@@ -122,7 +123,6 @@ export default function ProjectPage({ params }) {
         </a>
 
         <Footer />
-        <CommandPalette />
       </main>
     </>
   );

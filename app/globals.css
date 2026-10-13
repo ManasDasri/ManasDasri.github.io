@@ -6,9 +6,23 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Usable before the theme script runs, and when JavaScript is disabled. */
+:root {
+  --c-ink: 4 20 25;
+  --c-paper: 10 34 42;
+  --c-raised: 15 44 53;
+  --c-line: 22 64 74;
+  --c-text: 230 244 241;
+  --c-mute: 134 169 172;
+  --c-signal: 124 245 228;
+  --c-mature: 43 179 177;
+  --c-old: 31 95 139;
+  --c-accent: 255 122 107;
 }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body { overflow-wrap: break-word; }
+summary { cursor: pointer; }
+
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -118,7 +132,6 @@ body {
 .spotlight {
   position: relative;
   transition: transform 0.25s ease-out;
-  will-change: transform;
 }
 .spotlight::before,
 .spotlight::after {
@@ -144,21 +157,19 @@ body {
 .spotlight:hover::before,
 .spotlight:hover::after { opacity: 1; }
 
-/* one motion for the whole site: page entrances, scroll reveals and cross-page morphs
-   share this curve and duration. --i staggers a page's entrance, one step per item. */
-:root { --ease: cubic-bezier(0.2, 0.8, 0.2, 1); --dur: 0.6s; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
-.rise { animation: rise var(--dur) var(--ease) calc(var(--i, 0) * 90ms) backwards; }
-/* sections rise the same way when scrolled to (components/Section.jsx) */
-.reveal:not(.in) { opacity: 0; }
-.reveal.in { animation: rise var(--dur) var(--ease) backwards; }
+/* A short opacity entrance never moves text or replays on hover. */
+@keyframes rise { from { opacity: 0; } }
+.rise { animation: rise 220ms ease-out; }
+.hero-name, .shimmer { transition: color 180ms ease; }
+@media (hover: hover) {
+  .hero-name:hover, .shimmer:hover { color: rgb(var(--c-signal)); }
+}
 
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .caret, .rise, .reveal.in { animation: none; }
-  .reveal:not(.in) { opacity: 1; }
+  .caret, .rise { animation: none; }
   .spotlight { transition: none; }
 }
 
@@ -195,18 +206,6 @@ body {
 .post-body pre { background: rgb(var(--c-paper)); border: 1px solid rgb(var(--c-line)); border-radius: 8px; padding: 1rem 1.25rem; overflow-x: auto; }
 .post-body pre code { background: none; border: 0; padding: 0; }
 
-/* cross-page transitions: matching view-transition-names morph between pages
-   (project names and badges, post titles, the dock). Browsers without support
-   just navigate normally. */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition { navigation: auto; }
-}
-::view-transition-group(*) {
-  animation-duration: var(--dur);
-  animation-timing-function: var(--ease);
-}
-/* a title that morphs in skips its own rise (app/layout.js); the rest of the page still rises */
-
 /* keyboard focus: visible ring for keyboard users only (not on mouse clicks) */
 :focus-visible {
   outline: 2px solid rgb(var(--c-signal));
@@ -223,31 +222,66 @@ html.palette-ready { transition: filter 1.2s ease; }
 /* photos keep their real colours */
 img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
-/* first-visit entrance: LED dots sweep on, then the overlay fades (no JS needed to clear it) */
-.entrance {
+/* CSS owns both layouts from the first paint, before hydration. */
+.dock {
   position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: rgb(var(--c-ink));
-  pointer-events: none;
-  animation: entrance-out 0.45s ease 0.9s forwards;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(380px, calc(100% - 20px));
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 16px;
+  background: rgb(var(--c-ink) / 0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
 }
-@keyframes entrance-out { to { opacity: 0; visibility: hidden; } }
-
-/* titles: a light sweep across the letters on hover. Scrambled titles draw their text in
-   a positioned span, which a parent's text-clipped background can't reach, so it goes there. */
-.shimmer:hover:not(:has(.scramble-out)),
-.shimmer:hover .scramble-out {
-  color: transparent;
-  background-image: linear-gradient(100deg, rgb(var(--c-text)) 0%, rgb(var(--c-text)) 40%, rgb(var(--c-signal)) 50%, rgb(var(--c-text)) 60%, rgb(var(--c-text)) 100%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 1.6s linear infinite;
+.dock-item {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  min-height: 48px;
+  border-radius: 10px;
+  color: rgb(var(--c-mute));
+  text-decoration: none;
+  transition: color 150ms, background-color 150ms;
 }
-@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
-
+.dock-item svg { width: 19px; height: 19px; }
+.dock-label { font: 10px 'JetBrains Mono', monospace; }
+.dock-item[aria-current], .dock-item:hover, .dock-item:focus-visible { color: rgb(var(--c-signal)); background: rgb(var(--c-raised)); }
+.dock-secondary { display: none; }
+.theme-options {
+  position: absolute;
+  left: calc(100% + 16px);
+  bottom: 0;
+  width: 240px;
+  max-height: min(70vh, 440px);
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 12px;
+  background: rgb(var(--c-paper));
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
+}
+@media (min-width: 1280px) {
+  .dock { width: auto; left: 20px; top: 50%; bottom: auto; transform: translateY(-50%); flex-direction: column; }
+  .dock-secondary { display: flex; }
+  .dock-item { width: 44px; height: 44px; min-height: 44px; flex: none; }
+  .dock-label { position: absolute; left: calc(100% + 16px); padding: 6px 9px; border: 1px solid rgb(var(--c-line)); border-radius: 6px; background: rgb(var(--c-paper)); white-space: nowrap; font-size: 12px; opacity: 0; pointer-events: none; }
+  .dock-item:hover .dock-label, .dock-item:focus-visible .dock-label { opacity: 1; }
+  .dock-divider { width: 24px; height: 1px; margin: 4px 0; background: rgb(var(--c-line)); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .entrance { display: none; }
-  .shimmer:hover:not(:has(.scramble-out)), .shimmer:hover .scramble-out { animation: none; }
+  *, *::before, *::after { scroll-behavior: auto !important; }
+  .rise, .caret, .animate-ping { animation: none; }
+  .hero-name, .shimmer, html.palette-ready { transition: none; }
 }
