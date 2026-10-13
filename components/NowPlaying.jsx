@@ -25,13 +25,17 @@ function cover(tm) {
   return mbid ? `https://coverartarchive.org/release/${mbid}/front-250` : null;
 }
 
+// listen metadata is whatever the submitting app sent, so only https links get through
+// (a javascript: URL here would run on click)
+const https = (u) => (typeof u === 'string' && /^https:\/\//i.test(u) ? u : null);
+
 const toTrack = (l, playing) => {
   const tm = l.track_metadata;
   const info = tm.additional_info ?? {};
   return {
     title: tm.track_name,
     artist: tm.artist_name,
-    url: info.origin_url ?? (info.spotify_id || `https://listenbrainz.org/user/${encodeURIComponent(user)}/`),
+    url: https(info.origin_url) ?? https(info.spotify_id) ?? `https://listenbrainz.org/user/${encodeURIComponent(user)}/`,
     playing,
     playedAt: l.listened_at,
     art: cover(tm),
