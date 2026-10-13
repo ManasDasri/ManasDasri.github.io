@@ -6,6 +6,8 @@ import { lastfm } from '@/lib/data';
 // One line under the name: what's playing now, or the last track, from Last.fm.
 // Last.fm's API allows browser requests, so there's no server in between.
 const POLL_MS = 60_000;
+// Last.fm's grey star, sent when it has no cover for the album
+const PLACEHOLDER = '2a96cbd8b46e442fc41c2b86b821562f';
 
 const ago = (uts) => {
   const mins = Math.round((Date.now() / 1000 - uts) / 60);
@@ -36,6 +38,7 @@ export default function NowPlaying() {
               url: t.url,
               playing: t['@attr']?.nowplaying === 'true',
               playedAt: t.date?.uts,
+              art: [...(t.image ?? [])].find((i) => i.size === 'medium')?.['#text'] || null,
             }
           );
         })
@@ -59,6 +62,9 @@ export default function NowPlaying() {
       rel="noopener noreferrer"
       className="pointer-events-auto group inline-flex items-center gap-2.5 mt-3 max-w-full font-mono text-xs text-mute no-underline"
     >
+      {track.art && !track.art.includes(PLACEHOLDER) && (
+        <img src={track.art} alt="" width={22} height={22} className="w-[22px] h-[22px] rounded-[3px] ring-1 ring-line object-cover shrink-0" />
+      )}
       {track.playing ? (
         <span className="eq" aria-label="playing now">
           <span />
