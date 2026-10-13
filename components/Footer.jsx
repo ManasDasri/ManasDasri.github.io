@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import Scramble from './Scramble';
 import LedTicker from './LedTicker';
 import { DaylightLabel } from './Daylight';
 import { getTickerData } from '@/lib/ticker';
@@ -24,10 +25,10 @@ export default async function Footer() {
   const built = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
   return (
-    <footer className="px-6 sm:px-9 pt-12 pb-28 xl:pb-12 border-t border-line/60">
+    <footer className="px-6 sm:px-9 pt-24 pb-28 xl:pb-12 border-t border-line/60">
       <div className="text-center">
         <p className="font-head text-2xl sm:text-3xl font-semibold tracking-tight max-w-xl mx-auto mb-4 text-balance">
-          “You have power over your mind — not outside events.”
+          <Scramble text="“You have power over your mind - not outside events.”" trigger="view" duration={1400} hover={false} />
         </p>
         <p className="font-mono text-xs text-mute">Marcus Aurelius</p>
         <div className="mt-12 empty:hidden">
@@ -71,7 +72,7 @@ export default async function Footer() {
             )}
           </span>
           <DaylightLabel />
-          <a href="/#top" className="text-text/80 hover:text-signal">back to top ↑</a>
+          <a href="#top" className="text-text/80 hover:text-signal">back to top ↑</a>
         </p>
       </div>
     </footer>

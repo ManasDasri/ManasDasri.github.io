@@ -7,7 +7,7 @@ import { shareColony } from '@/lib/lifeShare';
 import { THEME_ORDER, readTheme } from '@/lib/themes';
 import { setTheme } from './Daylight';
 
-// Recorded demo output from Sprout v0.2.0, not a live shell or the latest release.
+// Real output: sprout 0.2.0 run on this portfolio's own repo.
 const TREE = [
   '.',
   '├── README.md',
@@ -231,7 +231,7 @@ export default function SproutTerminal({ embedded = false, greet = 'neofetch' })
       { threshold: 0.4 }
     );
     io.observe(ref.current);
-    const onRun = (e) => { io.disconnect(); type(e.detail); };
+    const onRun = (e) => type(e.detail);
     window.addEventListener('terminal-run', onRun);
     return () => {
       io.disconnect();
@@ -274,8 +274,8 @@ export default function SproutTerminal({ embedded = false, greet = 'neofetch' })
             <span className="w-2.5 h-2.5 rounded-full bg-signal/80" />
             <span className="w-2.5 h-2.5 rounded-full bg-mature/80" />
           </span>
-          <span className="font-mono text-xs text-mute">Sprout demo · v0.2.0</span>
-          <span className="hidden sm:block ml-auto font-mono text-[11px] text-mute/70">type help</span>
+          <span className="font-mono text-xs text-mute">~/ManasDasri.github.io</span>
+          <span className="ml-auto font-mono text-[11px] text-mute/70">type help</span>
         </div>
         <div
           ref={bodyRef}

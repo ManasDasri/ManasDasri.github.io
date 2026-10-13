@@ -36,7 +36,6 @@ function CoverCells({ src }) {
       }
     };
     img.src = src;
-    return () => { img.onload = null; };
   }, [src]);
   return <canvas ref={ref} width={GRID * 7} height={GRID * 7} className="w-[84px] h-[84px] rounded-md" aria-hidden="true" />;
 }
