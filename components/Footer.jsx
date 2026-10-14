@@ -68,6 +68,7 @@ export default async function Footer() {
             )}
           </span>
           <DaylightLabel />
+          <a href="/feed.xml" className="text-text/80 hover:text-signal">rss feed</a>
           <a href="#top" className="text-text/80 hover:text-signal">back to top ↑</a>
         </p>
       </div>
