@@ -1,5 +1,6 @@
 import LifeCanvas from './LifeCanvas';
 import LifeTouchBar from './LifeTouchBar';
+import NowPlaying from './NowPlaying';
 
 export default function HeroBanner() {
   return (
@@ -15,6 +16,7 @@ export default function HeroBanner() {
           <h1 className="shimmer pointer-events-auto w-fit font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,10vw,6.5rem)]">
             Manas Dasari
           </h1>
+          <NowPlaying />
         </div>
       </div>
     </header>

@@ -223,6 +223,14 @@ html.palette-ready { transition: filter 1.2s ease; }
 /* photos keep their real colours */
 img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
+/* now-playing equaliser: three bars bouncing out of step */
+.eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
+.eq span { width: 2px; height: 100%; background: rgb(var(--c-signal)); transform-origin: bottom; animation: eq 0.9s ease-in-out infinite; }
+.eq span:nth-child(2) { animation-delay: -0.3s; }
+.eq span:nth-child(3) { animation-delay: -0.6s; }
+@keyframes eq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .eq span { animation: none; transform: scaleY(0.6); } }
+
 /* first-visit entrance: LED dots sweep on, then the overlay fades (no JS needed to clear it) */
 .entrance {
   position: fixed;
