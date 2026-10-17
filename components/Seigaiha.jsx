@@ -4,11 +4,10 @@ import { useEffect, useRef } from 'react';
 import { cssColor } from '@/lib/themes';
 
 // The page background: seigaiha, the overlapping-wave pattern of Japanese textiles,
-// in faint indigo. A slow tide of light rolls across it, the pointer lights the arcs
-// around it and sends ripples out as it moves, and the pattern drifts at a third of
-// the scroll speed. The pattern is drawn once; each frame only paints light (tide,
-// glow, ripples) and keeps the part that falls on the pattern's lines. Dimmed behind
-// the text column (globals.css, .seigaiha).
+// in faint indigo. A slow tide of light rolls across it, and the pattern drifts at a
+// third of the scroll speed. The pattern is drawn once; each frame only paints the
+// tide and keeps the part that falls on the pattern's lines. Dimmed behind the text
+// column (globals.css, .seigaiha).
 const R = 26; // radius of one wave scale, px
 const RINGS = 4; // concentric arcs per scale
 const TIDE_MS = 14000; // one tide across the page
@@ -44,7 +43,7 @@ export default function Seigaiha() {
     const lines = document.createElement('canvas'); // the pattern's lines only, for masking light
     const light = document.createElement('canvas');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let w = 0, h = 0, dpr = 1, raf = 0, glow = null, ripples = [], lastRipple = 0, accent = '';
+    let w = 0, h = 0, dpr = 1, raf = 0;
 
     function layout() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -77,7 +76,6 @@ export default function Seigaiha() {
             lc.stroke();
           }
         }
-      accent = cssColor('signal');
     }
 
     function draw(t) {
@@ -86,7 +84,7 @@ export default function Seigaiha() {
       ctx.drawImage(base, 0, shift * dpr, w * dpr, h * dpr, 0, 0, w, h);
       if (reduce) return;
 
-      // light: a diagonal tide, the pointer's glow, and ripple rings
+      // light: a diagonal tide
       const l = light.getContext('2d');
       l.globalCompositeOperation = 'source-over';
       l.clearRect(0, 0, w, h);
@@ -97,27 +95,6 @@ export default function Seigaiha() {
       tide.addColorStop(1, 'rgb(150 180 255 / 0)');
       l.fillStyle = tide;
       l.fillRect(0, 0, w, h);
-      if (glow) {
-        const g = l.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, 160);
-        g.addColorStop(0, accent);
-        g.addColorStop(1, 'transparent');
-        l.fillStyle = g;
-        l.globalAlpha = 0.9;
-        l.fillRect(glow.x - 160, glow.y - 160, 320, 320);
-        l.globalAlpha = 1;
-      }
-      l.strokeStyle = accent;
-      for (const r of ripples) {
-        const age = t - r.t, radius = age * 0.22, fade = 1 - age / 1800;
-        if (fade <= 0) continue;
-        l.globalAlpha = fade * 0.8;
-        l.lineWidth = 18;
-        l.beginPath();
-        l.arc(r.x, r.y, radius, 0, Math.PI * 2);
-        l.stroke();
-      }
-      l.globalAlpha = 1;
-      ripples = ripples.filter((r) => t - r.t < 1800);
       // keep only the light that lands on the pattern's visible lines
       l.globalCompositeOperation = 'destination-in';
       l.drawImage(lines, 0, shift * dpr, w * dpr, h * dpr, 0, 0, w, h);
@@ -129,15 +106,6 @@ export default function Seigaiha() {
       if (!document.hidden) draw(t);
     }
 
-    const onMove = (e) => {
-      if (e.pointerType === 'touch') return;
-      glow = { x: e.clientX, y: e.clientY };
-      if (e.timeStamp - lastRipple > 140) {
-        lastRipple = e.timeStamp;
-        ripples.push({ x: e.clientX, y: e.clientY, t: performance.now() });
-      }
-    };
-    const onLeave = () => (glow = null);
     const onTheme = () => layout();
 
     layout();
@@ -154,14 +122,10 @@ export default function Seigaiha() {
       };
     }
     raf = requestAnimationFrame(frame);
-    window.addEventListener('pointermove', onMove, { passive: true });
-    document.documentElement.addEventListener('pointerleave', onLeave);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', layout);
       window.removeEventListener('theme-change', onTheme);
-      window.removeEventListener('pointermove', onMove);
-      document.documentElement.removeEventListener('pointerleave', onLeave);
     };
   }, []);
 
