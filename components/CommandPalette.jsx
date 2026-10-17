@@ -40,7 +40,8 @@ export default function CommandPalette() {
     } else if (cmd.href) {
       window.open(cmd.href, '_blank', 'noopener');
     } else if (cmd.section) {
-      document.getElementById(cmd.section)?.scrollIntoView({ behavior: 'smooth' });
+      // via the hash, so tabbed sections (Log, Reading, Pull requests) open the right tab
+      window.location.hash = cmd.section;
     }
   }
 

@@ -8,6 +8,8 @@ import Log from '@/components/Log';
 import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
 import ProofOfWork from '@/components/ProofOfWork';
+import TabbedSection from '@/components/TabbedSection';
+import { reading } from '@/lib/data';
 import Writing from '@/components/Writing';
 import CodeArt from '@/components/CodeArt';
 import Footer from '@/components/Footer';
@@ -27,13 +29,29 @@ export default async function Home() {
         <Hero />
 
         <Building />
-        <Now />
-        <Reading />
-        <Log />
+        <TabbedSection
+          id="now"
+          index={2}
+          title="Now"
+          tabs={[
+            { id: 'now-plate', label: 'this semester', note: "what's on my plate this semester", content: <Now /> },
+            ...(reading.length
+              ? [{ id: 'reading', label: 'reading', note: "books I've finished this year, and papers worth your time", content: <Reading /> }]
+              : []),
+            { id: 'log', label: 'log', note: 'dated milestones, newest first', content: <Log /> },
+          ]}
+        />
         <Skills />
-        <GithubActivity leetcode={leetcode} />
+        <TabbedSection
+          id="activity"
+          index={4}
+          title="Activity"
+          tabs={[
+            { id: 'contributions', label: 'contributions', note: 'GitHub live; LeetCode as of the last daily build', content: <GithubActivity leetcode={leetcode} /> },
+            { id: 'proof-of-work', label: 'pull requests', note: 'my pull requests, live from GitHub', content: <ProofOfWork /> },
+          ]}
+        />
         <CodeArt />
-        <ProofOfWork />
         <Writing />
 
         <Footer />

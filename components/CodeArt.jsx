@@ -240,7 +240,7 @@ export default function CodeArt() {
   const button = 'font-mono text-xs border border-line rounded px-2.5 py-1 hover:border-signal hover:text-signal transition-colors disabled:opacity-40';
 
   return (
-    <Section id="art" index={7} title="My code, drawn" note="every public repository as a strand of characters; hover one to see which">
+    <Section id="art" index={5} title="My code, drawn" note="every public repository as a strand of characters; hover one to see which">
       <figure className="m-0">
         <div className="relative rounded-md border border-line bg-ink px-px py-3 overflow-hidden">
           <div className="flex items-center justify-between font-mono text-[11px] text-mute px-3 pb-3">
