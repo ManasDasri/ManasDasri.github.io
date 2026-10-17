@@ -26,7 +26,7 @@ const ENTRY = [
   '  2. components/Section.jsx     used by 5 files',
   '  3. components/Scramble.jsx    used by 2 files',
   '  4. components/Effects.jsx     used by 1 file',
-  '  5. components/NightScene.jsx  used by 1 file',
+  '  5. components/Snowfall.jsx    used by 2 files',
 ];
 const INSTALL = [
   '# this terminal is a demo; run these in yours',
@@ -64,7 +64,7 @@ function neofetch() {
     'Kernel: Next.js 14 (static export)',
     'Shell: sprout-term',
     `DE: Plasma (simulated)${inDesktop() ? '' : ', try startx'}`,
-    'WM: night sky, petals falling',
+    'WM: Hiroshige, snow falling',
     'Theme: Bioluminescent',
     `Uptime: coding for ${days} days`,
     `Projects: ${projects.length}`,

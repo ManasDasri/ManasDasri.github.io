@@ -2,7 +2,7 @@ import './globals.css';
 import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
 import Entrance from '@/components/Entrance';
-import NightSky from '@/components/NightSky';
+import Snowfall from '@/components/Snowfall';
 import { THEME_SCRIPT } from '@/lib/themes';
 import { SITE, socials } from '@/lib/data';
 
@@ -62,7 +62,8 @@ export default function RootLayout({ children }) {
         <Entrance />
         <Daylight />
         <ScrollProgress />
-        <NightSky />
+        <div className="washi" aria-hidden="true" />
+        <Snowfall density={0.00008} colour="rgb(236 240 250)" className="page-snow" />
         {children}
       </body>
     </html>
