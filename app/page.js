@@ -16,17 +16,27 @@ import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
 import { getPosts } from '@/lib/posts';
+import { getTickerData } from '@/lib/ticker';
+import { log } from '@/lib/data';
 import Desktop from '@/components/desktop/Desktop';
 
 export default async function Home() {
   const leetcode = await getLeetCodeStats('ManasDasari');
+  const { sprout, mergedPRs } = await getTickerData();
+  const milestone = log.find((e) => e.date !== 'upcoming');
+  // three facts for someone skimming; any that failed to load at build are left out
+  const highlights = [
+    sprout && { value: `Sprout ${sprout}`, label: 'shipped', href: 'https://github.com/Sprout-DevLabs/sprout/releases' },
+    mergedPRs && { value: `${mergedPRs} PRs`, label: 'merged', href: '#proof-of-work' },
+    milestone && { value: milestone.title.replace(/,.*$/, ''), label: milestone.note ?? '', href: '#log' },
+  ].filter(Boolean);
 
   return (
     <>
       <Dock />
       <HeroBanner />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
-        <Hero />
+        <Hero highlights={highlights} />
 
         <Building />
         <TabbedSection
