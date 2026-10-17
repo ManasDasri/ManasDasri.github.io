@@ -2,7 +2,7 @@ import './globals.css';
 import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
 import Entrance from '@/components/Entrance';
-import NightSky from '@/components/NightSky';
+import Seigaiha from '@/components/Seigaiha';
 import { THEME_SCRIPT } from '@/lib/themes';
 import { SITE, socials } from '@/lib/data';
 
@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
         <Entrance />
         <Daylight />
         <ScrollProgress />
-        <NightSky />
+        <Seigaiha />
         {children}
       </body>
     </html>
