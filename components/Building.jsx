@@ -137,7 +137,7 @@ function Featured({ p }) {
                 {p.name}
               </h3>
               <p className="font-head text-lg text-text mt-1">{p.tagline}</p>
-              <p className="text-mute text-sm leading-relaxed mt-3 max-w-[60ch]">{p.description}</p>
+              <p className="text-mute text-sm leading-relaxed mt-3 max-w-[60ch] max-sm:line-clamp-4">{p.description}</p>
             </div>
           </div>
           <Spec p={p} />
@@ -156,7 +156,8 @@ function Featured({ p }) {
 function Specimen({ p, wide }) {
   const [hover, setHover] = useState(false);
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={wide ? 'md:col-span-2' : ''}>
+    // min-w-0: a grid item won't shrink below its content, and the preview's long nowrap lines would widen the page
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`min-w-0 ${wide ? 'md:col-span-2' : ''}`}>
       <SpotlightCard className="relative h-full flex flex-col rounded-md border border-line bg-paper p-6">
         <Crop />
         <PlateHeader p={p} />
@@ -174,7 +175,7 @@ function Specimen({ p, wide }) {
             {p.tagline && <p className="text-sm text-text/80 mt-0.5">{p.tagline}</p>}
           </div>
         </div>
-        <p className="text-mute text-sm leading-relaxed mb-5">{p.description}</p>
+        <p className="text-mute text-sm leading-relaxed mb-5 max-sm:line-clamp-4">{p.description}</p>
         <Preview p={p} hover={hover} />
         <div className="mt-auto">
           <Spec p={p} />
