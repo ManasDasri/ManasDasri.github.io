@@ -26,9 +26,9 @@ body {
   color: rgb(var(--c-ink));
 }
 
-/* the living background (components/LivingField.jsx): vivid in the margins, dimmed
-   behind the 64rem text column so the writing stays readable */
-.living-field {
+/* the night-sky background (components/NightSky.jsx): full strength in the margins,
+   dimmed behind the 64rem text column so the writing stays readable */
+.night-sky {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -225,8 +225,8 @@ body {
 html { filter: hue-rotate(var(--hue, 0deg)); }
 /* animate palette changes, but not the first paint (the head script set it already) */
 html.palette-ready { transition: filter 1.2s ease; }
-/* photos keep their real colours */
-img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
+/* photos and the header illustration keep their real colours */
+img, .night-scene { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
 /* activity calendars scroll sideways on narrow screens: start at the newest weeks (right end) */
 .react-activity-calendar__scroll-container { direction: rtl; }
