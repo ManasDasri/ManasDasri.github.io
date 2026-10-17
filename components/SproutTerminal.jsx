@@ -73,8 +73,8 @@ function life(args) {
       r ? [`link ${r.how === 'copied' ? 'copied' : r.how === 'shared' ? 'shared' : 'is in the address bar'}:`, r.url] : ['the grid isn’t running on this page.']
     );
   if (sub && !actions[sub]) return [`unknown: life ${sub}`, ...LIFE_HELP];
-  if (sub === 'rule' && value && !RULES[value]) return [`no rule "${value}". Try: ${Object.keys(RULES).join(', ')}`];
-  if (sub === 'drop' && !SHAPES[value]) return [`drop what? ${Object.keys(SHAPES).join(', ')}`];
+  if (sub === 'rule' && value && !Object.hasOwn(RULES, value)) return [`no rule "${value}". Try: ${Object.keys(RULES).join(', ')}`];
+  if (sub === 'drop' && !Object.hasOwn(SHAPES, value ?? '')) return [`drop what? ${Object.keys(SHAPES).join(', ')}`];
   const [action, v] = actions[sub] ?? ['status'];
   let status;
   window.dispatchEvent(new CustomEvent('life', { detail: { action, value: v, reply: (s) => (status = s) } }));
