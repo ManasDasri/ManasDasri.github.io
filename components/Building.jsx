@@ -34,10 +34,12 @@ const ctaClass =
   'inline-flex items-center gap-1.5 font-mono text-xs text-signal border border-signal/40 rounded-md px-3 py-1.5 no-underline hover:bg-signal hover:text-ink transition-colors';
 
 // A card's preview: the project's own features, printed like a terminal session.
-// Projects without a feature list print their tagline and kind instead.
+// Hovering the card prints the description instead (--about), in the same fixed-size
+// screen so the grid never jumps. Projects without features print their tagline and kind.
 function Preview({ p, hover }) {
   const cmd = (p.slug ?? p.name.toLowerCase().replace(/\s+/g, '-'));
   const lines = p.features?.slice(0, 3) ?? [p.tagline, p.kind && `kind: ${p.kind.toLowerCase()}`].filter(Boolean);
+  const about = hover || !p.features;
   return (
     <div className="mb-5 rounded-md border border-line bg-ink overflow-hidden" aria-hidden="true">
       <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-line">
@@ -46,18 +48,27 @@ function Preview({ p, hover }) {
         <span className="w-2 h-2 rounded-full bg-signal/70" />
         <span className="ml-2 font-mono text-[10px] text-mute">~/projects/{cmd}</span>
       </div>
-      <div className="px-3 py-2.5 font-mono text-[11px] leading-relaxed">
+      <div className="h-[110px] px-3 py-2.5 font-mono text-[11px] leading-relaxed overflow-hidden">
         <p className="m-0 text-signal">
-          $ {cmd} {p.features ? '--features' : '--about'}
+          $ {cmd} {about ? '--about' : '--features'}
         </p>
-        {lines.map((l) => (
-          <p key={l} className="m-0 text-text/75 truncate">
-            <span className="text-mature">›</span> {l}
+        {hover ? (
+          <p className="m-0 text-text/80 line-clamp-4">
+            {p.description}
+            <span className="caret" />
           </p>
-        ))}
-        <p className="m-0 text-signal">
-          $ <span className={hover ? 'caret' : 'inline-block w-[0.55em]'} />
-        </p>
+        ) : (
+          <>
+            {lines.map((l) => (
+              <p key={l} className="m-0 text-text/75 truncate">
+                <span className="text-mature">›</span> {l}
+              </p>
+            ))}
+            <p className="m-0 text-signal">
+              $ <span className="inline-block w-[0.55em]" />
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -158,7 +169,7 @@ function Specimen({ p, wide }) {
   return (
     // min-w-0: a grid item won't shrink below its content, and the preview's long nowrap lines would widen the page
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`min-w-0 ${wide ? 'md:col-span-2' : ''}`}>
-      <SpotlightCard className="relative h-full flex flex-col rounded-md border border-line bg-paper p-6">
+      <SpotlightCard className="relative h-full flex flex-col rounded-md border border-line bg-paper p-5 sm:p-6">
         <Crop />
         <PlateHeader p={p} />
         <div className="flex items-center gap-4 mb-3">
@@ -175,11 +186,11 @@ function Specimen({ p, wide }) {
             {p.tagline && <p className="text-sm text-text/80 mt-0.5">{p.tagline}</p>}
           </div>
         </div>
-        <p className="text-mute text-sm leading-relaxed mb-5 max-sm:line-clamp-4">{p.description}</p>
+        {/* phones get the description here; on larger screens hovering prints it in the preview */}
+        <p className="text-mute text-sm leading-relaxed mb-5 line-clamp-3 md:sr-only">{p.description}</p>
         <Preview p={p} hover={hover} />
         <div className="mt-auto">
-          <Spec p={p} />
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-5 pt-4 border-t border-dashed border-line">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-4 border-t border-dashed border-line">
             {p.slug ? (
               <a href={`/projects/${p.slug}/`} className={ctaClass}>
                 view project <span aria-hidden="true">→</span>
@@ -205,7 +216,7 @@ export default function Building() {
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
   return (
-    <Section id="building" index={1} title="Building" note="catalogued by when each one began; hover a specimen to run its pattern">
+    <Section id="building" index={1} title="Building" note="catalogued by when each one began; hover a specimen to run its pattern and read its notes">
       <div className="flex flex-col gap-5">
         {featured.map((p) => (
           <Featured key={p.name} p={p} />
