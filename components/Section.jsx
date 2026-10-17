@@ -1,15 +1,19 @@
 'use client';
 
-import { useRef } from 'react';
+import { createContext, useContext, useRef } from 'react';
 import { useInView } from 'framer-motion';
 import Scramble from './Scramble';
 import { BitIndex } from './Bits';
+
+// Inside a TabbedSection tab, a Section is just its content: the tab group owns the title.
+export const InTab = createContext(false);
 
 // Notebook layout: the title sits in a sticky left margin, content on the right.
 // The content rises in when scrolled to, with the same motion as a page entrance.
 export default function Section({ id, title, note, index, children }) {
   const ref = useRef(null);
   const seen = useInView(ref, { once: true, margin: '0px 0px -12% 0px' });
+  if (useContext(InTab)) return children;
   return (
     <section id={id} className="px-6 sm:px-9 py-14 sm:py-20 border-t border-line/60 md:grid md:grid-cols-[170px_1fr] md:gap-10">
       <div className="mb-7 md:mb-0">
