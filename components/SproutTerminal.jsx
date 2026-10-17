@@ -64,7 +64,7 @@ function neofetch() {
     'Kernel: Next.js 14 (static export)',
     'Shell: sprout-term',
     `DE: Plasma (simulated)${inDesktop() ? '' : ', try startx'}`,
-    'WM: seigaiha, fireworks at Ikenohata',
+    'WM: seigaiha, moon over Takanawa',
     'Theme: Bioluminescent',
     `Uptime: coding for ${days} days`,
     `Projects: ${projects.length}`,
