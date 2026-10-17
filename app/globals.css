@@ -26,18 +26,14 @@ body {
   color: rgb(var(--c-ink));
 }
 
-/* the page background (components/Seigaiha.jsx): full strength in the margins, dimmed
-   behind the 64rem text column so the writing stays readable */
-.seigaiha {
+.grain {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
   pointer-events: none;
-  --dim: rgb(0 0 0 / 0.22);
-  -webkit-mask-image: linear-gradient(to right, #000, #000 calc(50% - 34rem), var(--dim) calc(50% - 32rem), var(--dim) calc(50% + 32rem), #000 calc(50% + 34rem), #000);
-  mask-image: linear-gradient(to right, #000, #000 calc(50% - 34rem), var(--dim) calc(50% - 32rem), var(--dim) calc(50% + 32rem), #000 calc(50% + 34rem), #000);
+  z-index: 1;
+  opacity: 0.03;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 3px 3px;
 }
 
 /* cmdk overrides */
@@ -224,8 +220,8 @@ body {
 html { filter: hue-rotate(var(--hue, 0deg)); }
 /* animate palette changes, but not the first paint (the head script set it already) */
 html.palette-ready { transition: filter 1.2s ease; }
-/* photos, the header print and the fireworks drawn over it keep their real colours */
-img, .print-overlay { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
+/* photos keep their real colours */
+img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
 /* activity calendars scroll sideways on narrow screens: start at the newest weeks (right end) */
 .react-activity-calendar__scroll-container { direction: rtl; }

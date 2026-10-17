@@ -29,6 +29,9 @@ export default function CommandPalette() {
     if (cmd.desktop) {
       if (location.pathname === '/') window.dispatchEvent(new Event('startx'));
       else location.href = '/?startx';
+    } else if (cmd.life) {
+      window.dispatchEvent(new CustomEvent('life', { detail: cmd.life }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (cmd.terminal) {
       document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       window.dispatchEvent(new CustomEvent('terminal-run', { detail: cmd.terminal }));
