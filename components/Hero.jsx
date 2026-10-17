@@ -19,7 +19,7 @@ function useUptime() {
   return uptime;
 }
 
-export default function Hero() {
+export default function Hero({ highlights = [] }) {
   const uptime = useUptime();
 
   return (
@@ -62,7 +62,24 @@ export default function Hero() {
         </div>
       </div>
 
-      <div style={{ '--i': 4 }} className="rise mt-10">
+      {highlights.length > 0 && (
+        <ul style={{ '--i': 4 }} className="rise list-none p-0 m-0 mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs" aria-label="Highlights">
+          {highlights.map((h) => (
+            <li key={h.value}>
+              <a
+                href={h.href}
+                {...(h.href.startsWith('#') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+                className="group no-underline text-mute"
+              >
+                <span className="text-signal" aria-hidden="true">▸ </span>
+                <span className="text-text font-bold group-hover:text-signal transition-colors">{h.value}</span> {h.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div style={{ '--i': 5 }} className="rise mt-10">
         <Socials />
       </div>
     </section>
