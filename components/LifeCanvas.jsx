@@ -279,8 +279,8 @@ export default function LifeCanvas() {
       else if (action === 'reseed') seed();
       else if (action === 'rule') {
         const keys = Object.keys(RULES);
-        setRule(RULES[value] ? value : keys[(keys.indexOf(ruleKey) + 1) % keys.length]);
-      } else if (action === 'drop' && SHAPES[value]) drop(value);
+        setRule(Object.hasOwn(RULES, value ?? '') ? value : keys[(keys.indexOf(ruleKey) + 1) % keys.length]);
+      } else if (action === 'drop' && Object.hasOwn(SHAPES, value ?? '')) drop(value);
       else if (action === 'sound') setSound(value ?? !soundOn);
       else if (action === 'view') setView(value ? value === 'ascii' : !ascii);
       else if (action === 'export') {
@@ -292,7 +292,8 @@ export default function LifeCanvas() {
         grid = new Uint8Array(cols * rows);
         age = new Uint8Array(cols * rows);
         stamp(value.cells, (cols - value.w) >> 1, (rows - value.h) >> 1);
-        if (RULES[value.rule]) setRule(value.rule);
+        // only the rules we define: a shared link could name an inherited key like "constructor"
+        if (Object.hasOwn(RULES, value.rule)) setRule(value.rule);
         gen = 0;
         shared = true;
       }
