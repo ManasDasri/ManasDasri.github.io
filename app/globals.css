@@ -26,14 +26,19 @@ body {
   color: rgb(var(--c-ink));
 }
 
-.grain {
+/* the living background (components/LivingField.jsx): vivid in the margins, dimmed
+   behind the 64rem text column so the writing stays readable */
+.living-field {
   position: fixed;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
   pointer-events: none;
-  z-index: 1;
-  opacity: 0.03;
-  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
-  background-size: 3px 3px;
+  opacity: 0.9;
+  --dim: rgb(0 0 0 / 0.14);
+  -webkit-mask-image: linear-gradient(to right, #000, #000 calc(50% - 38rem), var(--dim) calc(50% - 32rem), var(--dim) calc(50% + 32rem), #000 calc(50% + 38rem), #000);
+  mask-image: linear-gradient(to right, #000, #000 calc(50% - 38rem), var(--dim) calc(50% - 32rem), var(--dim) calc(50% + 32rem), #000 calc(50% + 38rem), #000);
 }
 
 /* cmdk overrides */
