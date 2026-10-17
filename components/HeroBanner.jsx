@@ -1,33 +1,33 @@
 import NowPlaying from './NowPlaying';
-import Snowfall from './Snowfall';
+import PrintFireworks from './PrintFireworks';
 
-// The header: Hiroshige's "Evening Snow at Kanbara" (public domain, The Met), framed
-// in the content column so its edges line up with the page, with live snow falling
-// over it and a dot-matrix clock printed in its corner. The name sits below the print.
-const PRINT = 'https://www.metmuseum.org/art/collection/search/56915';
+// The header: Kobayashi Kiyochika's "Fireworks at Ikenohata" (1881; public domain, The
+// Met), framed in the content column so its edges line up with the page, with new
+// fireworks bursting over it and a dot-matrix clock in its corner. The name sits below.
+const PRINT = 'https://www.metmuseum.org/art/collection/search/712976';
 
 export default function HeroBanner() {
   return (
     <header id="top" className="max-w-5xl mx-auto border-x border-line/60">
       <figure className="m-0">
-        <div className="relative overflow-hidden aspect-[2000/520] max-sm:aspect-[2000/800]">
+        <div className="relative overflow-hidden bg-[#26313a] aspect-[2000/560] max-sm:aspect-[2000/860]">
           <img
-            src="/kanbara.jpg"
-            srcSet="/kanbara-1000.jpg 1000w, /kanbara.jpg 2000w"
+            src="/ikenohata.jpg"
+            srcSet="/ikenohata-1000.jpg 1000w, /ikenohata.jpg 2000w"
             sizes="(min-width: 1024px) 1024px, 100vw"
-            alt="Hiroshige's woodblock print of travellers walking through a snowbound village at night, mountains behind"
+            alt="Kiyochika's woodblock print of fireworks over a dark pond at night, red lanterns strung across and a crowd in silhouette"
             fetchPriority="high"
-            className="absolute inset-0 w-full h-full object-cover object-[50%_62%]"
+            className="absolute inset-0 w-full h-full object-cover object-[50%_27%]"
           />
-          <Snowfall density={0.0005} colour="rgb(255 255 255)" clock="rgb(38 44 66 / 0.42)" className="absolute inset-0 w-full h-full" />
+          <PrintFireworks />
         </div>
         <figcaption className="px-6 sm:px-9 pt-1.5 flex flex-wrap justify-between gap-x-4 font-mono text-[10px] text-mute">
           <span>
-            Utagawa Hiroshige,{' '}
+            Kobayashi Kiyochika,{' '}
             <a href={PRINT} target="_blank" rel="noopener noreferrer" className="italic hover:text-signal">
-              Evening Snow at Kanbara
+              Fireworks at Ikenohata
             </a>
-            , c. 1833–34
+            , 1881
           </span>
           <span>The Met · public domain</span>
         </figcaption>
