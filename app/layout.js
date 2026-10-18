@@ -1,4 +1,13 @@
 import './globals.css';
+// fonts are self-hosted (no render-blocking trip to Google); same family names as before
+import '@fontsource/bricolage-grotesque/latin-400.css';
+import '@fontsource/bricolage-grotesque/latin-600.css';
+import '@fontsource/bricolage-grotesque/latin-700.css';
+import '@fontsource/bricolage-grotesque/latin-800.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-500.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
+import '@fontsource/jetbrains-mono/latin-800.css';
 import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
 import Entrance from '@/components/Entrance';
@@ -42,14 +51,10 @@ export default function RootLayout({ children }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: ENTRANCE_ONCE }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* several sections call GitHub's API as soon as they load */}
+        <link rel="preconnect" href="https://api.github.com" crossOrigin="anonymous" />
         <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@400;500;700;800&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body className="font-body">
         <a

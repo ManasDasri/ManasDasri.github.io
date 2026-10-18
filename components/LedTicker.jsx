@@ -15,8 +15,8 @@ const SPEED = 18; // LED columns per second
 // segment kinds → theme tokens
 const TOKEN = { label: 'mute', value: 'signal', text: 'text', sep: 'mature' };
 
-const ago = (iso) => {
-  const mins = Math.round((Date.now() - new Date(iso)) / 60000);
+const ago = (iso, now) => {
+  const mins = Math.round((now - new Date(iso)) / 60000);
   if (mins < 60) return `${mins}M AGO`;
   if (mins < 1440) return `${Math.round(mins / 60)}H AGO`;
   return `${Math.round(mins / 1440)}D AGO`;
@@ -44,7 +44,9 @@ export default function LedTicker({ data }) {
   const canvasRef = useRef(null);
   const offsetRef = useRef(0); // scroll position survives strip rebuilds (weather, clock)
   const [weather, setWeather] = useState(null);
-  const [now, setNow] = useState(() => Date.now());
+  // null until mounted: the page is built ahead of time, so a clock read during the build
+  // would never match the visitor's and React would throw the server HTML away
+  const [now, setNow] = useState(null);
   const [themeTick, setThemeTick] = useState(0); // rebuild the strip in the new colours
   useEffect(() => {
     const onTheme = () => setThemeTick((n) => n + 1);
@@ -54,6 +56,7 @@ export default function LedTicker({ data }) {
 
   useEffect(() => void getWeather().then(setWeather), []);
   useEffect(() => {
+    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 60000); // keep "2H AGO" and the clock honest
     return () => clearInterval(t);
   }, []);
@@ -68,13 +71,15 @@ export default function LedTicker({ data }) {
         ['text', `"${pr.title}"`],
         ['label', ` → ${pr.repo.split('/')[1]} · `],
         ['value', pr.state.toUpperCase()],
-        ['label', ` · ${ago(pr.at)}`],
+        ['label', now ? ` · ${ago(pr.at, now)}` : ''],
       ]);
     if (sprout) list.push([['label', 'SPROUT '], ['value', sprout]]);
     if (leetcode != null) list.push([['label', 'LEETCODE '], ['value', `${leetcode} SOLVED`]]);
     if (weather) list.push([['label', 'BENGALURU '], ['value', `${Math.round(weather.temp)}°C`], ['text', ` ${weather.text}`]]);
-    const ist = new Date(now).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
-    list.push([['label', 'IST '], ['value', ist]]);
+    if (now) {
+      const ist = new Date(now).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+      list.push([['label', 'IST '], ['value', ist]]);
+    }
     return list;
   }, [data, weather, now]);
 

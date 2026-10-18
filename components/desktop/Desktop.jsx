@@ -329,7 +329,7 @@ export default function Desktop({ posts }) {
       {launcher && (
         <div className="absolute left-2 bottom-12 z-[200] w-72 rounded-xl border border-line bg-paper/95 backdrop-blur-md shadow-2xl p-2">
           <div className="flex items-center gap-3 p-2 mb-1 border-b border-line">
-            <img src="/pfp_main.jpeg" alt="" className="w-9 h-9 rounded-full object-cover" />
+            <img src="/pfp-112.jpg" alt="" className="w-9 h-9 rounded-full object-cover" />
             <div>
               <p className="text-sm text-text m-0">Manas Dasari</p>
               <p className="font-mono text-[11px] text-mute m-0">manas@algorithmicbit</p>

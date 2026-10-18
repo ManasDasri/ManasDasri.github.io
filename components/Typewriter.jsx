@@ -28,7 +28,8 @@ export default function Typewriter({ words }) {
   if (reduce) return <span>{words.join(' / ')}</span>;
 
   return (
-    <span aria-label={words.join(' / ')}>
+    <span>
+      <span className="sr-only">{words.join(' / ')}</span>
       <span aria-hidden="true">{words[i].slice(0, n)}</span>
       <span className="caret" aria-hidden="true" />
     </span>

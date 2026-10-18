@@ -45,7 +45,7 @@ export function BitIndex({ value, width = 4 }) {
   return (
     <span ref={ref} className="flex items-center gap-2 mb-2 min-h-[11px]" title={`section ${value} · 0b${target}`}>
       <Row bits={shown.padEnd(target.length, ' ')} />
-      <span className="font-mono text-[10px] text-mute/70">0b{shown || '0'}</span>
+      <span className="font-mono text-[10px] text-mute">0b{shown || '0'}</span>
     </span>
   );
 }

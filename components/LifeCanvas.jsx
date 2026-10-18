@@ -47,7 +47,7 @@ function ShareButton() {
     setTimeout(() => setNote(null), 2500);
   }
   return (
-    <button onClick={share} className="sm:block sm:ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4">
+    <button onClick={share} className="min-h-6 sm:block sm:ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4">
       {note ?? 'share this colony'}
     </button>
   );
@@ -384,7 +384,7 @@ export default function LifeCanvas() {
         <div className="flex flex-wrap justify-end gap-x-3 max-w-[75vw] sm:block sm:max-w-none">
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'rule' } }))}
-            className="text-signal hover:underline underline-offset-4"
+            className="min-h-6 text-signal hover:underline underline-offset-4"
             title="Switch to the next rule"
           >
             rule: <span ref={ruleRef}>Conway B3/S23</span>
@@ -393,7 +393,7 @@ export default function LifeCanvas() {
           <button
             ref={viewRef}
             onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'view' } }))}
-            className="sm:block sm:ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
+            className="min-h-6 sm:block sm:ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
             title="Draw the colony as characters"
           >
             view: cells
@@ -401,13 +401,13 @@ export default function LifeCanvas() {
           <button
             ref={soundRef}
             onClick={() => window.dispatchEvent(new CustomEvent('life', { detail: { action: 'sound' } }))}
-            className="sm:block sm:ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
+            className="min-h-6 sm:block sm:ml-auto text-text/80 hover:text-signal hover:underline underline-offset-4"
             title="Play the colony: each birth is a note"
           >
             sound: off
           </button>
         </div>
-        <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute/70 pointer-events-none">
+        <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute pointer-events-none">
           <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>M</Key> sound <Key>A</Key> ascii <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
         </div>
       </div>
