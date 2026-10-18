@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
-import { FiActivity, FiCommand, FiCpu, FiDroplet, FiFeather, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { FiActivity, FiMail, FiCommand, FiCpu, FiDroplet, FiFeather, FiHome, FiLayers, FiZap } from 'react-icons/fi';
 import { THEMES, THEME_ORDER, readTheme } from '@/lib/themes';
 import { setTheme, themeName } from './Daylight';
 
@@ -13,6 +13,7 @@ const ITEMS = [
   { id: 'skills', label: 'Stack', icon: FiCpu },
   { id: 'activity', label: 'Activity', icon: FiActivity },
   { id: 'writing', label: 'Writing', icon: FiFeather },
+  { id: 'contact', label: 'Contact', icon: FiMail },
 ];
 
 // Vertical on the left where there's room beside the content column (dock, 1200px+), a
