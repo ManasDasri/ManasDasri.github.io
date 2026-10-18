@@ -194,6 +194,13 @@ body {
 .post-body code { font-size: 0.9em; background: rgb(var(--c-raised)); border: 1px solid rgb(var(--c-line)); border-radius: 4px; padding: 0.1em 0.35em; }
 .post-body pre { background: rgb(var(--c-paper)); border: 1px solid rgb(var(--c-line)); border-radius: 8px; padding: 1rem 1.25rem; overflow-x: auto; }
 .post-body pre code { background: none; border: 0; padding: 0; }
+/* code blocks: a language label and copy button (components/CodeCopy.jsx) */
+.post-body pre { position: relative; }
+.post-body .code-tools { display: flex; justify-content: flex-end; gap: 0.75rem; margin: -0.35rem -0.4rem 0.5rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgb(var(--c-mute)); }
+.post-body .code-tools button { color: rgb(var(--c-mute)); border: 1px solid rgb(var(--c-line)); border-radius: 4px; padding: 0 0.4rem; }
+.post-body .code-tools button:hover { color: rgb(var(--c-signal)); border-color: rgb(var(--c-signal)); }
+/* headings land below the top of the screen when jumped to */
+.post-body h2, .post-body h3 { scroll-margin-top: 1.5rem; }
 
 /* cross-page transitions: matching view-transition-names morph between pages
    (project names and badges, post titles, the dock). Browsers without support
