@@ -28,21 +28,22 @@ const description =
 
 export const metadata = {
   metadataBase: new URL(SITE),
-  alternates: { types: { 'application/rss+xml': [{ url: '/feed.xml', title: 'Manas Dasari · Writing' }] } },
-  title: 'Manas Dasari',
+  // the home page's title in search results; other pages set their own
+  title: 'Manas Dasari · Developer tools, real-time apps and fintech',
   description,
+  alternates: { types: { 'application/rss+xml': [{ url: '/feed.xml', title: 'Manas Dasari · Writing' }] } },
   openGraph: { title: 'Manas Dasari', description, url: '/', siteName: 'Manas Dasari', type: 'website' },
   twitter: { card: 'summary_large_image', creator: '@ManasDmg9' },
 };
 
-// tells search engines who the site belongs to and which profiles are the same person
+// tells search engines who the site belongs to (and which profiles are the same person),
+// and what to call the site in results: "Manas Dasari", not the domain ("Algorithmicbit")
 const PERSON = JSON.stringify({
   '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: 'Manas Dasari',
-  url: SITE,
-  description,
-  sameAs: socials.map((s) => s.href),
+  '@graph': [
+    { '@type': 'Person', '@id': `${SITE}/#me`, name: 'Manas Dasari', url: SITE, description, sameAs: socials.map((s) => s.href) },
+    { '@type': 'WebSite', '@id': `${SITE}/#site`, name: 'Manas Dasari', alternateName: ['Manas', 'algorithmicbit'], url: `${SITE}/`, author: { '@id': `${SITE}/#me` } },
+  ],
 });
 
 export default function RootLayout({ children }) {
