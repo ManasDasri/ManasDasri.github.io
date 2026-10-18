@@ -11,6 +11,7 @@ import ProofOfWork from '@/components/ProofOfWork';
 import TabbedSection from '@/components/TabbedSection';
 import { reading } from '@/lib/data';
 import Writing from '@/components/Writing';
+import Contact from '@/components/Contact';
 import CodeArt from '@/components/CodeArt';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
@@ -68,6 +69,7 @@ export default async function Home() {
         />
         <CodeArt />
         <Writing />
+        <Contact />
 
         <Footer />
         <CommandPalette />
