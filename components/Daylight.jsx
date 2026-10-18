@@ -10,8 +10,16 @@ export function setTheme(theme) {
   try {
     localStorage.setItem('theme', theme);
   } catch {}
-  applyTheme(theme);
-  window.dispatchEvent(new Event('theme-change'));
+  const swap = () => {
+    applyTheme(theme);
+    window.dispatchEvent(new Event('theme-change'));
+  };
+  // the new theme grows out of the centre of the screen as a circle (globals.css,
+  // html.theme-wipe); browsers without view transitions, or with reduced motion, just swap
+  if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return swap();
+  const html = document.documentElement;
+  html.classList.add('theme-wipe');
+  document.startViewTransition(swap).finished.finally(() => html.classList.remove('theme-wipe'));
 }
 
 export const themeName = (key) => (key === 'auto' ? 'Auto' : THEMES[key].name);

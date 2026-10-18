@@ -207,6 +207,17 @@ body {
 }
 /* a title that morphs in skips its own rise (app/layout.js); the rest of the page still rises */
 
+/* switching theme: the new palette grows out of the centre of the screen as a circle.
+   Named elements (the dock, project titles) join the page snapshot so nothing jumps
+   ahead of the circle. */
+html.theme-wipe * { view-transition-name: none !important; }
+html.theme-wipe::view-transition-old(root) { animation: none; }
+html.theme-wipe::view-transition-new(root) { animation: theme-circle 0.7s var(--ease) both; }
+@keyframes theme-circle {
+  from { clip-path: circle(0 at 50% 50%); }
+  to { clip-path: circle(75vmax at 50% 50%); }
+}
+
 /* keyboard focus: visible ring for keyboard users only (not on mouse clicks) */
 :focus-visible {
   outline: 2px solid rgb(var(--c-signal));
