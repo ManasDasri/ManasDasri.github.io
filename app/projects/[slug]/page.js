@@ -20,7 +20,13 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }) {
   const p = detailed.find((p) => p.slug === params.slug);
-  return { title: `${p.name} · Manas Dasari`, description: p.tagline ?? p.description };
+  const image = { url: `/og/project-${p.slug}.png`, width: 1200, height: 630, alt: `${p.name}: ${p.tagline ?? p.kind}` };
+  return {
+    title: `${p.name} · Manas Dasari`,
+    description: p.tagline ?? p.description,
+    openGraph: { title: p.name, description: p.tagline ?? p.description, url: `/projects/${p.slug}/`, images: [image] },
+    twitter: { card: 'summary_large_image', images: [image] },
+  };
 }
 
 export default function ProjectPage({ params }) {
