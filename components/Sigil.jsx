@@ -1,17 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PATTERNS } from '@/lib/sigilPatterns';
 
 // A project's badge: a classic Life pattern on a tiny 6×6 torus, drawn in ASCII.
 // Live cells are #, newborn ones +, cells that just died :, empty ones .
 const N = 6;
-const PATTERNS = {
-  glider: [[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]],
-  blinker: [[1, 2], [2, 2], [3, 2]],
-  clock: [[3, 1], [1, 2], [3, 2], [2, 3], [4, 3], [2, 4]],
-  toad: [[2, 2], [3, 2], [4, 2], [1, 3], [2, 3], [3, 3]],
-  beacon: [[1, 1], [2, 1], [1, 2], [2, 2], [3, 3], [4, 3], [3, 4], [4, 4]],
-};
+
 
 const seed = (name) => {
   const g = new Array(N * N).fill(0);

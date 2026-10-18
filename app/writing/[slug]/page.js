@@ -29,7 +29,15 @@ export function generateMetadata({ params }) {
   return {
     title: `${p.title} · Manas Dasari`,
     description: p.summary,
-    openGraph: { type: 'article', title: p.title, description: p.summary, publishedTime: p.date },
+    openGraph: {
+      type: 'article',
+      title: p.title,
+      description: p.summary,
+      publishedTime: p.date,
+      url: `/writing/${p.slug}/`,
+      images: [{ url: `/og/post-${p.slug}.png`, width: 1200, height: 630, alt: p.title }],
+    },
+    twitter: { card: 'summary_large_image', images: [`/og/post-${p.slug}.png`] },
   };
 }
 
