@@ -377,7 +377,7 @@ export default function LifeCanvas() {
   return (
     <>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
-      <div className="absolute top-4 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right select-none">
+      <div className="absolute top-4 right-5 sm:right-8 font-mono text-[11px] leading-relaxed text-mute text-right select-none rounded-lg bg-ink/70 backdrop-blur-[2px] px-3 py-2">
         <div ref={statsRef} className="pointer-events-none">generation 0 · 0 alive</div>
         <div ref={weatherRef} className="pointer-events-none text-mute/80 max-w-[60vw] sm:max-w-none" aria-live="polite" />
         {/* phones: the controls share one wrapping row instead of a line each */}
@@ -407,9 +407,10 @@ export default function LifeCanvas() {
             sound: off
           </button>
         </div>
-        <div className="hidden sm:block [@media(hover:none)]:!hidden text-mute pointer-events-none">
-          <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>M</Key> sound <Key>A</Key> ascii <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
-        </div>
+      </div>
+      {/* keyboard hints sit in the bottom-right corner, clear of the name (bottom left) */}
+      <div className="absolute bottom-5 sm:bottom-7 right-5 sm:right-8 max-w-[18rem] text-right font-mono text-[11px] leading-relaxed text-mute rounded-lg bg-ink/70 backdrop-blur-[2px] px-3 py-1.5 hidden md:block [@media(hover:none)]:!hidden pointer-events-none select-none">
+        <Key>P</Key> pause <Key>R</Key> reseed <Key>L</Key> rule <Key>M</Key> sound <Key>A</Key> ascii <Key>1</Key> gun <Key>2</Key> pulsar <Key>3</Key> acorn
       </div>
     </>
   );

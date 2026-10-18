@@ -179,7 +179,7 @@ function Specimen({ p, wide }) {
               {p.name}
             </h3>
             {p.badge && (
-              <span className="inline-block mt-1.5 font-mono text-[10px] text-accent border border-accent/40 rounded px-1.5 py-0.5">
+              <span className="inline-block mt-1.5 font-mono text-[11px] text-accent border border-accent/40 rounded px-1.5 py-0.5">
                 {p.badge}
               </span>
             )}
