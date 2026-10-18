@@ -53,6 +53,8 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         {/* several sections call GitHub's API as soon as they load */}
         <link rel="preconnect" href="https://api.github.com" crossOrigin="anonymous" />
+        {/* page views via GoatCounter: no cookies, no personal data, so no consent banner */}
+        <script data-goatcounter="https://manas049.goatcounter.com/count" async src="https://gc.zgo.at/count.js" />
         <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON }} />
       </head>
