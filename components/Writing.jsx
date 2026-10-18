@@ -22,9 +22,7 @@ export default function Writing() {
             <div className="text-mute text-sm mt-1.5 max-w-[62ch]">{post.summary}</div>
           </li>
         ))}
-        <li className="py-4 last:pb-0">
-          <span className="font-head text-lg font-semibold text-mute">More posts in the works</span>
-        </li>
+        <li className="pt-4 font-mono text-xs text-mute">more posts in the works · <a href="/feed.xml" className="hover:text-signal">follow via RSS</a></li>
       </ul>
     </Section>
   );
