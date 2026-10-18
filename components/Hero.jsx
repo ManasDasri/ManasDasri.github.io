@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Socials from './Socials';
 import Typewriter from './Typewriter';
+import { status } from '@/lib/data';
 
 const ROLES = ['Engineer', 'Fintech Enthusiast', 'Artist', 'Writer'];
 
@@ -33,6 +34,18 @@ export default function Hero({ highlights = [] }) {
           <p className="font-mono text-xs text-mute mt-1">
             5th sem CSE, Amrita School of Engineering · coding for {uptime}
           </p>
+          {status && (
+            <a
+              href="mailto:dasarimanas049@gmail.com"
+              className="mt-2 inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-2.5 py-0.5 font-mono text-[11px] text-signal no-underline hover:border-signal/60"
+            >
+              <span className="relative flex w-1.5 h-1.5" aria-hidden="true">
+                <span className="absolute inset-0 rounded-full bg-signal animate-ping opacity-60 motion-reduce:hidden" />
+                <span className="relative w-1.5 h-1.5 rounded-full bg-signal" />
+              </span>
+              {status}
+            </a>
+          )}
         </div>
       </div>
 
