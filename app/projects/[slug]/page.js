@@ -7,6 +7,7 @@ import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
 import LiveStatus from '@/components/LiveStatus';
 import CommandPalette from '@/components/CommandPalette';
+import Gallery from '@/components/Gallery';
 
 const detailed = projects.filter((p) => p.slug);
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
@@ -34,6 +35,7 @@ export default function ProjectPage({ params }) {
   if (i < 0) notFound();
   const p = detailed[i];
   const next = detailed[(i + 1) % detailed.length];
+  const prev = detailed[(i - 1 + detailed.length) % detailed.length];
   const repo = p.repoUrl ?? (p.repo && `https://github.com/${p.repo}`);
 
   return (
@@ -41,9 +43,15 @@ export default function ProjectPage({ params }) {
       <Dock />
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
-          <a href="/#building" className="rise font-mono text-xs text-mute hover:text-signal">
-            ← all projects
-          </a>
+          <nav aria-label="Projects" className="rise flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-mute">
+            <a href="/#building" className="hover:text-signal">
+              ← all projects
+            </a>
+            <span className="ml-auto flex gap-4">
+              <a href={`/projects/${prev.slug}/`} className="hover:text-signal">‹ {prev.name}</a>
+              <a href={`/projects/${next.slug}/`} className="hover:text-signal">{next.name} ›</a>
+            </span>
+          </nav>
           <div className="rise morph flex items-center gap-5 mt-8 mb-4" style={{ '--i': 1 }}>
             <Sigil pattern={p.pattern} playing name={`sigil-${p.slug}`} />
             {p.statusUrl ? (
@@ -75,13 +83,8 @@ export default function ProjectPage({ params }) {
         </header>
 
         {p.screenshots && (
-          <div className="px-6 sm:px-9 pb-14 grid gap-4 sm:grid-cols-2">
-            {p.screenshots.map((s, k) => (
-              <figure key={s.src} className={`m-0 ${k === 0 ? 'sm:col-span-2' : ''}`}>
-                <img src={s.src} alt={s.alt} loading="lazy" className="w-full rounded-lg border border-line" />
-                <figcaption className="font-mono text-xs text-mute mt-2">{s.alt}</figcaption>
-              </figure>
-            ))}
+          <div className="px-6 sm:px-9 pb-14">
+            <Gallery shots={p.screenshots} />
           </div>
         )}
 
