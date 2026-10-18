@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- a Game of Life glider on the site's dark tile: shapes only, so it renders the same everywhere -->
+  <rect width="64" height="64" rx="14" fill="#041419"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="#16404A" stroke-width="1.5"/>
+  <g fill="#16404A">
+    <rect x="12" y="12" width="12" height="12" rx="2.5"/><rect x="40" y="12" width="12" height="12" rx="2.5"/>
+    <rect x="12" y="26" width="12" height="12" rx="2.5"/><rect x="26" y="26" width="12" height="12" rx="2.5"/>
+  </g>
+  <g fill="#7CF5E4">
+    <rect x="26" y="12" width="12" height="12" rx="2.5"/>
+    <rect x="40" y="26" width="12" height="12" rx="2.5"/>
+    <rect x="12" y="40" width="12" height="12" rx="2.5"/><rect x="26" y="40" width="12" height="12" rx="2.5"/><rect x="40" y="40" width="12" height="12" rx="2.5"/>
+  </g>
+</svg>

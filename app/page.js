@@ -20,6 +20,11 @@ import { getTickerData } from '@/lib/ticker';
 import { log } from '@/lib/data';
 import Desktop from '@/components/desktop/Desktop';
 
+// only the home page is canonical for '/' (set here, not in the layout, or every page would claim it)
+export const metadata = {
+  alternates: { canonical: '/', types: { 'application/rss+xml': [{ url: '/feed.xml', title: 'Manas Dasari · Writing' }] } },
+};
+
 export default async function Home() {
   const leetcode = await getLeetCodeStats('ManasDasari');
   const { sprout, mergedPRs } = await getTickerData();
