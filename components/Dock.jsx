@@ -15,14 +15,14 @@ const ITEMS = [
   { id: 'writing', label: 'Writing', icon: FiFeather },
 ];
 
-// Vertical on the left where there's room beside the content column (xl), a
+// Vertical on the left where there's room beside the content column (dock, 1200px+), a
 // floating bar at the bottom everywhere else. The placement is CSS so the page
 // arrives laid out; JS only needs the axis for the magnify effect. Base icon size
 // shrinks on phones.
 function useLayout() {
   const [layout, setLayout] = useState({ vertical: false, base: 40 });
   useEffect(() => {
-    const wide = window.matchMedia('(min-width: 1280px)');
+    const wide = window.matchMedia('(min-width: 1200px)'); // the `dock` screen in tailwind.config.js
     const narrow = window.matchMedia('(max-width: 480px)');
     const update = () => setLayout({ vertical: wide.matches, base: narrow.matches ? 30 : 40 });
     update();
@@ -63,13 +63,13 @@ function DockItem({ label, icon: Icon, href, onClick, active, mouse, vertical, b
     >
       <Icon className="w-[44%] h-[44%]" aria-hidden="true" />
       <span
-        className="pointer-events-none absolute whitespace-nowrap rounded-md bg-paper border border-line px-2 py-1 font-mono text-xs text-text opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity bottom-full mb-3 xl:bottom-auto xl:mb-0 xl:left-full xl:ml-3"
+        className="pointer-events-none absolute whitespace-nowrap rounded-md bg-paper border border-line px-2 py-1 font-mono text-xs text-text opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity bottom-full mb-3 dock:bottom-auto dock:mb-0 dock:left-full dock:ml-3"
       >
         {label}
       </span>
       {active && (
         <span
-          className="absolute w-1 h-1 rounded-full bg-signal -bottom-[6px] left-1/2 -translate-x-1/2 xl:bottom-auto xl:-left-[7px] xl:top-1/2 xl:-translate-y-1/2 xl:translate-x-0"
+          className="absolute w-1 h-1 rounded-full bg-signal -bottom-[6px] left-1/2 -translate-x-1/2 dock:bottom-auto dock:-left-[7px] dock:top-1/2 dock:-translate-y-1/2 dock:translate-x-0"
           aria-hidden="true"
         />
       )}
@@ -113,7 +113,7 @@ function ThemeItem({ common }) {
         <div
           role="menu"
           aria-label="Colour theme"
-          className="absolute z-50 w-56 rounded-xl border border-line bg-paper/95 backdrop-blur-md p-1.5 shadow-2xl bottom-full mb-3 right-0 xl:right-auto xl:left-full xl:ml-3 xl:bottom-0 xl:mb-0"
+          className="absolute z-50 w-56 rounded-xl border border-line bg-paper/95 backdrop-blur-md p-1.5 shadow-2xl bottom-full mb-3 right-0 dock:right-auto dock:left-full dock:ml-3 dock:bottom-0 dock:mb-0"
         >
           {THEME_ORDER.map((key) => (
             <button
@@ -179,12 +179,12 @@ export default function Dock() {
       // the theme menu lives inside the dock; browsing it shouldn't magnify the icons
       onMouseMove={(e) => mouse.set(e.target.closest('[role=menu]') ? Infinity : vertical ? e.clientY : e.clientX)}
       onMouseLeave={() => mouse.set(Infinity)}
-      className="fixed z-40 flex gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-ink/75 backdrop-blur-md border border-line/80 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] bottom-3 left-1/2 -translate-x-1/2 items-end max-w-[calc(100vw-16px)] xl:bottom-auto xl:left-5 xl:top-1/2 xl:-translate-y-1/2 xl:translate-x-0 xl:flex-col xl:items-start xl:max-w-none"
+      className="fixed z-40 flex gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-ink/75 backdrop-blur-md border border-line/80 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] bottom-3 left-1/2 -translate-x-1/2 items-end max-w-[calc(100vw-16px)] dock:bottom-auto dock:left-5 dock:top-1/2 dock:-translate-y-1/2 dock:translate-x-0 dock:flex-col dock:items-start dock:max-w-none"
     >
       {ITEMS.map((item) => (
         <DockItem key={item.id} {...item} {...common} href={`/#${item.id}`} active={active === item.id} />
       ))}
-      <span className="bg-line self-center w-px h-6 mx-0.5 xl:h-px xl:w-6 xl:mx-0 xl:my-0.5" aria-hidden="true" />
+      <span className="bg-line self-center w-px h-6 mx-0.5 dock:h-px dock:w-6 dock:mx-0 dock:my-0.5" aria-hidden="true" />
       <ThemeItem common={common} />
       <DockItem
         {...common}
