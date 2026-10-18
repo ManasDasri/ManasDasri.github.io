@@ -25,6 +25,8 @@ module.exports = {
         mono: ['"JetBrains Mono"', 'monospace'],
         body: ['"JetBrains Mono"', 'monospace'],
       },
+      // where the dock moves to the left side: the 64rem column plus room for the dock beside it
+      screens: { dock: '1200px' },
     },
   },
   plugins: [],
