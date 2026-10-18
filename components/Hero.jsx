@@ -25,7 +25,7 @@ export default function Hero({ highlights = [] }) {
   return (
     <section id="hero" className="relative px-6 sm:px-9 pt-6 pb-16 sm:pb-20">
       <div style={{ '--i': 1 }} className="rise flex items-center gap-4 mb-8">
-        <img src="/pfp_main.jpeg" alt="" className="w-14 h-14 rounded-xl object-cover ring-1 ring-line" />
+        <img src="/pfp-112.jpg" alt="" className="w-14 h-14 rounded-xl object-cover ring-1 ring-line" />
         <div>
           <p className="font-head text-xl sm:text-2xl font-semibold tracking-tight">
             <span className="text-mute">$ whoami</span> <Typewriter words={ROLES} />
