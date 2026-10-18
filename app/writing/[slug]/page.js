@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import GradientDescent from '@/components/demos/GradientDescent';
 import SproutTerminal from '@/components/SproutTerminal';
+import CodeCopy from '@/components/CodeCopy';
 
 // "::demo <name>" in a post renders the matching component
 const DEMOS = {
@@ -17,6 +18,21 @@ const DEMOS = {
 };
 
 const fmt = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+
+// the post's headings, h3s indented under h2s
+function Toc({ toc }) {
+  return (
+    <ol className="list-none p-0 m-0 mt-2 flex flex-col gap-1.5">
+      {toc.map((h) => (
+        <li key={h.id} className={h.level === 3 && toc.some((t) => t.level === 2) ? 'pl-3' : ''}>
+          <a href={`#${h.id}`} className="font-mono text-xs text-mute hover:text-signal no-underline leading-snug">
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 export const dynamicParams = false;
 
@@ -44,6 +60,10 @@ export function generateMetadata({ params }) {
 export default function PostPage({ params }) {
   const post = getPost(params.slug);
   if (!post) notFound();
+  // posts are newest first: the previous one is newer, the next one older
+  const all = getPosts(), i = all.findIndex((p) => p.slug === post.slug);
+  const newer = all[i - 1], older = all[i + 1];
+  const showToc = post.toc.length >= 3;
 
   return (
     <>
@@ -70,13 +90,30 @@ export default function PostPage({ params }) {
             </div>
           </header>
 
-          <div className="max-w-[68ch]">
-            {post.segments.map((s, i) => {
-              if (s.html) return <div key={i} className="post-body" dangerouslySetInnerHTML={{ __html: s.html }} />;
-              const Demo = DEMOS[s.demo];
-              return Demo ? <Demo key={i} /> : null;
-            })}
+          <div className={showToc ? 'lg:grid lg:grid-cols-[minmax(0,68ch)_1fr] lg:gap-12' : ''}>
+            <div className="max-w-[68ch] min-w-0">
+              {showToc && (
+                <details className="lg:hidden mb-8 rounded-md border border-line bg-paper px-4 py-3">
+                  <summary className="font-mono text-xs text-mute cursor-pointer">on this page</summary>
+                  <Toc toc={post.toc} />
+                </details>
+              )}
+              {post.segments.map((s, i) => {
+                if (s.html) return <div key={i} className="post-body" dangerouslySetInnerHTML={{ __html: s.html }} />;
+                const Demo = DEMOS[s.demo];
+                return Demo ? <Demo key={i} /> : null;
+              })}
+            </div>
+            {showToc && (
+              <aside className="hidden lg:block">
+                <div className="sticky top-12">
+                  <p className="font-mono text-xs text-mute mb-3">on this page</p>
+                  <Toc toc={post.toc} />
+                </div>
+              </aside>
+            )}
           </div>
+          <CodeCopy />
 
           {post.original && (
             <p className="font-mono text-xs text-mute mt-12 pt-6 border-t border-line max-w-[68ch]">
@@ -86,6 +123,22 @@ export default function PostPage({ params }) {
               </a>
               .
             </p>
+          )}
+          {(newer || older) && (
+            <nav aria-label="More writing" className="grid gap-4 sm:grid-cols-2 mt-14 pt-8 border-t border-line max-w-[68ch]">
+              {older ? (
+                <a href={`/writing/${older.slug}/`} className="group no-underline">
+                  <span className="font-mono text-xs text-mute">← older</span>
+                  <span className="block font-head text-lg font-semibold text-text group-hover:text-signal transition-colors mt-1">{older.title}</span>
+                </a>
+              ) : <span />}
+              {newer && (
+                <a href={`/writing/${newer.slug}/`} className="group no-underline sm:text-right">
+                  <span className="font-mono text-xs text-mute">newer →</span>
+                  <span className="block font-head text-lg font-semibold text-text group-hover:text-signal transition-colors mt-1">{newer.title}</span>
+                </a>
+              )}
+            </nav>
           )}
         </article>
 
