@@ -41,6 +41,18 @@ export default function Contact() {
           résumé (PDF) ↗
         </a>
       </div>
+      <div className="mt-8 rounded-md border border-line bg-paper px-5 py-4 max-w-[62ch]">
+        <p className="m-0 text-sm text-text/90 leading-relaxed">
+          Need a machine learning model built or evaluated? My applied AI studio,{' '}
+          <a href="https://gradient-works-ai.github.io/" target="_blank" rel="noopener noreferrer" className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal">
+            Gradient Works
+          </a>
+          , takes on custom models, evaluation and prototyping, with a fixed scope and a written result.
+        </p>
+        <a href="https://gradient-works-ai.github.io/contact/" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 font-mono text-xs text-signal no-underline hover:underline underline-offset-4">
+          start a project ↗
+        </a>
+      </div>
       <div className="mt-8">
         <Socials />
       </div>
