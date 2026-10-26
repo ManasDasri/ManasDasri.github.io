@@ -90,6 +90,20 @@ export default async function ProjectPage({ params }) {
           )}
         </header>
 
+        {p.problem && (
+          <dl className="px-6 sm:px-9 pb-14 grid gap-x-8 gap-y-6 sm:grid-cols-2 m-0">
+            {[
+              ['the problem', p.problem],
+              ['what I built', p.built],
+            ].map(([k, v]) => (
+              <div key={k} className="border-l-2 border-signal/40 pl-4">
+                <dt className="font-mono text-[11px] text-mute">{k}</dt>
+                <dd className="m-0 mt-1.5 text-sm leading-relaxed text-text/90">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
         {p.screenshots && (
           <div className="px-6 sm:px-9 pb-14">
             <Gallery shots={p.screenshots} />
