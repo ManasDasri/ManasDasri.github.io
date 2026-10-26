@@ -28,7 +28,7 @@ export const metadata = {
 
 export default async function Home() {
   const leetcode = await getLeetCodeStats('ManasDasari');
-  const { sprout, mergedPRs } = await getTickerData();
+  const { sprout, mergedPRs, sproutStats } = await getTickerData();
   const milestone = log.find((e) => e.date !== 'upcoming');
   // three facts for someone skimming; any that failed to load at build are left out
   const highlights = [
@@ -44,7 +44,7 @@ export default async function Home() {
       <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
         <Hero highlights={highlights} />
 
-        <Building />
+        <Building stats={sproutStats} />
         <TabbedSection
           id="now"
           index={2}

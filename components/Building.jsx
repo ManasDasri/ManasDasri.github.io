@@ -7,6 +7,7 @@ import Section from './Section';
 import Sigil from './Sigil';
 import SproutTerminal from './SproutTerminal';
 import LiveStatus from './LiveStatus';
+import RepoStats from './RepoStats';
 
 // Projects are catalogued like specimens: numbered by when each one began,
 // with a spec table (type, origin, material, status) and plate crop marks.
@@ -125,7 +126,7 @@ function Spec({ p }) {
   );
 }
 
-function Featured({ p }) {
+function Featured({ p, stats }) {
   const [hover, setHover] = useState(false);
   const version = useLatestRelease(p.repo, p.version);
   return (
@@ -154,6 +155,7 @@ function Featured({ p }) {
           <Spec p={p} />
         </div>
         <SproutTerminal />
+        <RepoStats repo={p.repo} stats={stats} className="mt-6" />
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-6 pt-4 border-t border-dashed border-line">
           <a href={`/projects/${p.slug}/`} className={ctaClass}>view project <span aria-hidden="true">→</span></a>
           <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>website and docs</a>
@@ -212,14 +214,14 @@ function Specimen({ p, wide }) {
   );
 }
 
-export default function Building() {
+export default function Building({ stats }) {
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
   return (
     <Section id="building" index={1} title="Building" note="catalogued by when each one began; hover a specimen to run its pattern and read its notes">
       <div className="flex flex-col gap-5">
         {featured.map((p) => (
-          <Featured key={p.name} p={p} />
+          <Featured key={p.name} p={p} stats={stats} />
         ))}
         <div className="grid gap-5 md:grid-cols-2">
           {rest.map((p, i) => (

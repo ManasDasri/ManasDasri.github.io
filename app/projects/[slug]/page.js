@@ -8,6 +8,8 @@ import Footer from '@/components/Footer';
 import LiveStatus from '@/components/LiveStatus';
 import CommandPalette from '@/components/CommandPalette';
 import Gallery from '@/components/Gallery';
+import RepoStats from '@/components/RepoStats';
+import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
@@ -30,13 +32,14 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function ProjectPage({ params }) {
+export default async function ProjectPage({ params }) {
   const i = detailed.findIndex((p) => p.slug === params.slug);
   if (i < 0) notFound();
   const p = detailed[i];
   const next = detailed[(i + 1) % detailed.length];
   const prev = detailed[(i - 1 + detailed.length) % detailed.length];
   const repo = p.repoUrl ?? (p.repo && `https://github.com/${p.repo}`);
+  const stats = p.repo === 'Sprout-DevLabs/sprout' ? (await getTickerData()).sproutStats : null;
 
   return (
     <>
@@ -80,6 +83,11 @@ export default function ProjectPage({ params }) {
               </a>
             )}
           </div>
+          {stats && (
+            <div className="rise mt-6" style={{ '--i': 6 }}>
+              <RepoStats repo={p.repo} stats={stats} />
+            </div>
+          )}
         </header>
 
         {p.screenshots && (
