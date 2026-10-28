@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import Scramble from './Scramble';
 import LedTicker from './LedTicker';
 import { DaylightLabel } from './Daylight';
+import ViewCount from './ViewCount';
 import { getTickerData } from '@/lib/ticker';
 import { socials } from '@/lib/data';
 import { SOCIAL_ICONS } from '@/lib/socialIcons';
@@ -68,6 +69,7 @@ export default async function Footer() {
             )}
           </span>
           <DaylightLabel />
+          <ViewCount />
           <a href="/feed.xml" className="text-text/80 hover:text-signal">rss feed</a>
           <a href="#top" className="text-text/80 hover:text-signal">back to top ↑</a>
         </p>
