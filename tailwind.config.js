@@ -23,7 +23,8 @@ module.exports = {
         head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
         display: ['"JetBrains Mono"', 'monospace'],
         mono: ['"JetBrains Mono"', 'monospace'],
-        body: ['"JetBrains Mono"', 'monospace'],
+        // prose is set in the grotesque; mono is kept for labels, data and code
+        body: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
       },
       // where the dock moves to the left side: the 64rem column plus room for the dock beside it
       screens: { dock: '1200px' },

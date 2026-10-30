@@ -4,10 +4,10 @@ import { useEffect, useRef } from 'react';
 
 // The background: a koi pond in the margins either side of the content column. The water
 // is a pixel layer, ordered-dithered to a few levels (with blurred lily pads, a pale
-// reflection and the fishes' shadows), with gold leaves floating on it as solid pixel
-// clusters. The koi, their wakes and the ripples are dense ASCII on top. Only the margins
-// are computed, since the column covers the rest. Paused while the tab is hidden; a still
-// frame for reduced motion.
+// reflection and the fishes' shadows). The koi, their wakes and the ripples are dense ASCII
+// on top. Toward the column it fades into the page's own background colour, so there's no
+// seam. Only the margins are computed, since the column covers the rest. Paused while the
+// tab is hidden; a still frame for reduced motion.
 
 const P = 4; // css px per water pixel
 const CW = 5; // ASCII cell, css px
@@ -43,9 +43,6 @@ const ramp = (r, l) => {
   const i = Math.floor(s), f = s - i;
   return [mix(r[i][0], r[i + 1][0], f), mix(r[i][1], r[i + 1][1], f), mix(r[i][2], r[i + 1][2], f)];
 };
-
-// floating leaves, in water pixels
-const LEAVES = [['##', '##'], ['###', '##.'], ['.#', '##', '#.'], ['##.', '.##'], ['#', '#'], ['###', '#..'], ['.##', '##.', '#..'], ['#']];
 
 const KOI = [
   { base: [238, 228, 208], patch: [230, 92, 54], amount: 0.6 }, // kohaku
@@ -124,7 +121,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W, H, gw, gh, img, gutters, fish, pads, glows, leaves, raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, gutters, fish, pads, glows, ink, raf, last = 0, t = rand(0, 500);
 
     const setup = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -138,6 +135,8 @@ export default function KoiPond() {
       off.width = gw;
       off.height = gh;
       img = octx.createImageData(gw, gh);
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
+      ink = v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0];
       const col = document.getElementById('main')?.getBoundingClientRect();
       const left = col ? col.left : W / 2;
       const right = col ? col.right : W / 2;
@@ -150,18 +149,9 @@ export default function KoiPond() {
         Array.from({ length: 2 + Math.floor(H / 500) }, () => ({ x: g.x + rand(0.15, 0.85) * g.w, y: rand(0, H), r: rand(18, 34), a: rand(0, 6.28), dx: rand(-1.5, 1.5), dy: rand(-1.5, 1.5), lit: rand(0.3, 1) }))
       );
       glows = gutters.map((g) => ({ x: g.x + rand(0.3, 0.7) * g.w, y: rand(0.1, 0.5) * H, r: rand(24, 34), p: rand(0, 6.28) }));
-      leaves = [];
-      for (const g of gutters) {
-        const clusters = Math.max(3, Math.round((g.w * H) / 16000));
-        for (let c = 0; c < clusters; c++) {
-          const cx = g.x + rand(0, g.w), cy = rand(0, H);
-          for (let k = 0, n = Math.floor(rand(3, 9)); k < n; k++)
-            leaves.push({ g, x: cx + rand(-40, 40), y: cy + rand(-50, 50), s: LEAVES[Math.floor(Math.random() * LEAVES.length)], tone: rand(0.8, 1.08), p: rand(0, 6.28), dx: rand(0.6, 2.2), dy: rand(1.5, 3.5) });
-        }
-      }
     };
 
-    // darkens toward the column, so the pond fades out under the content
+    // 0 at the column's edge, 1 well into the margin: the pond fades into the page there
     const fade = (x) => {
       for (const g of gutters) if (x >= g.x && x < g.x + g.w) return Math.min(1, Math.abs(x - g.edge) / Math.min(120, g.w * 0.5)) ** 1.5;
       return 0;
@@ -178,13 +168,6 @@ export default function KoiPond() {
         if (p.y < -p.r * 2) p.y = H + p.r;
         if (p.y > H + p.r * 2) p.y = -p.r;
       }
-      for (const l of leaves) {
-        l.x += (l.dx + Math.sin(t * 0.4 + l.p) * 1.2) * dt;
-        l.y += l.dy * dt;
-        if (l.y > H + 12) l.y = -12;
-        if (l.x > l.g.x + l.g.w + 12) l.x = l.g.x - 12;
-      }
-
       // --- the water: continuous colour, then ordered dither
       const d = img.data;
       d.fill(0);
@@ -200,7 +183,12 @@ export default function KoiPond() {
             const k = fade(x);
             const i = (py * gw + px) * 4;
             d[i + 3] = 255;
-            if (k < 0.02) continue;
+            if (k < 0.02) {
+              d[i] = ink[0];
+              d[i + 1] = ink[1];
+              d[i + 2] = ink[2];
+              continue;
+            }
             const l =
               noise(x / 150 + t * 0.015, y / 230 - t * 0.012) * 0.55 +
               noise(x / 40 - t * 0.04, y / 64 + t * 0.03) * 0.28 +
@@ -242,34 +230,12 @@ export default function KoiPond() {
               }
             }
             const th = BAYER[(py & 3) * 4 + (px & 3)];
-            d[i] = Math.floor((r * k) / STEP + th) * STEP;
-            d[i + 1] = Math.floor((gr * k) / STEP + th) * STEP;
-            d[i + 2] = Math.floor((b * k) / STEP + th) * STEP;
+            // dither the water, then fade it into the page colour
+            d[i] = mix(ink[0], Math.floor((r * 0.78) / STEP + th) * STEP, k);
+            d[i + 1] = mix(ink[1], Math.floor((gr * 0.78) / STEP + th) * STEP, k);
+            d[i + 2] = mix(ink[2], Math.floor((b * 0.78) / STEP + th) * STEP, k);
           }
         }
-      }
-      // gold leaves, solid on the surface
-      for (const l of leaves) {
-        const k = Math.min(1, fade(l.x) * 1.8);
-        if (k < 0.1) continue;
-        const lx = Math.floor(l.x / P), ly = Math.floor(l.y / P);
-        const shine = l.tone * (0.85 + 0.15 * Math.sin(t * 0.8 + l.p));
-        l.s.forEach((row, yy) =>
-          [...row].forEach((c, xx) => {
-            if (c !== '#') return;
-            const e = (yy === l.s.length - 1 ? 0.78 : 1) * shine * k;
-            // each leaf pixel is 2×2 water pixels
-            for (let q = 0; q < 4; q++) {
-              const px = lx + xx * 2 + (q & 1), py = ly + yy * 2 + (q >> 1);
-              if (px < 0 || py < 0 || px >= gw || py >= gh) continue;
-              const i = (py * gw + px) * 4;
-              const dim = q === 3 ? 0.86 : 1;
-              d[i] = 224 * e * dim;
-              d[i + 1] = 180 * e * dim;
-              d[i + 2] = 76 * e * dim;
-            }
-          })
-        );
       }
       octx.putImageData(img, 0, 0);
       ctx.clearRect(0, 0, W, H);
@@ -371,10 +337,12 @@ export default function KoiPond() {
     document.fonts?.ready.then(start);
     start();
     window.addEventListener('resize', start);
+    window.addEventListener('theme-change', start);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
+      window.removeEventListener('theme-change', start);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);

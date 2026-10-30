@@ -237,7 +237,7 @@ html { filter: hue-rotate(var(--hue, 0deg)); }
 /* animate palette changes, but not the first paint (the head script set it already) */
 html.palette-ready { transition: filter 1.2s ease; }
 /* photos keep their real colours */
-img, .pond { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
+img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
 /* activity calendars scroll sideways on narrow screens: start at the newest weeks (right end) */
 .react-activity-calendar__scroll-container { direction: rtl; }
