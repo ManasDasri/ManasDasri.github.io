@@ -9,6 +9,7 @@ import Skills from '@/components/Skills';
 import GithubActivity from '@/components/GithubActivity';
 import ProofOfWork from '@/components/ProofOfWork';
 import TabbedSection from '@/components/TabbedSection';
+import { Band } from '@/components/Section';
 import { reading } from '@/lib/data';
 import Writing from '@/components/Writing';
 import Contact from '@/components/Contact';
@@ -40,8 +41,11 @@ export default async function Home() {
   return (
     <>
       <Dock />
+      <div className="relative z-[2] max-w-4xl mx-auto">
+        <Band className="!h-10" />
+      </div>
       <HeroBanner />
-      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
         <Hero highlights={highlights} />
 
         <Building stats={sproutStats} />

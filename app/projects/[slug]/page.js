@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { projects } from '@/lib/data';
 import Dock from '@/components/Dock';
-import Section from '@/components/Section';
+import Section, { Band } from '@/components/Section';
 import Sigil from '@/components/Sigil';
 import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
@@ -9,6 +9,7 @@ import LiveStatus from '@/components/LiveStatus';
 import CommandPalette from '@/components/CommandPalette';
 import Gallery from '@/components/Gallery';
 import RepoStats from '@/components/RepoStats';
+import SproutTerminal from '@/components/SproutTerminal';
 import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
@@ -44,7 +45,7 @@ export default async function ProjectPage({ params }) {
   return (
     <>
       <Dock />
-      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
           <nav aria-label="Projects" className="rise flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-mute">
             <a href="/#building" className="hover:text-signal">
@@ -110,6 +111,12 @@ export default async function ProjectPage({ params }) {
           </div>
         )}
 
+        {p.slug === 'sprout' && (
+          <Section id="try" title="Try it" note="a simulated sprout session; type help">
+            <SproutTerminal />
+          </Section>
+        )}
+
         <Section id="features" title="What it does">
           <ul className="list-none p-0 m-0 flex flex-col gap-3 max-w-[68ch]">
             {p.features.map((f) => (
@@ -136,9 +143,10 @@ export default async function ProjectPage({ params }) {
           </div>
         </Section>
 
+        <Band />
         <a
           href={`/projects/${next.slug}/`}
-          className="group block px-6 sm:px-9 py-14 border-t border-line/60 no-underline"
+          className="group block px-6 sm:px-9 py-14 no-underline"
         >
           <span className="font-mono text-xs text-mute">next project</span>
           <span className="flex items-center gap-4 mt-2">

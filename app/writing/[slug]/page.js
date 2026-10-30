@@ -68,7 +68,7 @@ export default function PostPage({ params }) {
   return (
     <>
       <Dock />
-      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
           <a href="/#writing" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all writing
@@ -90,7 +90,7 @@ export default function PostPage({ params }) {
             </div>
           </header>
 
-          <div className={showToc ? 'lg:grid lg:grid-cols-[minmax(0,68ch)_1fr] lg:gap-12' : ''}>
+          <div className={showToc ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_10rem] lg:gap-10' : ''}>
             <div className="max-w-[68ch] min-w-0">
               {showToc && (
                 <details className="lg:hidden mb-8 rounded-md border border-line bg-paper px-4 py-3">

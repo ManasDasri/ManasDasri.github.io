@@ -11,6 +11,7 @@ import '@fontsource/jetbrains-mono/latin-800.css';
 import { ScrollProgress } from '@/components/Effects';
 import Daylight from '@/components/Daylight';
 import Entrance from '@/components/Entrance';
+import KoiPond from '@/components/KoiPond';
 import { THEME_SCRIPT } from '@/lib/themes';
 import { SITE, socials } from '@/lib/data';
 
@@ -67,6 +68,7 @@ export default function RootLayout({ children }) {
           Skip to content
         </a>
         <Entrance />
+        <KoiPond />
         <Daylight />
         <ScrollProgress />
         <div className="grain" />

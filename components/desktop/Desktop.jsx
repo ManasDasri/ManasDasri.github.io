@@ -27,8 +27,8 @@ function Weather() {
       </p>
       <p className="font-mono text-xs text-mute mt-1">wind {Math.round(w.wind)} km/h · rain {w.precip} mm</p>
       <p className="text-sm text-mute leading-relaxed mt-4">
-        The colony on the homepage lives in this weather: rain seeds new cells, heat speeds it up, night dims it,
-        and thunderstorms strike lightning.
+        The pond at the top of the homepage lives in this weather: rain falls on it as drops, storms
+        throw bigger ones, and wind speeds the koi up.
       </p>
     </div>
   );

@@ -49,30 +49,28 @@ export default function Hero({ highlights = [] }) {
         </div>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-        <p style={{ '--i': 2 }} className="rise text-text/90 leading-relaxed max-w-[58ch]">
-          I build developer tools and real-time web apps, and I like problems where software
-          meets finance. Right now that means shipping{' '}
-          <a href="#building" className="text-signal font-bold">Sprout</a>, a codebase mapper for
-          developers and AI agents, alongside <strong>Flow</strong> and <strong>Atmos</strong>.
-        </p>
+      <p style={{ '--i': 2 }} className="rise text-lg sm:text-xl text-text/80 leading-relaxed max-w-[54ch]">
+        I build developer tools and real-time web apps, and I like problems where software
+        meets finance. Right now that means shipping{' '}
+        <a href="#building" className="text-signal font-bold">Sprout</a>, a codebase mapper for
+        developers and AI agents, alongside <strong className="text-text">Flow</strong> and <strong className="text-text">Atmos</strong>.
+      </p>
 
-        <div style={{ '--i': 3 }} className="rise flex md:flex-col gap-3 flex-wrap">
-          <a
-            href="mailto:dasarimanas049@gmail.com"
-            className="font-head text-base font-bold text-center px-6 py-3 rounded-lg bg-signal text-ink hover:brightness-110 transition no-underline"
-          >
-            Send an email
-          </a>
-          <a
-            href="/Manas_resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-head text-base font-semibold text-center px-6 py-3 rounded-lg border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
-          >
-            Resume (PDF)
-          </a>
-        </div>
+      <div style={{ '--i': 3 }} className="rise flex gap-3 flex-wrap mt-7">
+        <a
+          href="mailto:dasarimanas049@gmail.com"
+          className="font-head text-sm font-semibold px-4 py-2 rounded-md bg-signal text-ink hover:brightness-110 transition no-underline"
+        >
+          Send an email →
+        </a>
+        <a
+          href="/Manas_resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
+        >
+          Resume (PDF)
+        </a>
       </div>
 
       {highlights.length > 0 && (
