@@ -310,15 +310,13 @@ const SCENES = {
           c = y < r.shelf + 2 ? [92, 62, 38] : [52, 34, 20];
           break;
         }
-        if (y >= r.shelf - 90 && y < r.shelf) {
-          for (const b of r.books) {
-            if (x < b.x || x >= b.x + b.w) continue;
-            if (y < b.top) break;
-            const across = (x - b.x) / b.w;
-            const round = 0.6 + 0.5 * Math.sin(across * Math.PI);
+        // rows from both margins share heights, so keep looking until a book is found
+        const b = y >= r.shelf - 90 && y < r.shelf && r.books.find((b) => x >= b.x && x < b.x + b.w);
+        if (b) {
+          if (y >= b.top) {
+            const round = 0.6 + 0.5 * Math.sin(((x - b.x) / b.w) * Math.PI);
             const band = (y - b.top > 6 && y - b.top < 9) || (r.shelf - y > 8 && r.shelf - y < 11);
             c = shadeOf(b.c, round * (band ? 1.5 : 1));
-            break;
           }
           break;
         }
