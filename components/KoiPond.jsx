@@ -10,14 +10,18 @@ import { useEffect, useRef } from 'react';
 // tab is hidden; a still frame for reduced motion.
 
 const P = 4; // css px per water pixel
-const CW = 5; // ASCII cell, css px
-const CH = 8;
+const CW = 4; // ASCII cell, css px
+const CH = 6;
 const FPS = 30;
-export const KOI_FONT = `700 ${CH}px "JetBrains Mono", monospace`;
+const KOI_FONT = `700 ${CH}px "JetBrains Mono", monospace`;
 const STEP = 20; // colour quantisation step for the dither
 const BODY = ':;~=+*ixzoIX%#&0@'; // edge to core
+const SCALE = 'xX%&#8'; // scale texture across the body
 const WAKE = "~-=+:!'`";
 const FIN = ":;!'~";
+const WAKE_RGB = [120, 186, 214];
+const EYE = [18, 16, 22];
+const INK = [34, 32, 40]; // sumi, the black of showa and sanke
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -35,6 +39,48 @@ function noise(x, y) {
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 const mix = (a, b, t) => a + (b - a) * t;
+
+// fillText is slow when called thousands of times a frame, so each character in each colour
+// is drawn once into an atlas canvas and copied from there with drawImage. Colours are
+// rounded to 16 levels a channel so the atlas stays small; it starts over if it fills.
+export function makeStamper(font, cw, ch) {
+  const atlas = document.createElement('canvas');
+  const actx = atlas.getContext('2d');
+  const slots = new Map();
+  let dpr = 0, sw, sh, cols, next;
+  const reset = (d) => {
+    dpr = d;
+    sw = Math.ceil((cw + 2) * dpr);
+    sh = Math.ceil((ch + 3) * dpr);
+    atlas.width = 2048;
+    atlas.height = 2048;
+    cols = Math.floor(2048 / sw);
+    next = 0;
+    slots.clear();
+  };
+  // glyphs drawn before the web font arrived used a fallback: draw them again
+  document.fonts?.ready.then(() => (dpr = 0));
+  return (ctx, c, rgb, alpha, x, y) => {
+    const d = ctx.getTransform().a;
+    if (d !== dpr) reset(d);
+    const r = rgb[0] & 0xf0, g = rgb[1] & 0xf0, b = rgb[2] & 0xf0;
+    const key = c + (r << 16 | g << 8 | b);
+    let i = slots.get(key);
+    if (i === undefined) {
+      if (next >= cols * Math.floor(2048 / sh)) reset(d);
+      i = next++;
+      slots.set(key, i);
+      actx.setTransform(dpr, 0, 0, dpr, (i % cols) * sw, Math.floor(i / cols) * sh);
+      actx.font = font;
+      actx.textBaseline = 'top';
+      actx.fillStyle = `rgb(${r | 8}, ${g | 8}, ${b | 8})`;
+      actx.fillText(c, 1, 1);
+    }
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(atlas, (i % cols) * sw, Math.floor(i / cols) * sh, sw, sh, x - 1, y - 1, sw / dpr, sh / dpr);
+  };
+}
+const stampKoi = typeof document === 'undefined' ? null : makeStamper(KOI_FONT, CW, CH);
 
 // The pond's light through the day in Bengaluru: [IST hour, brightness, reflection colour,
 // reflection strength]. A pale moon at night, pink at dawn, plain sky by day, orange at dusk.
@@ -76,9 +122,10 @@ const ramp = (r, l) => {
 };
 
 const KOI = [
-  { base: [238, 228, 208], patch: [230, 92, 54], amount: 0.6 }, // kohaku
-  { base: [240, 232, 214], patch: [236, 108, 56], amount: 0.45 },
-  { base: [232, 104, 56], patch: [244, 214, 186], amount: 0.3 }, // orange with pale patches
+  { base: [240, 232, 214], patch: [228, 76, 44], amount: 0.58, ink: 0 }, // kohaku: white and red
+  { base: [240, 232, 214], patch: [232, 92, 50], amount: 0.45, ink: 0.12 }, // sanke: kohaku with black flecks
+  { base: [236, 112, 56], patch: [248, 206, 160], amount: 0.3, ink: 0 }, // orange with pale patches
+  { base: [70, 66, 78], patch: [226, 84, 50], amount: 0.42, ink: 0, white: 0.25 }, // showa: black, red, white
 ];
 
 export function makeFish(g, i) {
@@ -90,7 +137,7 @@ export function makeFish(g, i) {
   const seg = len / K;
   return {
     g,
-    kind: KOI[i % KOI.length],
+    kind: KOI[(i + Math.floor(Math.random() * KOI.length)) % KOI.length],
     len,
     seg,
     heading,
@@ -104,7 +151,7 @@ export function makeFish(g, i) {
 // half-width of the body at u (0 head, 1 tail tip)
 function width(f, u) {
   const w = f.len * 0.15;
-  if (u < 0.18) return w * (0.45 + 3 * u);
+  if (u < 0.18) return w * (0.3 + 0.7 * Math.sin((u / 0.18) * Math.PI * 0.5) ** 0.7); // rounded snout
   if (u > 0.84) return w * (0.2 + (u - 0.84) * 7);
   return w * (0.99 - 0.82 * ((u - 0.18) / 0.66) ** 1.3);
 }
@@ -151,21 +198,31 @@ export function body(f, t) {
   });
 }
 
-// One koi in ASCII: the body shaded edge to core with its patches, translucent fins, and a
-// faint wake. fade(x) scales its opacity (0 hides it). Set ctx.font to KOI_FONT first.
+// One koi in ASCII. The body is shaded from its edge to a lit ridge along the spine, with
+// a scale texture, patches of colour (red, and sumi black on some), two eyes and a dorsal
+// fin; the pectoral fins and the two-lobed tail are translucent fans of fin rays; a faint
+// wake trails it. fade(x) scales its opacity (0 hides it).
 export function drawKoi(ctx, f, pts, fade) {
   const n = pts.length;
-  const pad = f.len * 0.3;
+  const pad = f.len * 0.35;
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
   const bx0 = Math.floor((Math.min(...xs) - pad) / CW), bx1 = Math.ceil((Math.max(...xs) + pad) / CW);
   const by0 = Math.floor((Math.min(...ys) - pad) / CH), by1 = Math.ceil((Math.max(...ys) + pad) / CH);
+  const W0 = f.len * 0.15;
+  // how far the fins and wake reach from the spine, plus the gap between the points checked
+  const reach = (W0 * 2.3 + 12 + f.seg * 1.5) ** 2;
   for (let cy = by0; cy <= by1; cy++) {
     for (let cx = bx0; cx <= bx1; cx++) {
       const x = cx * CW + CW / 2, y = cy * CH + CH / 2;
       const k = fade(x);
       if (k < 0.05) continue;
-      // nearest point on the spine: distance, position along the body, and which side
-      let best = Infinity, bu = 0, side = 0;
+      // most of the box is open water: skip it with a check against every third point
+      let near = false;
+      for (let i = 0; i < n && !near; i += 3) near = (x - pts[i][0]) ** 2 + (y - pts[i][1]) ** 2 < reach;
+      if (!near) continue;
+      // nearest point on the spine: distance, position along the body, which side, and
+      // the spine's direction there
+      let best = Infinity, bu = 0, side = 0, dir = 0;
       for (let i = 0; i < n - 1; i++) {
         const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
         const vx = bx - ax, vy = by - ay;
@@ -176,31 +233,62 @@ export function drawKoi(ctx, f, pts, fade) {
           best = dd;
           bu = (i + s) / (n - 1);
           side = Math.sign(vx * ey - vy * ex);
+          dir = Math.atan2(vy, vx);
         }
       }
       const w = width(f, bu);
-      const finW = bu > 0.16 && bu < 0.32 ? w * 1.75 : bu > 0.84 ? w * 1.5 : w;
+      const lat = side * best; // signed distance from the spine
+      const along = bu * f.len;
       const h = ihash(cx, cy);
       let ch, rgb, a;
       if (best <= w) {
         const depth = 1 - best / w;
-        const patch = noise(bu * 3.2 + f.spots, side * 0.8 + best * 0.03 + f.spots * 0.3) > 1 - f.kind.amount;
-        const c = patch ? f.kind.patch : f.kind.base;
-        const shade = 0.5 + 0.5 * depth ** 0.7;
-        rgb = [c[0] * shade, c[1] * shade, c[2] * shade];
-        ch = BODY[Math.min(BODY.length - 1, Math.floor((depth * 0.85 + h * 0.15) * BODY.length))];
-        a = 0.95;
-      } else if (best <= finW) {
-        rgb = bu > 0.84 ? f.kind.patch : f.kind.base;
-        ch = FIN[Math.floor(h * FIN.length)];
-        a = 0.5 * (1 - (best - w) / (finW - w));
-      } else if (best <= finW + 9 && h < 0.7) {
-        rgb = [120, 186, 214];
-        ch = WAKE[Math.floor(h * 11) % WAKE.length];
-        a = 0.4 * (1 - (best - finW) / 9);
-      } else continue;
-      ctx.fillStyle = `rgba(${rgb[0] | 0}, ${rgb[1] | 0}, ${rgb[2] | 0}, ${a * k})`;
-      ctx.fillText(ch, cx * CW, cy * CH);
+        // eyes: just behind the snout, either side of the ridge
+        if (bu > 0.05 && bu < 0.09 && Math.abs(Math.abs(lat) - w * 0.55) < W0 * 0.12) {
+          ch = '@';
+          rgb = EYE;
+          a = 1;
+        } else {
+          const kind = f.kind;
+          const red = noise(bu * 3.4 + f.spots, lat * 0.035 + f.spots * 0.3) > 1 - kind.amount;
+          const sumi = kind.ink && noise(bu * 9 + f.spots * 2, lat * 0.12) > 1 - kind.ink;
+          const white = kind.white && noise(bu * 5 + f.spots * 3, lat * 0.05 + 7) > 1 - kind.white;
+          const c = sumi ? INK : white ? [238, 230, 214] : red ? kind.patch : kind.base;
+          // lit along the ridge, darker toward the flanks and at the outline
+          const shade = (0.42 + 0.58 * depth ** 0.6) * (depth < 0.14 ? 0.72 : 1);
+          rgb = [c[0] * shade, c[1] * shade, c[2] * shade];
+          // the dorsal fin: one thin line down the back
+          const ridge = bu > 0.3 && bu < 0.66 && best < CW * 0.55;
+          if (ridge) {
+            ch = ':';
+            rgb = rgb.map((v) => v * 0.7);
+          } else if (depth > 0.3) {
+            // overlapping scales: a diamond lattice along the body
+            const sc = Math.sin(along * 0.9) * Math.sin(lat * 0.9) + h * 0.5;
+            ch = sc > 0.55 ? SCALE[Math.floor(h * SCALE.length)] : BODY[Math.min(BODY.length - 1, Math.floor((depth * 0.8 + 0.2) * BODY.length))];
+          } else {
+            ch = BODY[Math.floor((depth / 0.3) * 6 + h * 2)];
+          }
+          a = 0.96;
+        }
+      } else {
+        // pectoral fins: fans swept back from just behind the head
+        const pect = bu > 0.15 && bu < 0.36 ? w * (1 + 1.2 * Math.sin(((bu - 0.15) / 0.21) * Math.PI)) : 0;
+        // the tail: two lobes with a notch between them
+        const tail = bu > 0.82 ? w + W0 * (bu - 0.82) * 5.5 * (0.35 + 0.65 * Math.min(1, best / (W0 * 0.25))) : 0;
+        const finW = Math.max(pect, tail);
+        if (best <= finW) {
+          const ray = Math.abs(Math.sin(dir * 3 + (best / W0) * 5 + bu * 20));
+          rgb = bu > 0.82 ? f.kind.patch : f.kind.base;
+          ch = ray > 0.6 ? (side > 0 ? '\\' : '/') : FIN[Math.floor(h * FIN.length)];
+          a = 0.55 * (1 - ((best - w) / (finW - w)) * 0.7);
+        } else if (best <= finW + 10 && h < 0.6) {
+          rgb = WAKE_RGB;
+          ch = WAKE[Math.floor(h * 13) % WAKE.length];
+          a = 0.38 * (1 - (best - finW) / 10);
+        } else continue;
+      }
+      stampKoi(ctx, ch, rgb, a * k, cx * CW, cy * CH);
     }
   }
 }
@@ -214,7 +302,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W, H, gw, gh, img, gutters, fish, pads, glows, ink, light, food = [], raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, ink, light, food = [], raf, last = 0, t = rand(0, 500);
 
     // The page's background as it appears on screen, for the pond to fade into. The pond
     // cancels the page's time-of-day hue shift (globals.css) so the koi keep their colours,
@@ -241,6 +329,9 @@ export default function KoiPond() {
       off.width = gw;
       off.height = gh;
       img = octx.createImageData(gw, gh);
+      shade = new Float32Array(gw * gh);
+      base = new Float32Array(gw * gh * 3);
+      frameNo = 0;
       readInk();
       const col = document.getElementById('main')?.getBoundingClientRect();
       const left = col ? col.left : W / 2;
@@ -278,11 +369,24 @@ export default function KoiPond() {
         if (p.y > H + p.r * 2) p.y = -p.r;
       }
       // --- the water: continuous colour, then ordered dither
+      frameNo++;
+      if (frameNo === 1) frameNo = 3; // a fresh buffer is filled straight away
       const d = img.data;
       d.fill(0);
-      // a few circles along each fish, offset down and right, for its shadow
-      const shadows = bodies.flatMap((pts, fi) =>
-        pts.filter((_, i) => i % 2 === 0).map(([x, y], j) => [x + 9, y + 12, width(fish[fi], (j * 2) / (pts.length - 1)) + 4])
+      // fish shadows, offset down and right: a few soft circles along each body, drawn into a
+      // darkening buffer once rather than tested for every water pixel
+      shade.fill(0);
+      bodies.forEach((pts, fi) =>
+        pts.forEach(([x, y], j) => {
+          if (j % 2) return;
+          const sr = (width(fish[fi], j / (pts.length - 1)) + 4) / P;
+          const sx = (x + 9) / P, sy = (y + 12) / P;
+          for (let py = Math.max(0, Math.floor(sy - sr)); py <= Math.min(gh - 1, sy + sr); py++)
+            for (let px = Math.max(0, Math.floor(sx - sr)); px <= Math.min(gw - 1, sx + sr); px++) {
+              const q = ((px - sx) ** 2 + (py - sy) ** 2) / (sr * sr);
+              if (q < 1) shade[py * gw + px] = Math.max(shade[py * gw + px], (1 - q) * 0.3);
+            }
+        })
       );
       for (const g of gutters) {
         const x0 = Math.floor(g.x / P), x1 = Math.ceil((g.x + g.w) / P);
@@ -298,46 +402,47 @@ export default function KoiPond() {
               d[i + 2] = ink[2];
               continue;
             }
-            const l =
-              noise(x / 150 + t * 0.015, y / 230 - t * 0.012) * 0.55 +
-              noise(x / 40 - t * 0.04, y / 64 + t * 0.03) * 0.28 +
-              noise(x / 26 + 9, y / 420 + t * 0.01) * 0.25;
-            const tl = noise(x / 210 + 40, y / 190 + t * 0.008);
-            // teal in places, checkered where it meets the blue
-            const teal = tl > 0.55 || (tl > 0.45 && (px + py) & 1);
-            let [r, gr, b] = ramp(teal ? TEAL : NAVY, (l * 0.95 - 0.08) * light.bright);
-            // the pale reflection
-            for (const o of glows) {
-              const q = ((x - o.x) ** 2 + (y - o.y - Math.sin(t * 0.2 + o.p) * 8) ** 2) / (o.r * o.r);
-              if (q < 4) {
-                const a = Math.exp(-q * 1.6) * light.glowA;
-                r = mix(r, light.glow[0], a);
-                gr = mix(gr, light.glow[1], a);
-                b = mix(b, light.glow[2], a);
+            // the water's own colour changes slowly, so it's worked out every third frame and
+            // kept; shadows and the dither are applied every frame
+            const j = (py * gw + px) * 3;
+            if (frameNo % 3 === 0) {
+              const l =
+                noise(x / 150 + t * 0.015, y / 230 - t * 0.012) * 0.55 +
+                noise(x / 40 - t * 0.04, y / 64 + t * 0.03) * 0.28 +
+                noise(x / 26 + 9, y / 420 + t * 0.01) * 0.25;
+              const tl = noise(x / 210 + 40, y / 190 + t * 0.008);
+              // teal in places, checkered where it meets the blue
+              const teal = tl > 0.55 || (tl > 0.45 && (px + py) & 1);
+              let [r, gr, b] = ramp(teal ? TEAL : NAVY, (l * 0.95 - 0.08) * light.bright);
+              // the pale reflection
+              for (const o of glows) {
+                const q = ((x - o.x) ** 2 + (y - o.y - Math.sin(t * 0.2 + o.p) * 8) ** 2) / (o.r * o.r);
+                if (q < 4) {
+                  const a = Math.exp(-q * 1.6) * light.glowA;
+                  r = mix(r, light.glow[0], a);
+                  gr = mix(gr, light.glow[1], a);
+                  b = mix(b, light.glow[2], a);
+                }
               }
-            }
-            // lily pads: blurred discs with a notch, lighter where the light catches them
-            for (const p of pads) {
-              const dx = x - p.x, dy = y - p.y;
-              const q = (dx * dx + dy * dy) / (p.r * p.r);
-              if (q > 2.2) continue;
-              const ang = Math.atan2(dy, dx) - p.a;
-              const notch = Math.abs(Math.atan2(Math.sin(ang), Math.cos(ang))) < 0.3 && q > 0.05 ? 0.25 : 1;
-              const a = Math.exp(-q * q * 1.4) * 0.92 * notch;
-              const lit = p.lit * Math.exp((-((dx + p.r * 0.3) ** 2 + (dy + p.r * 0.3) ** 2) / (p.r * p.r)) * 2);
-              r = mix(r, 22 + 40 * lit, a);
-              gr = mix(gr, 62 + 110 * lit, a);
-              b = mix(b, 30 + 36 * lit, a);
-            }
-            for (const [sx, sy, sr] of shadows) {
-              const q = ((x - sx) ** 2 + (y - sy) ** 2) / (sr * sr);
-              if (q < 1) {
-                const a = (1 - q) * 0.3;
-                r *= 1 - a;
-                gr *= 1 - a;
-                b *= 1 - a;
+              // lily pads: blurred discs with a notch, lighter where the light catches them
+              for (const p of pads) {
+                const dx = x - p.x, dy = y - p.y;
+                const q = (dx * dx + dy * dy) / (p.r * p.r);
+                if (q > 2.2) continue;
+                const ang = Math.atan2(dy, dx) - p.a;
+                const notch = Math.abs(Math.atan2(Math.sin(ang), Math.cos(ang))) < 0.3 && q > 0.05 ? 0.25 : 1;
+                const a = Math.exp(-q * q * 1.4) * 0.92 * notch;
+                const lit = p.lit * Math.exp((-((dx + p.r * 0.3) ** 2 + (dy + p.r * 0.3) ** 2) / (p.r * p.r)) * 2);
+                r = mix(r, 22 + 40 * lit, a);
+                gr = mix(gr, 62 + 110 * lit, a);
+                b = mix(b, 30 + 36 * lit, a);
               }
+              base[j] = r;
+              base[j + 1] = gr;
+              base[j + 2] = b;
             }
+            const sh = 1 - shade[py * gw + px];
+            const r = base[j] * sh, gr = base[j + 1] * sh, b = base[j + 2] * sh;
             const th = BAYER[(py & 3) * 4 + (px & 3)];
             // dither the water, then fade it into the page colour
             d[i] = mix(ink[0], Math.floor((r * 0.78) / STEP + th) * STEP, k);
@@ -348,22 +453,20 @@ export default function KoiPond() {
       }
       octx.putImageData(img, 0, 0);
       ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(off, 0, 0, gw * P, gh * P);
 
       // --- ASCII: sparse ripples, then the koi and their wakes
-      ctx.font = KOI_FONT;
-      ctx.textBaseline = 'top';
       for (const g of gutters) {
         for (let cy = 0; cy < H / CH; cy++) {
           for (let cx = Math.floor(g.x / CW); cx < (g.x + g.w) / CW; cx++) {
             const h = ihash(cx, cy);
-            if (h > 0.1) continue;
+            if (h > 0.14) continue;
             const r = noise(cx * 0.12 + t * 0.25, cy * 0.2 - t * 0.2);
             if (r < 0.62) continue;
             const k = fade(cx * CW);
-            ctx.fillStyle = `rgba(120, 186, 214, ${(r - 0.62) * 1.1 * k})`;
-            ctx.fillText(WAKE[Math.floor(h * 80) % WAKE.length], cx * CW, cy * CH);
+            stampKoi(ctx, WAKE[Math.floor(h * 80) % WAKE.length], WAKE_RGB, (r - 0.62) * 1.1 * k, cx * CW, cy * CH);
           }
         }
       }
@@ -373,15 +476,13 @@ export default function KoiPond() {
       fish.forEach((f) => f.food && !food.includes(f.food) && (f.food = null));
       for (const p of food) {
         const age = t - p.t;
-        ctx.fillStyle = 'rgba(232, 196, 120, 0.95)';
-        ctx.fillText('o', p.x - 2, p.y - 4);
+        stampKoi(ctx, 'o', [232, 196, 120], 0.95, p.x - 2, p.y - 4);
         const r = age * 40;
         const a = Math.max(0, 0.6 - age * 0.35);
         if (a <= 0) continue;
-        ctx.fillStyle = `rgba(150, 200, 225, ${a})`;
         for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
           const ang = (k / n) * Math.PI * 2;
-          ctx.fillText(k % 2 ? '~' : '-', p.x + Math.cos(ang) * r - 2, p.y + Math.sin(ang) * r * 0.8 - 4);
+          stampKoi(ctx, k % 2 ? '~' : '-', [150, 200, 225], a, p.x + Math.cos(ang) * r - 2, p.y + Math.sin(ang) * r * 0.8 - 4);
         }
       }
     };

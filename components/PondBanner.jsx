@@ -2,19 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { getWeather } from '@/lib/weather';
-import { cssColor } from '@/lib/themes';
-import { KOI_FONT, body, drawKoi, makeFish, swim } from './KoiPond';
+import { body, drawKoi, makeFish, makeStamper, swim } from './KoiPond';
 
 // The banner: the pond's surface, seen from above, in ASCII. Ripples run on a small wave
 // simulation; moving the pointer stirs the water, a click drops a stone, and a koi glides
 // beneath, pushing a wake. Bengaluru's live weather sets the rain: a stray drop now and
 // then when it's dry, steady drops while it rains, and wind speeds the koi up.
 
-const CW = 8; // cell, css px
-const CH = 13;
+const CW = 6; // cell, css px
+const CH = 10;
 const FPS = 30;
 const DAMP = 0.975;
 const RAMP = " .·:-=+*#%@";
+const FONT = `500 ${CH - 2}px "JetBrains Mono", monospace`;
 
 export default function PondBanner() {
   const ref = useRef(null);
@@ -31,8 +31,11 @@ export default function PondBanner() {
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let W, H, cols, rows, cur, prev, koi, colours, raf, last = 0, t = 0, nextDrop = 0, visible = true;
 
+    const stamp = makeStamper(FONT, CW, CH);
     const readColours = () => {
-      colours = { crest: cssColor('text'), trough: cssColor('mature'), calm: cssColor('line') };
+      const css = getComputedStyle(document.documentElement);
+      const rgb = (token) => css.getPropertyValue(`--c-${token}`).trim().split(/\s+/).map(Number);
+      colours = { crest: rgb('text'), trough: rgb('mature'), calm: rgb('line') };
     };
 
     const setup = () => {
@@ -84,27 +87,18 @@ export default function PondBanner() {
 
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
-      ctx.font = KOI_FONT;
-      ctx.textBaseline = 'top';
       // the koi first, faint, so it reads as under the water
       drawKoi(ctx, koi, body(koi, t), () => 0.55);
-      ctx.font = `500 ${CH - 2}px "JetBrains Mono", monospace`;
       for (let y = 1; y < rows - 1; y++)
         for (let x = 1; x < cols - 1; x++) {
           const v = cur[y * cols + x];
           const a = Math.min(1, Math.abs(v) / 2.6);
           if (a < 0.06) {
             // still water: a sparse, faint texture
-            if (((x * 7 + y * 13) % 23) === 0) {
-              ctx.fillStyle = colours.calm;
-              ctx.fillText('.', (x - 1) * CW, (y - 1) * CH);
-            }
+            if ((x * 7 + y * 13) % 23 === 0) stamp(ctx, '.', colours.calm, 1, (x - 1) * CW, (y - 1) * CH);
             continue;
           }
-          ctx.globalAlpha = 0.2 + a * 0.55;
-          ctx.fillStyle = v > 0 ? colours.crest : colours.trough;
-          ctx.fillText(RAMP[Math.min(RAMP.length - 1, Math.ceil(a * (RAMP.length - 1)))], (x - 1) * CW, (y - 1) * CH);
-          ctx.globalAlpha = 1;
+          stamp(ctx, RAMP[Math.min(RAMP.length - 1, Math.ceil(a * (RAMP.length - 1)))], v > 0 ? colours.crest : colours.trough, 0.2 + a * 0.55, (x - 1) * CW, (y - 1) * CH);
         }
     };
 
