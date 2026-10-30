@@ -37,7 +37,7 @@ export default function Reading() {
     ['papers', reading.filter((r) => r.kind === 'paper')],
   ].filter(([, items]) => items.length);
   return (
-    <Section id="reading" index={3} title="Reading" note="books I've finished this year, and papers worth your time">
+    <Section id="reading" title="Reading" note="books I've finished this year, and papers worth your time">
       <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
         {groups.map(([label, items]) => (
           <div key={label}>

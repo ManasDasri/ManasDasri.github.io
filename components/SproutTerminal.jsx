@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { projects } from '@/lib/data';
-import { THEME_ORDER, readTheme } from '@/lib/themes';
-import { setTheme, themeName } from './Daylight';
 
 // Real output: sprout 0.2.0 run on this portfolio's own repo.
 const TREE = [
@@ -24,7 +22,7 @@ const ENTRY = [
   '',
   '  1. README.md                  what the project is',
   '  2. components/Section.jsx     used by 5 files',
-  '  3. components/Scramble.jsx    used by 2 files',
+  '  3. components/Section.jsx     used by 9 files',
   '  4. components/Effects.jsx     used by 1 file',
   '  5. components/KoiPond.jsx     used by 2 files',
 ];
@@ -44,13 +42,9 @@ const HELP = [
   'ls                 my projects',
   'open <project>     project details, e.g. open flow',
   'neofetch           what this site runs on',
-  'startx             boot the desktop',
-  'theme [name]       colour theme: auto, dracula, nord, gruvbox…',
   'whoami, contact, clear',
 ];
-const SUGGESTIONS = ['sprout --entry', 'ls', 'neofetch', 'theme koi', 'help'];
-
-const inDesktop = () => typeof document !== 'undefined' && document.documentElement.dataset.desktop === 'on';
+const SUGGESTIONS = ['sprout --entry', 'ls', 'neofetch', 'open flow', 'help'];
 
 // the obligatory ricer screenshot, with real values from the site
 function neofetch() {
@@ -63,9 +57,8 @@ function neofetch() {
     'Host: GitHub Pages',
     'Kernel: Next.js 14 (static export)',
     'Shell: sprout-term',
-    `DE: Plasma (simulated)${inDesktop() ? '' : ', try startx'}`,
     'WM: koi pond',
-    `Theme: ${themeName(readTheme())}`,
+    'Theme: Koi Pond',
     `Uptime: coding for ${days} days`,
     `Projects: ${projects.length}`,
   ];
@@ -96,23 +89,8 @@ function run(input) {
       setTimeout(() => (window.location.href = `/projects/${p.slug}/`), 500);
       return [`opening ${p.name}…`];
     }
-    case 'theme': {
-      if (!rest) return [`theme: ${readTheme()}`, `options: ${THEME_ORDER.join(', ')}`];
-      if (!THEME_ORDER.includes(rest)) return [`no theme "${rest}". Try: ${THEME_ORDER.join(', ')}`];
-      setTheme(rest);
-      return [rest === 'auto' ? 'theme: auto (follows the time of day in Bengaluru)' : `theme: ${rest}`];
-    }
     case 'neofetch':
       return neofetch();
-    case 'startx':
-      if (inDesktop()) return ['a desktop is already running.'];
-      setTimeout(() => window.dispatchEvent(new Event('startx')), 300);
-      return ['starting Plasma…'];
-    case 'exit':
-    case 'logout':
-      if (!inDesktop()) return ['nothing to exit. Try: startx'];
-      setTimeout(() => window.dispatchEvent(new Event('desktop-exit')), 200);
-      return ['logging out…'];
     case 'whoami':
       return ['Manas Dasari: engineer, fintech enthusiast, artist, writer'];
     case 'contact':
@@ -132,9 +110,7 @@ function lineClass(l) {
   return 'text-mute';
 }
 
-// `embedded` is the copy inside the desktop: no page-level id, no auto-run,
-// and it doesn't take commands meant for the page's terminal.
-export default function SproutTerminal({ embedded = false, greet = 'neofetch' }) {
+export default function SproutTerminal() {
   const ref = useRef(null);
   const bodyRef = useRef(null);
   const inputRef = useRef(null);
@@ -171,10 +147,6 @@ export default function SproutTerminal({ embedded = false, greet = 'neofetch' })
 
   // first time on screen: run the tree so it looks alive
   useEffect(() => {
-    if (embedded) {
-      type(greet);
-      return;
-    }
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
@@ -220,7 +192,7 @@ export default function SproutTerminal({ embedded = false, greet = 'neofetch' })
   const prompt = <span className="text-signal select-none">❯ </span>;
 
   return (
-    <div id={embedded ? undefined : 'terminal'} ref={ref}>
+    <div id="terminal" ref={ref}>
       <div className="rounded-lg border border-line bg-ink overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-2 border-b border-line bg-raised/60">
           <span className="flex gap-1.5" aria-hidden="true">

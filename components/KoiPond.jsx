@@ -14,7 +14,7 @@ const CW = 4; // ASCII cell, css px
 const CH = 6;
 const FPS = 30;
 const KOI_FONT = `700 ${CH}px "JetBrains Mono", monospace`;
-const STEP = 20; // colour quantisation step for the dither
+export const STEP = 20; // colour quantisation step for the dither
 const BODY = ':;~=+*ixzoIX%#&0@'; // edge to core
 const SCALE = 'xX%&#8'; // scale texture across the body
 const WAKE = "~-=+:!'`";
@@ -22,23 +22,23 @@ const FIN = ":;!'~";
 const WAKE_RGB = [120, 186, 214];
 const EYE = [18, 16, 22];
 const INK = [34, 32, 40]; // sumi, the black of showa and sanke
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+export const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
-const rand = (a, b) => a + Math.random() * (b - a);
-const ihash = (x, y) => {
+export const rand = (a, b) => a + Math.random() * (b - a);
+export const ihash = (x, y) => {
   let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 };
 // smooth value noise in [0, 1]
-function noise(x, y) {
+export function noise(x, y) {
   const xi = Math.floor(x), yi = Math.floor(y);
   const xf = x - xi, yf = y - yi;
   const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
   const a = ihash(xi, yi), b = ihash(xi + 1, yi), c = ihash(xi, yi + 1), d = ihash(xi + 1, yi + 1);
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
-const mix = (a, b, t) => a + (b - a) * t;
+export const mix = (a, b, t) => a + (b - a) * t;
 
 // fillText is slow when called thousands of times a frame, so each character in each colour
 // is drawn once into an atlas canvas and copied from there with drawImage. Colours are
@@ -102,16 +102,6 @@ function lightNow() {
   return { bright: mix(b0, b1, f), glow: c0.map((c, k) => mix(c, c1[k], f)), glowA: mix(a0, a1, f) };
 }
 
-// CSS hue-rotate() as a colour matrix, applied to one [r, g, b]
-function hueRotate([r, g, b], rad) {
-  const c = Math.cos(rad), s = Math.sin(rad);
-  return [
-    (0.213 + 0.787 * c - 0.213 * s) * r + (0.715 - 0.715 * c - 0.715 * s) * g + (0.072 - 0.072 * c + 0.928 * s) * b,
-    (0.213 - 0.213 * c + 0.143 * s) * r + (0.715 + 0.285 * c + 0.14 * s) * g + (0.072 - 0.072 * c - 0.283 * s) * b,
-    (0.213 - 0.213 * c - 0.787 * s) * r + (0.715 - 0.715 * c + 0.715 * s) * g + (0.072 + 0.928 * c + 0.072 * s) * b,
-  ].map((v) => Math.max(0, Math.min(255, v)));
-}
-
 // water colour ramps, dark to light: deep blue, and the teal it shifts to in places
 const NAVY = [[3, 6, 16], [10, 18, 46], [20, 36, 82], [34, 58, 120], [58, 92, 158]];
 const TEAL = [[3, 10, 14], [10, 32, 40], [18, 58, 64], [32, 88, 90], [60, 124, 120]];
@@ -129,7 +119,7 @@ const KOI = [
 ];
 
 export function makeFish(g, i) {
-  const len = Math.max(130, Math.min(300, g.w * 1.25));
+  const len = Math.max(110, Math.min(240, g.w * 0.9));
   const x = g.x + rand(0.3, 0.7) * g.w;
   const y = rand(0.15, 0.85) * g.h;
   const heading = rand(0, Math.PI * 2);
@@ -141,7 +131,12 @@ export function makeFish(g, i) {
     len,
     seg,
     heading,
-    speed: rand(10, 18),
+    turn: 0, // turn rate, rad/s: it eases toward what the fish wants, never snaps
+    v: 12, // speed, px/s
+    thrust: 0.5, // how hard the tail is beating, 0 to 1
+    beat: rand(0, 6), // tail-beat phase
+    goal: null,
+    goalUntil: 0,
     phase: rand(0, 100),
     spots: rand(0, 50),
     spine: Array.from({ length: K }, (_, j) => [x - Math.cos(heading) * seg * j, y - Math.sin(heading) * seg * j]),
@@ -156,44 +151,73 @@ function width(f, u) {
   return w * (0.99 - 0.82 * ((u - 0.18) / 0.66) ** 1.3);
 }
 
-export function swim(f, t, dt) {
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const MAX_BEND = 0.11; // rad between neighbouring segments: the body curves, it never folds
+
+// How a koi swims: it cruises toward a spot in its margin, picking a new one now and then,
+// in slow wide arcs (its turning circle grows with its length), alternating a few tail
+// beats with a long glide, and veers away from other koi. Food in the water overrides the
+// wandering: it turns harder and hurries.
+export function swim(f, t, dt, others = []) {
   const { g } = f;
   const [hx, hy] = f.spine[0];
-  let turn = Math.sin(t * 0.3 + f.phase) * 0.35 + Math.sin(t * 0.11 + f.phase * 2) * 0.3;
-  const m = Math.min(f.len * 0.5, g.w * 0.35);
-  if (f.food) {
-    // swim to the food, a little faster, and eat it on arrival
-    const want = Math.atan2(f.food.y - hy, f.food.x - hx);
-    turn = Math.atan2(Math.sin(want - f.heading), Math.cos(want - f.heading)) * 2.4;
-    if (Math.hypot(f.food.x - hx, f.food.y - hy) < 10) {
-      f.food.eaten = true;
-      f.food = null;
-    }
-  } else if (hx < g.x + m || hx > g.x + g.w - m || hy < m || hy > g.h - m) {
-    const want = Math.atan2(g.h / 2 - hy, g.x + g.w / 2 - hx);
-    const d = Math.atan2(Math.sin(want - f.heading), Math.cos(want - f.heading));
-    turn += d * 1.6;
+  if (!f.food && (!f.goal || t > f.goalUntil || Math.hypot(f.goal.x - hx, f.goal.y - hy) < f.len * 0.5)) {
+    // somewhere in the margin at least a body length away
+    let gx, gy, tries = 0;
+    do {
+      gx = g.x + rand(0.15, 0.85) * g.w;
+      gy = rand(0.1, 0.9) * g.h;
+    } while (Math.hypot(gx - hx, gy - hy) < f.len && ++tries < 8);
+    f.goal = { x: gx, y: gy };
+    f.goalUntil = t + rand(10, 22);
   }
-  f.heading += turn * dt;
-  const v = f.speed * (f.food ? 2.2 : 0.75 + 0.35 * Math.sin(t * 0.5 + f.phase));
-  f.spine[0] = [hx + Math.cos(f.heading) * v * dt, hy + Math.sin(f.heading) * v * dt];
+  const target = f.food ?? f.goal;
+  let want = Math.atan2(target.y - hy, target.x - hx) + (f.food ? 0 : Math.sin(t * 0.23 + f.phase) * 0.25);
+  // keep clear of the other koi: veer away from the middle of any that's close
+  for (const o of others) {
+    if (o === f) continue;
+    const [ox, oy] = o.spine[o.spine.length >> 1];
+    const d = Math.hypot(hx - ox, hy - oy);
+    const near = 1 - d / (f.len * 0.75);
+    if (near > 0) want += wrap(Math.atan2(hy - oy, hx - ox) - want) * Math.min(1, near * 1.5);
+  }
+  const maxTurn = f.v / (f.len * (f.food ? 0.28 : 0.45));
+  const desired = Math.max(-maxTurn, Math.min(maxTurn, wrap(want - f.heading) * 0.9));
+  f.turn += (desired - f.turn) * Math.min(1, dt * 1.2);
+  f.heading = wrap(f.heading + f.turn * dt);
+  // a few beats, then a glide; turning hard costs speed
+  const pulse = Math.max(0, Math.sin(t * 0.55 + f.phase));
+  f.thrust = f.food ? 1 : 0.15 + 0.85 * pulse ** 2;
+  const vWant = (f.food ? 34 : 9 + 16 * f.thrust) * (1 - 0.35 * Math.min(1, Math.abs(f.turn) / maxTurn));
+  f.v += (vWant - f.v) * Math.min(1, dt * 0.8);
+  f.beat += dt * (2 + 5 * f.thrust);
+  if (f.food && Math.hypot(f.food.x - hx, f.food.y - hy) < 10) {
+    f.food.eaten = true;
+    f.food = null;
+  }
+  f.spine[0] = [hx + Math.cos(f.heading) * f.v * dt, hy + Math.sin(f.heading) * f.v * dt];
+  // the body follows the head, each segment bending at most MAX_BEND from the one before
+  let ref = f.heading + Math.PI;
   for (let i = 1; i < f.spine.length; i++) {
     const [px, py] = f.spine[i - 1];
     const [cx, cy] = f.spine[i];
-    const a = Math.atan2(cy - py, cx - px);
+    const a = ref + Math.max(-MAX_BEND, Math.min(MAX_BEND, wrap(Math.atan2(cy - py, cx - px) - ref)));
     f.spine[i] = [px + Math.cos(a) * f.seg, py + Math.sin(a) * f.seg];
+    ref = a;
   }
 }
 
-// the spine with the swimming wave applied
-export function body(f, t) {
+// the spine with the tail beat applied: a wave running back along the body, strongest at
+// the tail and while it's beating hard
+export function body(f) {
   const n = f.spine.length;
+  const amp = f.len * 0.04 * (0.25 + 0.75 * f.thrust);
   return f.spine.map(([x, y], i) => {
     const [ax, ay] = f.spine[Math.max(0, i - 1)];
     const [bx, by] = f.spine[Math.min(n - 1, i + 1)];
     const a = Math.atan2(by - ay, bx - ax);
     const u = i / (n - 1);
-    const s = Math.sin(t * 3.2 + f.phase - u * 3.5) * f.len * 0.045 * u * u;
+    const s = Math.sin(f.beat - u * 4) * amp * u ** 1.6;
     return [x - Math.sin(a) * s, y + Math.cos(a) * s];
   });
 }
@@ -302,20 +326,12 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, ink, light, food = [], raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], raf, last = 0, t = rand(0, 500);
 
-    // The page's background as it appears on screen, for the pond to fade into. The pond
-    // cancels the page's time-of-day hue shift (globals.css) so the koi keep their colours,
-    // so the shift is applied to this colour here instead. Read again every second, which
-    // follows theme switches and the drifting hue without restarting the pond.
-    const readInk = () => {
-      const css = getComputedStyle(document.documentElement);
-      const v = css.getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
-      const hue = parseFloat(css.getPropertyValue('--hue')) || 0;
-      ink = hueRotate(v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0], (hue * Math.PI) / 180);
-      light = lightNow();
-    };
-    let inkAt = 0;
+    // the page's background, for the pond to fade into
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
+    const ink = v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0];
+    let lightAt = -Infinity;
 
     const setup = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -332,7 +348,7 @@ export default function KoiPond() {
       shade = new Float32Array(gw * gh);
       base = new Float32Array(gw * gh * 3);
       frameNo = 0;
-      readInk();
+      light = lightNow();
       const col = document.getElementById('main')?.getBoundingClientRect();
       const left = col ? col.left : W / 2;
       const right = col ? col.right : W / 2;
@@ -340,7 +356,7 @@ export default function KoiPond() {
         { x: 0, w: left, h: H, edge: left },
         { x: right, w: W - right, h: H, edge: right },
       ].filter((g) => g.w >= 48);
-      fish = gutters.flatMap((g, gi) => Array.from({ length: g.w < 260 ? 1 : g.w < 520 ? 2 : 3 }, (_, i) => makeFish(g, gi + i * 2)));
+      fish = gutters.flatMap((g, gi) => Array.from({ length: g.w < 360 ? 1 : g.w < 640 ? 2 : 3 }, (_, i) => makeFish(g, gi + i * 2)));
       pads = gutters.flatMap((g) =>
         Array.from({ length: 2 + Math.floor(H / 500) }, () => ({ x: g.x + rand(0.15, 0.85) * g.w, y: rand(0, H), r: rand(18, 34), a: rand(0, 6.28), dx: rand(-1.5, 1.5), dy: rand(-1.5, 1.5), lit: rand(0.3, 1) }))
       );
@@ -355,12 +371,13 @@ export default function KoiPond() {
 
     const frame = (dt) => {
       t += dt;
-      if (t - inkAt > 1) {
-        inkAt = t;
-        readInk();
+      // the light follows the clock; a minute is close enough
+      if (t - lightAt > 60) {
+        lightAt = t;
+        light = lightNow();
       }
-      fish.forEach((f) => swim(f, t, dt));
-      const bodies = fish.map((f) => body(f, t));
+      fish.forEach((f) => swim(f, t, dt, fish));
+      const bodies = fish.map((f) => body(f));
       for (const p of pads) {
         p.x += p.dx * dt;
         p.y += p.dy * dt;
@@ -519,12 +536,6 @@ export default function KoiPond() {
       if (near) near.food = p;
     };
     const hover = (e) => (document.body.style.cursor = !still && inPond(e) ? 'pointer' : '');
-    // a theme switch only changes the colour the pond fades into: redraw with it straight
-    // away (inside the switch's view transition, so the new snapshot has it), fish in place
-    const onTheme = () => {
-      readInk();
-      if (gutters.length) frame(0);
-    };
 
     // the column's position decides the margins; the font changes the ASCII metrics
     document.fonts?.ready.then(start);
@@ -532,14 +543,12 @@ export default function KoiPond() {
     window.addEventListener('resize', start);
     window.addEventListener('pointerdown', feed);
     window.addEventListener('pointermove', hover);
-    window.addEventListener('theme-change', onTheme);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
       window.removeEventListener('pointerdown', feed);
       window.removeEventListener('pointermove', hover);
-      window.removeEventListener('theme-change', onTheme);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);

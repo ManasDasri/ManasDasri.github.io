@@ -98,23 +98,17 @@ function LeetCodePanel({ stats }) {
   );
 }
 
-// the calendar library needs real colour values, so read the theme's and re-read on change
+// the calendar library needs real colour values, read once mounted
 function useCalendarTheme() {
-  const read = () => ({ dark: [cssColor('raised'), cssColor('old'), cssColor('mature'), cssColor('signal', 0.7), cssColor('signal')] });
   const [theme, setTheme] = useState(null);
-  useEffect(() => {
-    const update = () => setTheme(read());
-    update();
-    window.addEventListener('theme-change', update);
-    return () => window.removeEventListener('theme-change', update);
-  }, []);
+  useEffect(() => setTheme({ dark: [cssColor('raised'), cssColor('old'), cssColor('mature'), cssColor('signal', 0.7), cssColor('signal')] }), []);
   return theme;
 }
 
 export default function GithubActivity({ leetcode }) {
   const theme = useCalendarTheme();
   return (
-    <Section id="activity" index={6} title="Activity" note="GitHub live; LeetCode as of the last daily build">
+    <Section id="activity" title="Activity" note="GitHub live; LeetCode as of the last daily build">
       <div className={panel}>
         <h3 className="sr-only">GitHub</h3>
         <GithubStats />

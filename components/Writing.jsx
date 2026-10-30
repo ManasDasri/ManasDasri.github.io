@@ -5,11 +5,11 @@ const fmt = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { mont
 
 export default function Writing() {
   return (
-    <Section id="writing" index={6} title="Writing">
+    <Section id="writing" title="Writing">
       <ul className="list-none p-0 m-0">
         {getPosts().map((post) => (
           <li key={post.slug} className="py-4 first:pt-0 border-b border-line">
-            <a href={`/writing/${post.slug}/`} className="group font-head text-lg font-semibold text-text hover:text-signal">
+            <a href={`/writing/${post.slug}/`} className="group font-serif text-2xl leading-tight text-text hover:text-signal">
               <span className="inline-block" style={{ viewTransitionName: `post-${post.slug}` }}>
                 {post.title}
               </span>

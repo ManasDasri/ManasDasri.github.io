@@ -13,14 +13,12 @@ import { Band } from '@/components/Section';
 import { reading } from '@/lib/data';
 import Writing from '@/components/Writing';
 import Contact from '@/components/Contact';
-import CodeArt from '@/components/CodeArt';
 import Footer from '@/components/Footer';
+import KoiPond from '@/components/KoiPond';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
-import { getPosts } from '@/lib/posts';
 import { getTickerData } from '@/lib/ticker';
 import { log } from '@/lib/data';
-import Desktop from '@/components/desktop/Desktop';
 
 // only the home page is canonical for '/' (set here, not in the layout, or every page would claim it)
 export const metadata = {
@@ -29,7 +27,7 @@ export const metadata = {
 
 export default async function Home() {
   const leetcode = await getLeetCodeStats('ManasDasari');
-  const { sprout, mergedPRs, sproutStats } = await getTickerData();
+  const { sprout, mergedPRs } = await getTickerData();
   const milestone = log.find((e) => e.date !== 'upcoming');
   // three facts for someone skimming; any that failed to load at build are left out
   const highlights = [
@@ -40,18 +38,19 @@ export default async function Home() {
 
   return (
     <>
+      <KoiPond />
       <Dock />
-      <div className="relative z-[2] max-w-4xl mx-auto">
+      <div className="relative z-[2] max-w-2xl mx-auto">
         <Band className="!h-10" />
       </div>
       <HeroBanner />
-      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
+      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
         <Hero highlights={highlights} />
 
-        <Building stats={sproutStats} />
+        <Building />
         <TabbedSection
           id="now"
-          index={2}
+         
           title="Now"
           tabs={[
             { id: 'now-plate', label: 'this semester', note: "what's on my plate this semester", content: <Now /> },
@@ -64,21 +63,19 @@ export default async function Home() {
         <Skills />
         <TabbedSection
           id="activity"
-          index={4}
+         
           title="Activity"
           tabs={[
             { id: 'contributions', label: 'contributions', note: 'GitHub live; LeetCode as of the last daily build', content: <GithubActivity leetcode={leetcode} /> },
             { id: 'proof-of-work', label: 'pull requests', note: 'my pull requests, live from GitHub', content: <ProofOfWork /> },
           ]}
         />
-        <CodeArt />
         <Writing />
         <Contact />
 
         <Footer />
         <CommandPalette />
       </main>
-      <Desktop posts={getPosts().map(({ slug, title, date, readMins }) => ({ slug, title, date, readMins }))} />
     </>
   );
 }

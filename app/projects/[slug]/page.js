@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { projects } from '@/lib/data';
 import Dock from '@/components/Dock';
 import Section, { Band } from '@/components/Section';
-import Sigil from '@/components/Sigil';
 import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
 import LiveStatus from '@/components/LiveStatus';
@@ -10,6 +9,7 @@ import CommandPalette from '@/components/CommandPalette';
 import Gallery from '@/components/Gallery';
 import RepoStats from '@/components/RepoStats';
 import SproutTerminal from '@/components/SproutTerminal';
+import MarginArt from '@/components/MarginArt';
 import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
@@ -44,11 +44,12 @@ export default async function ProjectPage({ params }) {
 
   return (
     <>
+      <MarginArt scene="garden" />
       <Dock />
-      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
+      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
           <nav aria-label="Projects" className="rise flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-mute">
-            <a href="/#building" className="hover:text-signal">
+            <a href="/projects/" className="hover:text-signal">
               ← all projects
             </a>
             <span className="ml-auto flex gap-4">
@@ -57,7 +58,6 @@ export default async function ProjectPage({ params }) {
             </span>
           </nav>
           <div className="rise morph flex items-center gap-5 mt-8 mb-4" style={{ '--i': 1 }}>
-            <Sigil pattern={p.pattern} playing name={`sigil-${p.slug}`} />
             {p.statusUrl ? (
               <LiveStatus url={p.statusUrl} label={p.status} />
             ) : (
@@ -65,7 +65,7 @@ export default async function ProjectPage({ params }) {
             )}
           </div>
           <h1
-            className="rise morph font-head font-extrabold tracking-[-0.04em] leading-[0.9] text-[clamp(3rem,9vw,5.5rem)] w-fit"
+            className="rise morph font-serif leading-[0.95] text-[clamp(3.5rem,10vw,5.5rem)] w-fit"
             style={{ viewTransitionName: `project-${p.slug}`, '--i': 2 }}
           >
             {p.name}
@@ -149,14 +149,11 @@ export default async function ProjectPage({ params }) {
           className="group block px-6 sm:px-9 py-14 no-underline"
         >
           <span className="font-mono text-xs text-mute">next project</span>
-          <span className="flex items-center gap-4 mt-2">
-            <Sigil pattern={next.pattern} name={`sigil-${next.slug}`} />
-            <span
-              className="block w-fit font-head text-4xl font-extrabold tracking-[-0.04em] leading-[0.9] text-text group-hover:text-signal transition-colors"
-              style={{ viewTransitionName: `project-${next.slug}` }}
-            >
-              {next.name}
-            </span>
+          <span
+            className="block w-fit mt-2 font-serif text-5xl leading-none text-text group-hover:text-signal transition-colors"
+            style={{ viewTransitionName: `project-${next.slug}` }}
+          >
+            {next.name}
           </span>
         </a>
 

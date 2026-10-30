@@ -26,10 +26,7 @@ export default function CommandPalette() {
 
   function runCommand(cmd) {
     setOpen(false);
-    if (cmd.desktop) {
-      if (location.pathname === '/') window.dispatchEvent(new Event('startx'));
-      else location.href = '/?startx';
-    } else if (cmd.terminal) {
+    if (cmd.terminal) {
       document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       window.dispatchEvent(new CustomEvent('terminal-run', { detail: cmd.terminal }));
     } else if (cmd.href?.startsWith('/')) {

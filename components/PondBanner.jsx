@@ -50,7 +50,6 @@ export default function PondBanner() {
       cur = new Float32Array(cols * rows);
       prev = new Float32Array(cols * rows);
       koi = makeFish({ x: 0, w: W, h: H }, 0);
-      koi.speed *= 1.6;
       readColours();
     };
 
@@ -88,7 +87,7 @@ export default function PondBanner() {
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
       // the koi first, faint, so it reads as under the water
-      drawKoi(ctx, koi, body(koi, t), () => 0.55);
+      drawKoi(ctx, koi, body(koi), () => 0.55);
       for (let y = 1; y < rows - 1; y++)
         for (let x = 1; x < cols - 1; x++) {
           const v = cur[y * cols + x];
@@ -140,10 +139,6 @@ export default function PondBanner() {
       setup();
       if (still) draw();
     };
-    const onTheme = () => {
-      readColours();
-      draw();
-    };
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
       run();
@@ -152,7 +147,6 @@ export default function PondBanner() {
     header.addEventListener('pointermove', stir);
     header.addEventListener('pointerdown', stone);
     window.addEventListener('resize', onResize);
-    window.addEventListener('theme-change', onTheme);
     document.addEventListener('visibilitychange', run);
     document.fonts?.ready.then(() => draw());
     return () => {
@@ -161,7 +155,6 @@ export default function PondBanner() {
       header.removeEventListener('pointermove', stir);
       header.removeEventListener('pointerdown', stone);
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('theme-change', onTheme);
       document.removeEventListener('visibilitychange', run);
     };
   }, []);

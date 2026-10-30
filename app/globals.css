@@ -16,6 +16,21 @@ html {
   }
 }
 
+:root {
+  /* Koi Pond: night water, cream and koi orange, teal, wake cyan (as "R G B" so Tailwind
+     can add alpha) */
+  --c-ink: 7 11 20;
+  --c-paper: 12 19 34;
+  --c-raised: 18 27 46;
+  --c-line: 31 44 70;
+  --c-text: 236 228 214;
+  --c-mute: 151 160 179;
+  --c-signal: 240 122 74;
+  --c-mature: 79 163 160;
+  --c-old: 44 79 138;
+  --c-accent: 126 200 214;
+}
+
 body {
   background: rgb(var(--c-ink));
   color: rgb(var(--c-text));
@@ -42,8 +57,8 @@ body {
     rgb(var(--c-ink));
   border-block: 1px dashed rgb(var(--c-line) / 0.7);
   /* solid across the column, fading out over the margins so the pond shows at the ends */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 calc(50% - 28rem), #000 calc(50% + 28rem), transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 calc(50% - 28rem), #000 calc(50% + 28rem), transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 calc(50% - 21rem), #000 calc(50% + 21rem), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 calc(50% - 21rem), #000 calc(50% + 21rem), transparent);
 }
 .band::after {
   content: '';
@@ -57,15 +72,6 @@ body {
   color: rgb(var(--c-ink));
 }
 
-.grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.03;
-  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
-  background-size: 3px 3px;
-}
 
 /* cmdk overrides */
 [cmdk-overlay] {
@@ -215,16 +221,7 @@ body {
 }
 /* a title that morphs in skips its own rise (app/layout.js); the rest of the page still rises */
 
-/* switching theme: the new palette grows out of the centre of the screen as a circle.
-   Named elements (the dock, project titles) join the page snapshot so nothing jumps
-   ahead of the circle. */
-html.theme-wipe * { view-transition-name: none !important; }
-html.theme-wipe::view-transition-old(root) { animation: none; }
-html.theme-wipe::view-transition-new(root) { animation: theme-circle 0.7s var(--ease) both; }
-@keyframes theme-circle {
-  from { clip-path: circle(0 at 50% 50%); }
-  to { clip-path: circle(75vmax at 50% 50%); }
-}
+
 
 /* keyboard focus: visible ring for keyboard users only (not on mouse clicks) */
 :focus-visible {
@@ -234,13 +231,6 @@ html.theme-wipe::view-transition-new(root) { animation: theme-circle 0.7s var(--
 }
 :focus:not(:focus-visible) { outline: none; }
 
-/* palette follows the time of day in Bengaluru (components/Daylight.jsx). A filter on
-   the root element doesn't re-anchor fixed elements, so the dock and overlays stay put. */
-html { filter: hue-rotate(var(--hue, 0deg)); }
-/* animate palette changes, but not the first paint (the head script set it already) */
-html.palette-ready, html.palette-ready img, html.palette-ready .pond { transition: filter 1.2s ease; }
-/* photos and the koi pond keep their real colours */
-img, .pond { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
 /* activity calendars scroll sideways on narrow screens: start at the newest weeks (right end) */
 .react-activity-calendar__scroll-container { direction: rtl; }
@@ -254,21 +244,9 @@ img, .pond { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 @keyframes eq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .eq span { animation: none; transform: scaleY(0.6); } }
 
-/* first-visit entrance: LED dots sweep on, then the overlay fades (no JS needed to clear it) */
-.entrance {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: rgb(var(--c-ink));
-  pointer-events: none;
-  animation: entrance-out 0.45s ease 0.9s forwards;
-}
-@keyframes entrance-out { to { opacity: 0; visibility: hidden; } }
 
-/* titles: a light sweep across the letters on hover. Scrambled titles draw their text in
-   a positioned span, which a parent's text-clipped background can't reach, so it goes there. */
-.shimmer:hover:not(:has(.scramble-out)),
-.shimmer:hover .scramble-out {
+/* titles: a light sweep across the letters on hover */
+.shimmer:hover {
   color: transparent;
   background-image: linear-gradient(100deg, rgb(var(--c-text)) 0%, rgb(var(--c-text)) 40%, rgb(var(--c-signal)) 50%, rgb(var(--c-text)) 60%, rgb(var(--c-text)) 100%);
   background-size: 250% 100%;
@@ -279,6 +257,5 @@ img, .pond { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .entrance { display: none; }
-  .shimmer:hover:not(:has(.scramble-out)), .shimmer:hover .scramble-out { animation: none; }
+  .shimmer:hover { animation: none; }
 }
