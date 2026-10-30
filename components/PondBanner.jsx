@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { getWeather } from '@/lib/weather';
-import { body, drawKoi, makeFish, makeStamper, swim } from './KoiPond';
+import { body, drawKoi, makeFish, makeStamper, swim, whenIdle } from './KoiPond';
 
 // The banner: the pond's surface, seen from above, in ASCII. Ripples run on a small wave
 // simulation; moving the pointer stirs the water, a click drops a stone, and a koi glides
@@ -14,7 +14,7 @@ const CH = 10;
 const FPS = 30;
 const DAMP = 0.975;
 const RAMP = " .·:-=+*#%@";
-const FONT = `500 ${CH - 2}px "JetBrains Mono", monospace`;
+const FONT = `400 ${CH - 2}px "JetBrains Mono", monospace`;
 
 export default function PondBanner() {
   const ref = useRef(null);
@@ -109,9 +109,10 @@ export default function PondBanner() {
       step(dt);
       draw();
     };
+    let ready = false; // set once the page has settled (below)
     const run = () => {
       cancelAnimationFrame(raf);
-      if (still || !visible || document.hidden) return;
+      if (!ready || still || !visible || document.hidden) return;
       last = performance.now();
       raf = requestAnimationFrame(loop);
     };
@@ -121,7 +122,10 @@ export default function PondBanner() {
       for (let i = 0; i < 60; i++) step(1 / FPS);
       draw();
     }
-    run();
+    const cancelIdle = whenIdle(() => {
+      ready = true;
+      run();
+    });
 
     const header = canvas.parentElement;
     let lastStir = 0;
@@ -150,6 +154,7 @@ export default function PondBanner() {
     document.addEventListener('visibilitychange', run);
     document.fonts?.ready.then(() => draw());
     return () => {
+      cancelIdle();
       cancelAnimationFrame(raf);
       io.disconnect();
       header.removeEventListener('pointermove', stir);

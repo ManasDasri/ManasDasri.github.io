@@ -1,13 +1,20 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { BAYER, STEP, ihash, makeStamper, mix, noise, rand } from './KoiPond';
+import { BAYER, STEP, ihash, makeStamper, mix, noise, rand, whenIdle } from './KoiPond';
 
 // The margins of the inner pages, in the same style as the homepage's pond: a scene drawn
 // as dithered pixels with dense ASCII over it, fading into the page toward the column.
 //   bamboo     a grove swaying, leaves on the stalks (the projects list)
-//   garden     a raked zen garden, sand rippling round mossy stones (a project's page)
-//   mountains  ridges in mist under the moon (writing, and the 404)
+//   garden     a raked zen garden, sand rippling round mossy stones (any other project)
+//   mountains  ridges in mist under the moon (a post, and the 404)
+//   network    a neural network drifting, signals running along its links (Gradient Works)
+//   sprout     seedlings coming up out of the soil and growing (Sprout)
+//   flow       a calm stream running down, currents drawn over it (Flow)
+//   air        a city's air: haze, drifting particles, sensors on the roofs (Atmos)
+//   market     candles, then Monte Carlo paths fanning out (Velora)
+//   rain       rain running down a window, city lights blurred behind (the writing list)
+//   books      library shelves under a lamp, titles down the spines (the reading list)
 // Only the margins are computed. The garden is still and drawn once; the others move
 // slowly. Paused while the tab is hidden; still for reduced motion.
 
@@ -15,7 +22,7 @@ const P = 4; // css px per pixel of the scene
 const CW = 4; // ASCII cell
 const CH = 6;
 const FPS = 20;
-const stamp = typeof document === 'undefined' ? null : makeStamper(`600 ${CH}px "JetBrains Mono", monospace`, CW, CH);
+const stamp = typeof document === 'undefined' ? null : makeStamper(`700 ${CH}px "JetBrains Mono", monospace`, CW, CH);
 
 const shadeOf = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 
@@ -169,6 +176,355 @@ const SCENES = {
         }
     },
   },
+
+  network: {
+    moving: true,
+    setup(g, H) {
+      // nodes drift on slow orbits of their own; anything close enough is linked
+      return {
+        nodes: Array.from({ length: Math.round((g.w * H) / 5500) }, () => ({
+          x: g.x + rand(0.05, 0.95) * g.w,
+          y: rand(0.03, 0.97) * H,
+          ax: rand(6, 18),
+          ay: rand(6, 18),
+          w: rand(0.1, 0.3),
+          p: rand(0, 6.28),
+          hot: Math.random() < 0.3,
+        })),
+      };
+    },
+    at: (n, t) => [n.x + Math.sin(t * n.w + n.p) * n.ax, n.y + Math.cos(t * n.w * 0.8 + n.p) * n.ay],
+    colour(x, y, t, s) {
+      let c = [5, 9, 18];
+      for (const n of s.nodes) {
+        const [nx, ny] = this.at(n, t);
+        const q = ((x - nx) ** 2 + (y - ny) ** 2) / 140;
+        if (q > 9) continue;
+        const a = Math.exp(-q) * 0.6;
+        c = c.map((v, i) => v + (n.hot ? [240, 122, 74] : [79, 163, 160])[i] * a * 0.5);
+      }
+      return c;
+    },
+    ascii(ctx, t, s, H, fade) {
+      const pts = s.nodes.map((n) => this.at(n, t));
+      for (let i = 0; i < pts.length; i++)
+        for (let j = i + 1; j < pts.length; j++) {
+          const [x0, y0] = pts[i], [x1, y1] = pts[j];
+          const d = Math.hypot(x1 - x0, y1 - y0);
+          if (d > 115 || d < 8) continue;
+          const ang = Math.atan2(y1 - y0, x1 - x0);
+          const sl = Math.abs(Math.tan(ang));
+          const ch = sl < 0.4 ? '-' : sl > 2.5 ? '|' : (y1 - y0) * (x1 - x0) > 0 ? '\\' : '/';
+          const a = 0.8 * (1 - d / 115);
+          // a signal travelling along the link
+          const pulse = (t * 0.25 + (i * 7 + j * 3) * 0.13) % 1;
+          for (let k = 4; k < d - 4; k += 5) {
+            const u = k / d, x = x0 + (x1 - x0) * u, y = y0 + (y1 - y0) * u;
+            const f = fade(x);
+            if (f < 0.05) continue;
+            const hit = Math.abs(u - pulse) < 0.06;
+            stamp(ctx, hit ? 'o' : ch, hit ? [240, 150, 100] : [110, 170, 180], (hit ? 0.9 : a) * f, x - CW / 2, y - CH / 2);
+          }
+        }
+      s.nodes.forEach((n, i) => {
+        const [x, y] = pts[i], f = fade(x);
+        if (f > 0.05) stamp(ctx, '@', n.hot ? [250, 150, 100] : [140, 210, 205], 0.95 * f, x - CW / 2, y - CH / 2);
+      });
+    },
+  },
+
+  rain: {
+    moving: true,
+    setup(g, H) {
+      const tints = [[226, 150, 80], [80, 160, 172], [204, 84, 72], [190, 180, 120]];
+      // the lights of the city, out of focus through the glass
+      return {
+        lights: Array.from({ length: Math.round((g.w * H) / 7000) }, () => ({
+          x: g.x + rand(0, 1) * g.w,
+          y: rand(0.2, 1) * H,
+          r: rand(8, 24),
+          c: tints[Math.floor(Math.random() * tints.length)],
+          p: rand(0, 6.28),
+        })),
+      };
+    },
+    colour(x, y, t, s, H) {
+      let c = [7 + 6 * (y / H), 10 + 8 * (y / H), 20 + 12 * (y / H)];
+      for (const l of s.lights) {
+        const r = l.r * (1 + 0.06 * Math.sin(t * 0.7 + l.p));
+        const q = ((x - l.x) ** 2 + (y - l.y) ** 2) / (r * r);
+        if (q > 4) continue;
+        const a = (q < 1 ? 0.55 : 0.55 * Math.exp(-(q - 1) * 2)) * 0.8;
+        c = c.map((v, i) => mix(v, l.c[i], a));
+      }
+      return c;
+    },
+    ascii(ctx, t, s, H, fade, gutters) {
+      for (const g of gutters) {
+        // beads stuck to the glass
+        for (let y = 0; y < H; y += CH * 2)
+          for (let x = g.x; x < g.x + g.w; x += CW * 2) {
+            const h = ihash(x, y);
+            if (h > 0.05) continue;
+            const f = fade(x);
+            if (f > 0.05) stamp(ctx, h < 0.015 ? 'o' : '.', [170, 186, 214], 0.55 * f, x, y);
+          }
+        // drops running down, each leaving a short trail
+        const n = Math.round(g.w / 9);
+        for (let i = 0; i < n; i++) {
+          const h1 = ihash(i, Math.round(g.x)), h2 = ihash(Math.round(g.x), i);
+          const x = g.x + h1 * g.w + Math.sin(t * 0.6 + i) * 1.5;
+          const f = fade(x);
+          if (f < 0.05) continue;
+          const speed = 30 + h2 * 90;
+          const y = ((t * speed + h2 * 1000) % (H + 60)) - 30;
+          for (let k = 0; k < 5; k++) stamp(ctx, k === 0 ? 'o' : k < 3 ? '|' : ':', [176, 196, 228], (0.8 - k * 0.15) * f, x, y - k * CH);
+        }
+      }
+    },
+  },
+
+  books: {
+    moving: false,
+    setup(g, H) {
+      const palette = [[120, 46, 40], [44, 70, 54], [150, 112, 54], [40, 52, 88], [96, 64, 92], [138, 120, 96], [70, 36, 30]];
+      const rows = [];
+      for (let top = 14; top < H; top += 104) {
+        const books = [];
+        for (let x = g.x + rand(0, 6); x < g.x + g.w; ) {
+          const w = rand(6, 15);
+          books.push({ x, w, top: top + rand(4, 24), c: palette[Math.floor(Math.random() * palette.length)], word: Math.random().toString(36).slice(2, 9).toUpperCase() });
+          x += w + (Math.random() < 0.15 ? rand(4, 12) : 1);
+        }
+        rows.push({ shelf: top + 88, books });
+      }
+      return { rows, lamps: [{ x: g.x + g.w * 0.5, y: H * 0.15 }] };
+    },
+    colour(x, y, t, s) {
+      // each margin has its own lamp
+      const L = s.lamps.reduce((a, b) => (Math.abs(b.x - x) < Math.abs(a.x - x) ? b : a));
+      const light = 0.45 + 0.75 * Math.exp(-((x - L.x) ** 2 + (y - L.y) ** 2) / (2 * 260 * 260));
+      let c = [18, 12, 9];
+      for (const r of s.rows) {
+        if (y >= r.shelf && y < r.shelf + 9) {
+          c = y < r.shelf + 2 ? [92, 62, 38] : [52, 34, 20];
+          break;
+        }
+        if (y >= r.shelf - 90 && y < r.shelf) {
+          for (const b of r.books) {
+            if (x < b.x || x >= b.x + b.w) continue;
+            if (y < b.top) break;
+            const across = (x - b.x) / b.w;
+            const round = 0.6 + 0.5 * Math.sin(across * Math.PI);
+            const band = (y - b.top > 6 && y - b.top < 9) || (r.shelf - y > 8 && r.shelf - y < 11);
+            c = shadeOf(b.c, round * (band ? 1.5 : 1));
+            break;
+          }
+          break;
+        }
+      }
+      return shadeOf(c, light);
+    },
+    // a title stacked down each wider spine
+    ascii(ctx, t, s, H, fade) {
+      for (const r of s.rows)
+        for (const b of r.books) {
+          if (b.w < 9) continue;
+          const x = b.x + b.w / 2 - CW / 2, f = fade(x);
+          if (f < 0.05) continue;
+          [...b.word].forEach((ch, i) => {
+            const y = b.top + 14 + i * CH;
+            if (y < r.shelf - 14) stamp(ctx, ch, [226, 206, 160], 0.6 * f, x, y);
+          });
+        }
+    },
+  },
+
+  // Sprout: seedlings coming up out of the soil and growing, leaves opening on the way
+  sprout: {
+    moving: true,
+    setup(g, H) {
+      const n = Math.max(3, Math.round(g.w / 45));
+      return {
+        soil: H * 0.86,
+        stems: Array.from({ length: n }, (_, i) => ({
+          x: g.x + ((i + rand(0.2, 0.8)) / n) * g.w,
+          h: rand(0.35, 0.75) * H,
+          born: rand(0, 8),
+          bend: rand(-1, 1),
+          p: rand(0, 6.28),
+        })),
+      };
+    },
+    // a point up a stem, u from 0 (soil) to 1 (tip), and its sway
+    at(st, u, t, ground) {
+      const grown = Math.min(1, Math.max(0, (t - st.born) / 14));
+      const y = ground - u * st.h * grown;
+      const x = st.x + Math.sin(u * 2.2 + st.p) * 10 * st.bend * u + Math.sin(t * 0.5 + st.p) * 3 * u * u;
+      return [x, y, grown];
+    },
+    colour(x, y, t, s, H) {
+      const ground = s.soil;
+      if (y > ground) {
+        const grain = 0.8 + 0.3 * ihash(x >> 2, y >> 2);
+        return shadeOf([46, 32, 22], grain * (1 - (y - ground) / (H - ground) * 0.5));
+      }
+      // light falling from above, a little greener near the ground
+      const k = y / ground;
+      return [5 + 6 * k, 10 + 14 * k + 6 * noise(x / 90, y / 140 + t * 0.02), 8 + 6 * k];
+    },
+    ascii(ctx, t, s, H, fade) {
+      const ground = s.soil;
+      for (const st of s.stems) {
+        const f = fade(st.x);
+        if (f < 0.05) continue;
+        let prev = null;
+        for (let u = 0; u <= 1; u += 0.02) {
+          const [x, y, grown] = this.at(st, u, t, ground);
+          if (grown === 0) break;
+          const ch = prev ? (Math.abs(x - prev[0]) < 1.2 ? '|' : x > prev[0] ? '/' : '\\') : '|';
+          stamp(ctx, ch, [96, 160, 78], 0.85 * f, x - CW / 2, y - CH / 2);
+          prev = [x, y];
+          // a pair of leaves every so often, opening as the stem grows past them
+          const node = Math.round(u * 50);
+          if (node % 7 === 3 && u < 0.9) {
+            const open = Math.min(1, (st.h * grown * (1 - u)) / 40); // leaves near the tip are still unfurling
+            stamp(ctx, '<', [130, 196, 96], 0.9 * f, x - CW * (1.2 + open), y - CH / 2);
+            stamp(ctx, '>', [130, 196, 96], 0.9 * f, x + CW * (0.2 + open), y - CH / 2);
+            if (open > 0.6) {
+              stamp(ctx, '~', [110, 176, 84], 0.8 * f, x - CW * (2.2 + open), y - CH / 2);
+              stamp(ctx, '~', [110, 176, 84], 0.8 * f, x + CW * (1.2 + open), y - CH / 2);
+            }
+          }
+        }
+        if (prev) stamp(ctx, '*', [190, 226, 130], f, prev[0] - CW / 2, prev[1] - CH);
+        // roots in the soil
+        for (let k = 1; k < 5; k++) stamp(ctx, k % 2 ? '/' : '\\', [110, 84, 60], 0.6 * f, st.x - CW / 2 + (k % 2 ? -k : k) * 2, ground + k * CH * 0.8);
+      }
+    },
+  },
+
+  // Flow: a calm stream running down the margin, currents drawn over it
+  flow: {
+    moving: true,
+    setup() {
+      return { seed: rand(0, 100) };
+    },
+    current(x, y, t, seed) {
+      return Math.sin((y - t * 26) / 11 + noise(x / 50 + seed, y / 180) * 7);
+    },
+    colour(x, y, t, s) {
+      const c = this.current(x, y, t, s.seed);
+      const depth = noise(x / 120 + s.seed, y / 300 - t * 0.02);
+      const base = [8 + 10 * depth, 22 + 28 * depth, 40 + 34 * depth];
+      return c > 0.82 ? base.map((v) => v * 1.7 + 12) : base;
+    },
+    ascii(ctx, t, s, H, fade, gutters) {
+      for (const g of gutters)
+        for (let y = 0; y < H; y += CH)
+          for (let x = g.x; x < g.x + g.w; x += CW) {
+            const f = fade(x);
+            if (f < 0.05) continue;
+            const c = this.current(x, y, t, s.seed);
+            if (c > 0.9 && ihash(x, y) < 0.5) stamp(ctx, '~', [150, 206, 222], 0.55 * f, x, y);
+          }
+    },
+  },
+
+  // Atmos: a city's air: haze over a skyline, particles drifting, sensors on the roofs
+  air: {
+    moving: true,
+    setup(g, H) {
+      const roofs = [];
+      for (let x = g.x; x < g.x + g.w; ) {
+        const w = rand(14, 34);
+        roofs.push({ x, w, top: H - rand(60, 190), sensor: Math.random() < 0.35 });
+        x += w + rand(1, 5);
+      }
+      return { roofs, motes: Array.from({ length: Math.round((g.w * H) / 1800) }, () => ({ gx: g.x, gw: g.w, x: Math.random() * g.w, y: Math.random() * H, s: rand(0.4, 1), p: rand(0, 6.28) })) };
+    },
+    colour(x, y, t, s, H) {
+      for (const r of s.roofs)
+        if (x >= r.x && x < r.x + r.w && y >= r.top) {
+          const lit = ihash(Math.floor(x / 6), Math.floor(y / 8)) < 0.12 && (x - r.x) % 6 > 1 && (y - r.top) % 8 > 2;
+          return lit ? [150, 120, 60] : [10, 12, 18];
+        }
+      // haze thickening toward the ground, warmer where the air is worse
+      const k = y / H, smog = noise(x / 160 + t * 0.03, y / 120) * k;
+      return [14 + 60 * smog, 16 + 40 * smog, 28 + 18 * smog];
+    },
+    ascii(ctx, t, s, H, fade) {
+      for (const m of s.motes) {
+        // drifting with the wind, wrapping round within its margin
+        const x = m.gx + ((((m.x + t * 6 * m.s) % m.gw) + m.gw) % m.gw) + Math.sin(t * 0.3 + m.p) * 14;
+        const y = m.y + Math.cos(t * 0.25 + m.p) * 10;
+        const f = fade(x);
+        if (f < 0.05) continue;
+        stamp(ctx, m.s > 0.8 ? '*' : m.s > 0.55 ? '·' : '.', [214, 180, 130], (0.25 + 0.4 * m.s) * f, x, y);
+      }
+      for (const r of s.roofs) {
+        if (!r.sensor) continue;
+        const f = fade(r.x);
+        const on = Math.sin(t * 2 + r.x) > 0.4;
+        if (f > 0.05) stamp(ctx, '+', on ? [126, 220, 140] : [60, 100, 70], f, r.x + r.w / 2 - CW / 2, r.top - CH);
+      }
+    },
+  },
+
+  // Velora: stacked panels, each a run of candles and then Monte Carlo paths fanning out
+  market: {
+    moving: true,
+    setup(g, H) {
+      // keep clear of the faded strip next to the column
+      const a = g.x === 0 ? 8 : g.x + 70, b = g.x === 0 ? g.w - 70 : g.x + g.w - 8;
+      const split = a + (b - a) * 0.45;
+      const panels = [];
+      for (let top = 10; top + 120 < H; top += 150) {
+        const candles = [];
+        let p = 0.5;
+        for (let x = a; x < split; x += 7) {
+          const o = p;
+          p = Math.min(0.9, Math.max(0.1, p + rand(-0.08, 0.08)));
+          candles.push({ x, o, c: p, hi: Math.max(o, p) + rand(0, 0.05), lo: Math.min(o, p) - rand(0, 0.05) });
+        }
+        panels.push({ top, h: 120, x0: split + 4, x1: b, last: p, candles, seed: rand(0, 1000) });
+      }
+      return { panels };
+    },
+    colour(x, y, t, s) {
+      for (const P of s.panels) {
+        if (y < P.top || y > P.top + P.h) continue;
+        const v = 1 - (y - P.top) / P.h;
+        for (const c of P.candles) {
+          if (x < c.x || x >= c.x + 5) continue;
+          const up = c.c >= c.o;
+          const body = v >= Math.min(c.o, c.c) && v <= Math.max(c.o, c.c);
+          const wick = x >= c.x + 2 && x < c.x + 3 && v >= c.lo && v <= c.hi;
+          if (body || wick) return up ? [60, 170, 120] : [210, 80, 70];
+        }
+        // faint grid
+        if ((y - P.top) % 30 < 1 || (x - P.x0) % 30 < 1) return [18, 24, 38];
+        return [8, 11, 20];
+      }
+      return [6, 8, 14];
+    },
+    ascii(ctx, t, s, H, fade) {
+      for (const P of s.panels) {
+        // a new set of simulated paths every eight seconds, drawn left to right
+        const round = Math.floor(t / 8), reveal = Math.min(1, (t % 8) / 5);
+        for (let k = 0; k < 9; k++) {
+          let v = P.last;
+          const median = k === 4;
+          for (let x = P.x0; x < P.x0 + (P.x1 - P.x0) * reveal; x += CW) {
+            v += median ? 0.002 : (ihash(Math.round(x) + k * 131, round + P.seed) - 0.5) * 0.14;
+            v = Math.min(0.98, Math.max(0.02, v));
+            const f = fade(x);
+            if (f > 0.05) stamp(ctx, median ? '*' : '.', median ? [240, 140, 90] : [140, 186, 240], (median ? 0.95 : 0.85) * f, x, P.top + (1 - v) * P.h - CH / 2);
+          }
+        }
+      }
+    },
+  },
 };
 
 export default function MarginArt({ scene: name }) {
@@ -266,11 +622,16 @@ export default function MarginArt({ scene: name }) {
     };
     const onVisibility = () => (document.hidden ? cancelAnimationFrame(raf) : start());
 
-    document.fonts?.ready.then(start);
-    start();
+    let started = false;
+    const cancelIdle = whenIdle(() => {
+      started = true;
+      start();
+    });
+    document.fonts?.ready.then(() => started && start());
     window.addEventListener('resize', start);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      cancelIdle();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
       document.removeEventListener('visibilitychange', onVisibility);

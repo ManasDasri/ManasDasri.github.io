@@ -72,7 +72,7 @@ export default function PostPage({ params }) {
       <Dock />
       <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
-          <a href="/#writing" className="rise font-mono text-xs text-mute hover:text-signal">
+          <a href="/writing/" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all writing
           </a>
           <header className="mt-8 mb-10 max-w-[68ch]">

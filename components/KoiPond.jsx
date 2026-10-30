@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { getWeather } from '@/lib/weather';
 
 // The background: a koi pond in the margins either side of the content column. The water
 // is a pixel layer, ordered-dithered to a few levels (with blurred lily pads, a pale
 // reflection and the fishes' shadows). The koi, their wakes and the ripples are dense ASCII
-// on top. Toward the column it fades into the page's own background colour, so there's no
-// seam. Only the margins are computed, since the column covers the rest. Paused while the
-// tab is hidden; a still frame for reduced motion.
+// on top, with rain falling on it while it rains in Bengaluru. Toward the column it fades
+// into the page's own background colour, so there's no seam. Only the margins are computed,
+// since the column covers the rest. Paused while the tab is hidden; a still frame for
+// reduced motion.
 
 const P = 4; // css px per water pixel
 const CW = 4; // ASCII cell, css px
@@ -39,6 +41,17 @@ export function noise(x, y) {
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 export const mix = (a, b, t) => a + (b - a) * t;
+
+// Runs fn once the browser is idle after the page loads, so the canvases don't compete with
+// it. Returns a function that cancels it.
+export function whenIdle(fn) {
+  if (window.requestIdleCallback) {
+    const id = requestIdleCallback(fn, { timeout: 2000 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(fn, 300);
+  return () => clearTimeout(id);
+}
 
 // fillText is slow when called thousands of times a frame, so each character in each colour
 // is drawn once into an atlas canvas and copied from there with drawImage. Colours are
@@ -325,7 +338,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], rain = [], weather = null, nextDrop = 0, raf, last = 0, t = rand(0, 500);
 
     // the page's background, for the pond to fade into
     const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
@@ -487,19 +500,32 @@ export default function KoiPond() {
         }
       }
       bodies.forEach((pts, fi) => drawKoi(ctx, fish[fi], pts, fade));
+      // a ring of ASCII spreading out from (x, y)
+      const ring = (x, y, r, a) => {
+        for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
+          const ang = (k / n) * Math.PI * 2;
+          stampKoi(ctx, k % 2 ? '~' : '-', [150, 200, 225], a, x + Math.cos(ang) * r - 2, y + Math.sin(ang) * r * 0.8 - 4);
+        }
+      };
       // food: a pellet, and a ring spreading from where it landed
       food = food.filter((p) => !p.eaten && t - p.t < 10);
       fish.forEach((f) => f.food && !food.includes(f.food) && (f.food = null));
       for (const p of food) {
         const age = t - p.t;
         stampKoi(ctx, 'o', [232, 196, 120], 0.95, p.x - 2, p.y - 4);
-        const r = age * 40;
-        const a = Math.max(0, 0.6 - age * 0.35);
-        if (a <= 0) continue;
-        for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
-          const ang = (k / n) * Math.PI * 2;
-          stampKoi(ctx, k % 2 ? '~' : '-', [150, 200, 225], a, p.x + Math.cos(ang) * r - 2, p.y + Math.sin(ang) * r * 0.8 - 4);
-        }
+        if (age < 1.7) ring(p.x, p.y, age * 40, 0.6 - age * 0.35);
+      }
+      // when it's raining in Bengaluru it rains on the pond: small rings, more of them the
+      // harder it falls
+      if (weather?.rain && t > nextDrop) {
+        const g = gutters[Math.floor(Math.random() * gutters.length)];
+        rain.push({ x: g.x + Math.random() * g.w, y: Math.random() * H, t });
+        nextDrop = t + 0.05 + 0.5 / (1 + (weather.precip ?? 0) * 2);
+      }
+      rain = rain.filter((d) => t - d.t < 1.1);
+      for (const d of rain) {
+        const age = t - d.t, a = (0.5 - age * 0.45) * fade(d.x);
+        if (a > 0.03) ring(d.x, d.y, 3 + age * 26, a);
       }
     };
 
@@ -536,14 +562,22 @@ export default function KoiPond() {
     };
     const hover = (e) => (document.body.style.cursor = !still && inPond(e) ? 'pointer' : '');
 
-    // the column's position decides the margins; the font changes the ASCII metrics
-    document.fonts?.ready.then(start);
-    start();
+    getWeather().then((w) => (weather = w));
+
+    // the column's position decides the margins; the font changes the ASCII metrics, so
+    // start again if it arrives later
+    let started = false;
+    const cancelIdle = whenIdle(() => {
+      started = true;
+      start();
+    });
+    document.fonts?.ready.then(() => started && start());
     window.addEventListener('resize', start);
     window.addEventListener('pointerdown', feed);
     window.addEventListener('pointermove', hover);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      cancelIdle();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
       window.removeEventListener('pointerdown', feed);

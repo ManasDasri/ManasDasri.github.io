@@ -28,8 +28,8 @@ function Item({ r }) {
   );
 }
 
-export default function Reading() {
-  if (!reading.length) return null;
+// books being read, finished this year, and papers, in columns
+export function ReadingGroups() {
   const groups = [
     ['reading now', reading.filter((r) => r.kind === 'book')],
     // a fixed year: the site rebuilds hourly, so the build date would relabel this shelf on Jan 1
@@ -37,19 +37,29 @@ export default function Reading() {
     ['papers', reading.filter((r) => r.kind === 'paper')],
   ].filter(([, items]) => items.length);
   return (
+    <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+      {groups.map(([label, items]) => (
+        <div key={label}>
+          <h3 className="font-mono text-xs text-signal mb-3">{label}</h3>
+          <ul className="list-none p-0 m-0 flex flex-col gap-4">
+            {items.map((r) => (
+              <Item key={r.title} r={r} />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Reading() {
+  if (!reading.length) return null;
+  return (
     <Section id="reading" title="Reading" note="books I've finished this year, and papers worth your time">
-      <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-        {groups.map(([label, items]) => (
-          <div key={label}>
-            <h3 className="font-mono text-xs text-signal mb-3">{label}</h3>
-            <ul className="list-none p-0 m-0 flex flex-col gap-4">
-              {items.map((r) => (
-                <Item key={r.title} r={r} />
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <ReadingGroups />
+      <a href="/reading/" className="inline-block mt-8 font-mono text-xs text-mute hover:text-signal">
+        the reading page →
+      </a>
     </Section>
   );
 }
