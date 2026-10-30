@@ -12,7 +12,7 @@ import { BAYER, STEP, ihash, makeStamper, mix, noise, rand, whenIdle } from './K
 //   sprout     seedlings coming up out of the soil and growing (Sprout)
 //   flow       a calm stream running down, currents drawn over it (Flow)
 //   air        a city's air: haze, drifting particles, sensors on the roofs (Atmos)
-//   market     candles, then Monte Carlo paths fanning out (Velora)
+//   market     a chart's dark grid (Velora)
 //   rain       rain running down a window, city lights blurred behind (the writing list)
 //   books      library shelves under a lamp, titles down the spines (the reading list)
 // Only the margins are computed. The garden is still and drawn once; the others move
@@ -471,59 +471,16 @@ const SCENES = {
     },
   },
 
-  // Velora: stacked panels, each a run of candles and then Monte Carlo paths fanning out
+  // Velora: a chart's dark grid, nothing plotted on it
   market: {
-    moving: true,
-    setup(g, H) {
-      // keep clear of the faded strip next to the column
-      const a = g.x === 0 ? 8 : g.x + 70, b = g.x === 0 ? g.w - 70 : g.x + g.w - 8;
-      const split = a + (b - a) * 0.45;
-      const panels = [];
-      for (let top = 10; top + 120 < H; top += 150) {
-        const candles = [];
-        let p = 0.5;
-        for (let x = a; x < split; x += 7) {
-          const o = p;
-          p = Math.min(0.9, Math.max(0.1, p + rand(-0.08, 0.08)));
-          candles.push({ x, o, c: p, hi: Math.max(o, p) + rand(0, 0.05), lo: Math.min(o, p) - rand(0, 0.05) });
-        }
-        panels.push({ top, h: 120, x0: split + 4, x1: b, last: p, candles, seed: rand(0, 1000) });
-      }
-      return { panels };
+    moving: false,
+    setup() {
+      return {};
     },
-    colour(x, y, t, s) {
-      for (const P of s.panels) {
-        if (y < P.top || y > P.top + P.h) continue;
-        const v = 1 - (y - P.top) / P.h;
-        for (const c of P.candles) {
-          if (x < c.x || x >= c.x + 5) continue;
-          const up = c.c >= c.o;
-          const body = v >= Math.min(c.o, c.c) && v <= Math.max(c.o, c.c);
-          const wick = x >= c.x + 2 && x < c.x + 3 && v >= c.lo && v <= c.hi;
-          if (body || wick) return up ? [60, 170, 120] : [210, 80, 70];
-        }
-        // faint grid
-        if ((y - P.top) % 30 < 1 || (x - P.x0) % 30 < 1) return [18, 24, 38];
-        return [8, 11, 20];
-      }
-      return [6, 8, 14];
+    colour(x, y) {
+      return x % 30 < 1 || y % 30 < 1 ? [18, 24, 38] : [8, 11, 20];
     },
-    ascii(ctx, t, s, H, fade) {
-      for (const P of s.panels) {
-        // a new set of simulated paths every eight seconds, drawn left to right
-        const round = Math.floor(t / 8), reveal = Math.min(1, (t % 8) / 5);
-        for (let k = 0; k < 9; k++) {
-          let v = P.last;
-          const median = k === 4;
-          for (let x = P.x0; x < P.x0 + (P.x1 - P.x0) * reveal; x += CW) {
-            v += median ? 0.002 : (ihash(Math.round(x) + k * 131, round + P.seed) - 0.5) * 0.14;
-            v = Math.min(0.98, Math.max(0.02, v));
-            const f = fade(x);
-            if (f > 0.05) stamp(ctx, median ? '*' : '.', median ? [240, 140, 90] : [140, 186, 240], (median ? 0.95 : 0.85) * f, x, P.top + (1 - v) * P.h - CH / 2);
-          }
-        }
-      }
-    },
+    ascii() {},
   },
 };
 
