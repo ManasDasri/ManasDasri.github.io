@@ -27,8 +27,8 @@ body {
 #main { position: relative; z-index: 2; background: rgb(var(--c-ink)); }
 .pond { z-index: 0; }
 
-/* between sections: a hatched strip across the whole window, with dashed edges; the
-   column's dashed sides carry on through it */
+/* between sections: a hatched strip with dashed edges, solid over the column and fading
+   out toward the window's edges; the column's dashed sides carry on through it */
 .band { position: relative; height: 4.5rem; }
 .band::before {
   content: '';
@@ -41,6 +41,9 @@ body {
     repeating-linear-gradient(135deg, rgb(var(--c-line) / 0.32) 0 1px, transparent 1px 9px),
     rgb(var(--c-ink));
   border-block: 1px dashed rgb(var(--c-line) / 0.7);
+  /* solid across the column, fading out over the margins so the pond shows at the ends */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 calc(50% - 28rem), #000 calc(50% + 28rem), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 calc(50% - 28rem), #000 calc(50% + 28rem), transparent);
 }
 .band::after {
   content: '';

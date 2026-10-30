@@ -90,7 +90,7 @@ export default function PostPage({ params }) {
             </div>
           </header>
 
-          <div className={showToc ? 'lg:grid lg:grid-cols-[minmax(0,68ch)_1fr] lg:gap-12' : ''}>
+          <div className={showToc ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_10rem] lg:gap-10' : ''}>
             <div className="max-w-[68ch] min-w-0">
               {showToc && (
                 <details className="lg:hidden mb-8 rounded-md border border-line bg-paper px-4 py-3">

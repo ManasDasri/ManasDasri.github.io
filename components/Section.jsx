@@ -26,7 +26,7 @@ export default function Section({ id, title, note, index, children }) {
         <header className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-2">
           <div>
             {index && <BitIndex value={index} />}
-            <h2 className="shimmer font-head text-2xl sm:text-3xl font-bold text-text tracking-tight w-fit">
+            <h2 className="shimmer font-head text-2xl sm:text-3xl font-bold text-text tracking-tight w-fit whitespace-nowrap">
               <Scramble text={title} trigger="view" />
             </h2>
           </div>

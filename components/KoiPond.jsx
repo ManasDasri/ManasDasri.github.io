@@ -36,6 +36,26 @@ function noise(x, y) {
 }
 const mix = (a, b, t) => a + (b - a) * t;
 
+// The pond's light through the day in Bengaluru: [IST hour, brightness, reflection colour,
+// reflection strength]. A pale moon at night, pink at dawn, plain sky by day, orange at dusk.
+const LIGHT = [
+  [0, 0.62, [150, 166, 204], 0.8],
+  [5, 0.62, [150, 166, 204], 0.8],
+  [7, 0.88, [222, 152, 150], 0.6],
+  [12, 1, [120, 134, 160], 0.5],
+  [16.5, 1, [120, 134, 160], 0.5],
+  [18.2, 0.86, [238, 140, 88], 0.7],
+  [19.6, 0.7, [150, 166, 204], 0.75],
+  [24, 0.62, [150, 166, 204], 0.8],
+];
+function lightNow() {
+  const h = (Date.now() / 3600000 + 5.5) % 24; // IST has no daylight saving
+  const i = LIGHT.findIndex((s, j) => h >= s[0] && h < LIGHT[j + 1][0]);
+  const [h0, b0, c0, a0] = LIGHT[i], [h1, b1, c1, a1] = LIGHT[i + 1];
+  const f = (h - h0) / (h1 - h0);
+  return { bright: mix(b0, b1, f), glow: c0.map((c, k) => mix(c, c1[k], f)), glowA: mix(a0, a1, f) };
+}
+
 // CSS hue-rotate() as a colour matrix, applied to one [r, g, b]
 function hueRotate([r, g, b], rad) {
   const c = Math.cos(rad), s = Math.sin(rad);
@@ -94,13 +114,21 @@ export function swim(f, t, dt) {
   const [hx, hy] = f.spine[0];
   let turn = Math.sin(t * 0.3 + f.phase) * 0.35 + Math.sin(t * 0.11 + f.phase * 2) * 0.3;
   const m = Math.min(f.len * 0.5, g.w * 0.35);
-  if (hx < g.x + m || hx > g.x + g.w - m || hy < m || hy > g.h - m) {
+  if (f.food) {
+    // swim to the food, a little faster, and eat it on arrival
+    const want = Math.atan2(f.food.y - hy, f.food.x - hx);
+    turn = Math.atan2(Math.sin(want - f.heading), Math.cos(want - f.heading)) * 2.4;
+    if (Math.hypot(f.food.x - hx, f.food.y - hy) < 10) {
+      f.food.eaten = true;
+      f.food = null;
+    }
+  } else if (hx < g.x + m || hx > g.x + g.w - m || hy < m || hy > g.h - m) {
     const want = Math.atan2(g.h / 2 - hy, g.x + g.w / 2 - hx);
     const d = Math.atan2(Math.sin(want - f.heading), Math.cos(want - f.heading));
     turn += d * 1.6;
   }
   f.heading += turn * dt;
-  const v = f.speed * (0.75 + 0.35 * Math.sin(t * 0.5 + f.phase));
+  const v = f.speed * (f.food ? 2.2 : 0.75 + 0.35 * Math.sin(t * 0.5 + f.phase));
   f.spine[0] = [hx + Math.cos(f.heading) * v * dt, hy + Math.sin(f.heading) * v * dt];
   for (let i = 1; i < f.spine.length; i++) {
     const [px, py] = f.spine[i - 1];
@@ -186,7 +214,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W, H, gw, gh, img, gutters, fish, pads, glows, ink, raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, gutters, fish, pads, glows, ink, light, food = [], raf, last = 0, t = rand(0, 500);
 
     // The page's background as it appears on screen, for the pond to fade into. The pond
     // cancels the page's time-of-day hue shift (globals.css) so the koi keep their colours,
@@ -197,6 +225,7 @@ export default function KoiPond() {
       const v = css.getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
       const hue = parseFloat(css.getPropertyValue('--hue')) || 0;
       ink = hueRotate(v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0], (hue * Math.PI) / 180);
+      light = lightNow();
     };
     let inkAt = 0;
 
@@ -276,15 +305,15 @@ export default function KoiPond() {
             const tl = noise(x / 210 + 40, y / 190 + t * 0.008);
             // teal in places, checkered where it meets the blue
             const teal = tl > 0.55 || (tl > 0.45 && (px + py) & 1);
-            let [r, gr, b] = ramp(teal ? TEAL : NAVY, l * 0.95 - 0.08);
+            let [r, gr, b] = ramp(teal ? TEAL : NAVY, (l * 0.95 - 0.08) * light.bright);
             // the pale reflection
             for (const o of glows) {
               const q = ((x - o.x) ** 2 + (y - o.y - Math.sin(t * 0.2 + o.p) * 8) ** 2) / (o.r * o.r);
               if (q < 4) {
-                const a = Math.exp(-q * 1.6) * 0.6;
-                r = mix(r, 120, a);
-                gr = mix(gr, 134, a);
-                b = mix(b, 160, a);
+                const a = Math.exp(-q * 1.6) * light.glowA;
+                r = mix(r, light.glow[0], a);
+                gr = mix(gr, light.glow[1], a);
+                b = mix(b, light.glow[2], a);
               }
             }
             // lily pads: blurred discs with a notch, lighter where the light catches them
@@ -339,6 +368,22 @@ export default function KoiPond() {
         }
       }
       bodies.forEach((pts, fi) => drawKoi(ctx, fish[fi], pts, fade));
+      // food: a pellet, and a ring spreading from where it landed
+      food = food.filter((p) => !p.eaten && t - p.t < 10);
+      fish.forEach((f) => f.food && !food.includes(f.food) && (f.food = null));
+      for (const p of food) {
+        const age = t - p.t;
+        ctx.fillStyle = 'rgba(232, 196, 120, 0.95)';
+        ctx.fillText('o', p.x - 2, p.y - 4);
+        const r = age * 40;
+        const a = Math.max(0, 0.6 - age * 0.35);
+        if (a <= 0) continue;
+        ctx.fillStyle = `rgba(150, 200, 225, ${a})`;
+        for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
+          const ang = (k / n) * Math.PI * 2;
+          ctx.fillText(k % 2 ? '~' : '-', p.x + Math.cos(ang) * r - 2, p.y + Math.sin(ang) * r * 0.8 - 4);
+        }
+      }
     };
 
     const loop = (now) => {
@@ -361,6 +406,18 @@ export default function KoiPond() {
       raf = requestAnimationFrame(loop);
     };
     const onVisibility = () => (document.hidden ? cancelAnimationFrame(raf) : start());
+    // click the water in the margins to feed the koi: the nearest one in that margin comes over
+    const inPond = (e) => (e.target === document.body || e.target === document.documentElement) && gutters.some((g) => e.clientX >= g.x && e.clientX < g.x + g.w);
+    const feed = (e) => {
+      if (still || !inPond(e)) return;
+      const p = { x: e.clientX, y: e.clientY, t };
+      food.push(p);
+      const near = fish
+        .filter((f) => !f.food && e.clientX >= f.g.x && e.clientX < f.g.x + f.g.w)
+        .sort((a, b) => Math.hypot(a.spine[0][0] - p.x, a.spine[0][1] - p.y) - Math.hypot(b.spine[0][0] - p.x, b.spine[0][1] - p.y))[0];
+      if (near) near.food = p;
+    };
+    const hover = (e) => (document.body.style.cursor = !still && inPond(e) ? 'pointer' : '');
     // a theme switch only changes the colour the pond fades into: redraw with it straight
     // away (inside the switch's view transition, so the new snapshot has it), fish in place
     const onTheme = () => {
@@ -372,11 +429,15 @@ export default function KoiPond() {
     document.fonts?.ready.then(start);
     start();
     window.addEventListener('resize', start);
+    window.addEventListener('pointerdown', feed);
+    window.addEventListener('pointermove', hover);
     window.addEventListener('theme-change', onTheme);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
+      window.removeEventListener('pointerdown', feed);
+      window.removeEventListener('pointermove', hover);
       window.removeEventListener('theme-change', onTheme);
       document.removeEventListener('visibilitychange', onVisibility);
     };
