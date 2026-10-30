@@ -19,6 +19,34 @@ html {
 body {
   background: rgb(var(--c-ink));
   color: rgb(var(--c-text));
+  /* section bands are as wide as the window; don't let them add a sideways scroll */
+  overflow-x: clip;
+}
+
+/* the content column is opaque over the koi pond (components/KoiPond.jsx) */
+#main { position: relative; z-index: 2; background: rgb(var(--c-ink)); }
+.pond { z-index: 0; }
+
+/* between sections: a hatched strip across the whole window, with dashed edges; the
+   column's dashed sides carry on through it */
+.band { position: relative; height: 4.5rem; }
+.band::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background:
+    repeating-linear-gradient(135deg, rgb(var(--c-line) / 0.32) 0 1px, transparent 1px 9px),
+    rgb(var(--c-ink));
+  border-block: 1px dashed rgb(var(--c-line) / 0.7);
+}
+.band::after {
+  content: '';
+  position: absolute;
+  inset: 0 -1px;
+  border-inline: 1px dashed rgb(var(--c-line) / 0.7);
 }
 
 ::selection {
@@ -114,35 +142,6 @@ body {
   animation: blink 1s steps(1) infinite;
 }
 
-/* project cards: cursor spotlight + glowing border */
-.spotlight {
-  position: relative;
-  transition: transform 0.25s ease-out;
-  will-change: transform;
-}
-.spotlight::before,
-.spotlight::after {
-  content: '';
-  position: absolute;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.spotlight::before {
-  inset: 0;
-  background: radial-gradient(420px circle at var(--mx) var(--my), rgb(var(--c-signal) / 0.09), transparent 45%);
-}
-.spotlight::after {
-  inset: -1px;
-  padding: 1px;
-  background: radial-gradient(260px circle at var(--mx) var(--my), rgb(var(--c-signal) / 0.9), rgb(var(--c-mature) / 0.5) 45%, transparent 75%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-.spotlight:hover::before,
-.spotlight:hover::after { opacity: 1; }
 
 /* one motion for the whole site: page entrances, scroll reveals and cross-page morphs
    share this curve and duration. --i staggers a page's entrance, one step per item. */
@@ -159,7 +158,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .caret, .rise, .reveal.in { animation: none; }
   .reveal:not(.in) { opacity: 1; }
-  .spotlight { transition: none; }
 }
 
 /* blog post body (Markdown rendered at build time) */
@@ -239,7 +237,7 @@ html { filter: hue-rotate(var(--hue, 0deg)); }
 /* animate palette changes, but not the first paint (the head script set it already) */
 html.palette-ready { transition: filter 1.2s ease; }
 /* photos keep their real colours */
-img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
+img, .pond { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
 /* activity calendars scroll sideways on narrow screens: start at the newest weeks (right end) */
 .react-activity-calendar__scroll-container { direction: rtl; }

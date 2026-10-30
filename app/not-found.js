@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <>
       <Dock />
-      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 min-h-screen px-6 sm:px-9 py-20 grid gap-12 md:grid-cols-[1fr_auto] md:items-center">
+      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 min-h-screen px-6 sm:px-9 py-20 grid gap-12 md:grid-cols-[1fr_auto] md:items-center">
         <div className="max-w-[46ch]">
           <p className="font-mono text-xs text-signal">404</p>
           <h1 className="font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">

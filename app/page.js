@@ -41,7 +41,7 @@ export default async function Home() {
     <>
       <Dock />
       <HeroBanner />
-      <main id="main" className="max-w-5xl mx-auto border-x border-line/60 relative">
+      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
         <Hero highlights={highlights} />
 
         <Building stats={sproutStats} />

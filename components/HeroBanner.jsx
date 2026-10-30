@@ -5,7 +5,7 @@ import NowPlaying from './NowPlaying';
 // The Game of Life banner, inside the content column so its edges line up with the page.
 export default function HeroBanner() {
   return (
-    <header id="top" className="relative max-w-5xl mx-auto border-x border-line/60 h-[clamp(260px,40svh,380px)] overflow-hidden cursor-crosshair bg-ink">
+    <header id="top" className="relative z-[2] max-w-4xl mx-auto border-x border-dashed border-line/70 h-[clamp(260px,40svh,380px)] overflow-hidden cursor-crosshair bg-ink">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgb(var(--c-mature)_/_0.16),transparent_65%)]" />
       <LifeCanvas />
       <LifeTouchBar />
