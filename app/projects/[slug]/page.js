@@ -114,7 +114,7 @@ export default async function ProjectPage({ params }) {
         )}
 
         {p.slug === 'sprout' && (
-          <Section id="try" title="Try it" note="a simulated sprout session; type help">
+          <Section id="try" title="Try it" note="real sprout output on this site’s own repo; type help, or tap a command">
             <SproutTerminal />
           </Section>
         )}
