@@ -24,7 +24,6 @@ export function GET(_req, { params }) {
       subtitle: p.tagline,
       meta: p.tags.map((t) => t.label).join(' · '),
       path: `/projects/${p.slug}/`,
-      pattern: p.pattern,
       badge: p.badge,
     });
   }

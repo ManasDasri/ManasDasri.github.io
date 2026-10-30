@@ -118,10 +118,9 @@ const KOI = [
   { base: [70, 66, 78], patch: [226, 84, 50], amount: 0.42, ink: 0, white: 0.25 }, // showa: black, red, white
 ];
 
-export function makeFish(g, i) {
-  const len = Math.max(110, Math.min(240, g.w * 0.9));
+export function makeFish(g, i, len = Math.max(110, Math.min(240, g.w * 0.9))) {
   const x = g.x + rand(0.3, 0.7) * g.w;
-  const y = rand(0.15, 0.85) * g.h;
+  const y = (g.y ?? 0) + rand(0.15, 0.85) * g.h;
   const heading = rand(0, Math.PI * 2);
   const K = 18;
   const seg = len / K;
@@ -166,7 +165,7 @@ export function swim(f, t, dt, others = []) {
     let gx, gy, tries = 0;
     do {
       gx = g.x + rand(0.15, 0.85) * g.w;
-      gy = rand(0.1, 0.9) * g.h;
+      gy = (g.y ?? 0) + rand(0.1, 0.9) * g.h;
     } while (Math.hypot(gx - hx, gy - hy) < f.len && ++tries < 8);
     f.goal = { x: gx, y: gy };
     f.goalUntil = t + rand(10, 22);
