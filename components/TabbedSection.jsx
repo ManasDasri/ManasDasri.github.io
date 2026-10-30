@@ -6,7 +6,7 @@ import Section, { InTab } from './Section';
 // One section holding several smaller ones behind tabs. Each tab's id still works as
 // a link (/#log opens the Log tab and scrolls to it). Panels stay mounted, so a tab's
 // live data loads once and switching is instant.
-export default function TabbedSection({ id, index, title, tabs }) {
+export default function TabbedSection({ id, title, tabs }) {
   const [active, setActive] = useState(tabs[0].id);
   const buttons = useRef({});
 
@@ -33,7 +33,7 @@ export default function TabbedSection({ id, index, title, tabs }) {
   };
 
   return (
-    <Section id={id} index={index} title={title} note={tabs.find((t) => t.id === active).note}>
+    <Section id={id} title={title} note={tabs.find((t) => t.id === active).note}>
       <div role="tablist" aria-label={title} onKeyDown={onKey} className="flex flex-wrap gap-1 p-1 mb-8 w-fit rounded-lg border border-line bg-paper">
         {tabs.map((t) => (
           <button

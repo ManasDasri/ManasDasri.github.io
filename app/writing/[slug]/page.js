@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getPost, getPosts } from '@/lib/posts';
 import Dock from '@/components/Dock';
+import MarginArt from '@/components/MarginArt';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import GradientDescent from '@/components/demos/GradientDescent';
@@ -67,8 +68,9 @@ export default function PostPage({ params }) {
 
   return (
     <>
+      <MarginArt scene="mountains" />
       <Dock />
-      <main id="main" className="max-w-4xl mx-auto border-x border-dashed border-line/70 relative">
+      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
           <a href="/#writing" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all writing
@@ -77,7 +79,7 @@ export default function PostPage({ params }) {
             <p className="rise font-mono text-xs text-mute" style={{ '--i': 1 }}>
               {fmt(post.date)} · {post.readMins} min read
             </p>
-            <h1 style={{ viewTransitionName: `post-${post.slug}`, '--i': 2 }} className="rise morph font-head font-extrabold tracking-[-0.03em] leading-[0.95] text-[clamp(2.4rem,6vw,4rem)] mt-3">
+            <h1 style={{ viewTransitionName: `post-${post.slug}`, '--i': 2 }} className="rise morph font-serif leading-[1.02] text-[clamp(2.6rem,7vw,4rem)] mt-3">
               {post.title}
             </h1>
             <p className="rise text-mute leading-relaxed mt-5" style={{ '--i': 3 }}>{post.summary}</p>
@@ -90,28 +92,18 @@ export default function PostPage({ params }) {
             </div>
           </header>
 
-          <div className={showToc ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_10rem] lg:gap-10' : ''}>
-            <div className="max-w-[68ch] min-w-0">
-              {showToc && (
-                <details className="lg:hidden mb-8 rounded-md border border-line bg-paper px-4 py-3">
-                  <summary className="font-mono text-xs text-mute cursor-pointer">on this page</summary>
-                  <Toc toc={post.toc} />
-                </details>
-              )}
-              {post.segments.map((s, i) => {
-                if (s.html) return <div key={i} className="post-body" dangerouslySetInnerHTML={{ __html: s.html }} />;
-                const Demo = DEMOS[s.demo];
-                return Demo ? <Demo key={i} /> : null;
-              })}
-            </div>
+          <div className="max-w-[68ch] min-w-0">
             {showToc && (
-              <aside className="hidden lg:block">
-                <div className="sticky top-12">
-                  <p className="font-mono text-xs text-mute mb-3">on this page</p>
-                  <Toc toc={post.toc} />
-                </div>
-              </aside>
+              <details className="mb-8 rounded-md border border-line bg-paper px-4 py-3">
+                <summary className="font-mono text-xs text-mute cursor-pointer">on this page</summary>
+                <Toc toc={post.toc} />
+              </details>
             )}
+            {post.segments.map((s, i) => {
+              if (s.html) return <div key={i} className="post-body" dangerouslySetInnerHTML={{ __html: s.html }} />;
+              const Demo = DEMOS[s.demo];
+              return Demo ? <Demo key={i} /> : null;
+            })}
           </div>
           <CodeCopy />
 

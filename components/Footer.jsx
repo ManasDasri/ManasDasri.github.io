@@ -1,8 +1,6 @@
 import { execSync } from 'node:child_process';
-import Scramble from './Scramble';
 import { Band } from './Section';
 import LedTicker from './LedTicker';
-import { DaylightLabel } from './Daylight';
 import ViewCount from './ViewCount';
 import { getTickerData } from '@/lib/ticker';
 import { socials } from '@/lib/data';
@@ -30,8 +28,8 @@ export default async function Footer() {
     <Band />
     <footer className="px-6 sm:px-9 pt-24 pb-28 dock:pb-12">
       <div className="text-center">
-        <p className="font-head text-2xl sm:text-3xl font-semibold tracking-tight max-w-xl mx-auto mb-4 text-balance">
-          <Scramble text="“You have power over your mind — not outside events.”" trigger="view" duration={1400} hover={false} />
+        <p className="font-serif text-3xl sm:text-4xl max-w-xl mx-auto mb-4 text-balance leading-tight">
+          “You have power over your mind — not outside events.”
         </p>
         <p className="font-mono text-xs text-mute">Marcus Aurelius</p>
       </div>
@@ -71,7 +69,6 @@ export default async function Footer() {
               </>
             )}
           </span>
-          <DaylightLabel />
           <ViewCount />
           <a href="/feed.xml" className="text-text/80 hover:text-signal">rss feed</a>
           <a href="#top" className="text-text/80 hover:text-signal">back to top ↑</a>

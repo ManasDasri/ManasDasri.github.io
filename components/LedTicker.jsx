@@ -47,12 +47,6 @@ export default function LedTicker({ data }) {
   // null until mounted: the page is built ahead of time, so a clock read during the build
   // would never match the visitor's and React would throw the server HTML away
   const [now, setNow] = useState(null);
-  const [themeTick, setThemeTick] = useState(0); // rebuild the strip in the new colours
-  useEffect(() => {
-    const onTheme = () => setThemeTick((n) => n + 1);
-    window.addEventListener('theme-change', onTheme);
-    return () => window.removeEventListener('theme-change', onTheme);
-  }, []);
 
   useEffect(() => void getWeather().then(setWeather), []);
   useEffect(() => {
@@ -139,7 +133,7 @@ export default function LedTicker({ data }) {
       canvas.removeEventListener('pointerenter', pause);
       canvas.removeEventListener('pointerleave', play);
     };
-  }, [items, themeTick]);
+  }, [items]);
 
   return (
     <div className="rounded-md border border-line bg-ink p-2 overflow-hidden">

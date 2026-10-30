@@ -19,7 +19,7 @@ export default function Contact() {
   };
 
   return (
-    <Section id="contact" index={7} title="Contact" note="email is the fastest way to reach me">
+    <Section id="contact" title="Contact" note="email is the fastest way to reach me">
       {status && <p className="font-head text-2xl sm:text-3xl font-semibold tracking-tight text-text m-0">{status[0].toUpperCase() + status.slice(1)}.</p>}
       <div className="flex flex-wrap items-center gap-3 mt-6">
         <a href={`mailto:${EMAIL}`} className="font-mono text-sm sm:text-base text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal">
