@@ -13,6 +13,7 @@ const P = 4; // css px per water pixel
 const CW = 5; // ASCII cell, css px
 const CH = 8;
 const FPS = 30;
+export const KOI_FONT = `700 ${CH}px "JetBrains Mono", monospace`;
 const STEP = 20; // colour quantisation step for the dither
 const BODY = ':;~=+*ixzoIX%#&0@'; // edge to core
 const WAKE = "~-=+:!'`";
@@ -60,7 +61,7 @@ const KOI = [
   { base: [232, 104, 56], patch: [244, 214, 186], amount: 0.3 }, // orange with pale patches
 ];
 
-function makeFish(g, i) {
+export function makeFish(g, i) {
   const len = Math.max(130, Math.min(300, g.w * 1.25));
   const x = g.x + rand(0.3, 0.7) * g.w;
   const y = rand(0.15, 0.85) * g.h;
@@ -88,7 +89,7 @@ function width(f, u) {
   return w * (0.99 - 0.82 * ((u - 0.18) / 0.66) ** 1.3);
 }
 
-function swim(f, t, dt) {
+export function swim(f, t, dt) {
   const { g } = f;
   const [hx, hy] = f.spine[0];
   let turn = Math.sin(t * 0.3 + f.phase) * 0.35 + Math.sin(t * 0.11 + f.phase * 2) * 0.3;
@@ -110,7 +111,7 @@ function swim(f, t, dt) {
 }
 
 // the spine with the swimming wave applied
-function body(f, t) {
+export function body(f, t) {
   const n = f.spine.length;
   return f.spine.map(([x, y], i) => {
     const [ax, ay] = f.spine[Math.max(0, i - 1)];
@@ -120,6 +121,60 @@ function body(f, t) {
     const s = Math.sin(t * 3.2 + f.phase - u * 3.5) * f.len * 0.045 * u * u;
     return [x - Math.sin(a) * s, y + Math.cos(a) * s];
   });
+}
+
+// One koi in ASCII: the body shaded edge to core with its patches, translucent fins, and a
+// faint wake. fade(x) scales its opacity (0 hides it). Set ctx.font to KOI_FONT first.
+export function drawKoi(ctx, f, pts, fade) {
+  const n = pts.length;
+  const pad = f.len * 0.3;
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const bx0 = Math.floor((Math.min(...xs) - pad) / CW), bx1 = Math.ceil((Math.max(...xs) + pad) / CW);
+  const by0 = Math.floor((Math.min(...ys) - pad) / CH), by1 = Math.ceil((Math.max(...ys) + pad) / CH);
+  for (let cy = by0; cy <= by1; cy++) {
+    for (let cx = bx0; cx <= bx1; cx++) {
+      const x = cx * CW + CW / 2, y = cy * CH + CH / 2;
+      const k = fade(x);
+      if (k < 0.05) continue;
+      // nearest point on the spine: distance, position along the body, and which side
+      let best = Infinity, bu = 0, side = 0;
+      for (let i = 0; i < n - 1; i++) {
+        const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+        const vx = bx - ax, vy = by - ay;
+        const s = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy)));
+        const ex = x - ax - vx * s, ey = y - ay - vy * s;
+        const dd = Math.hypot(ex, ey);
+        if (dd < best) {
+          best = dd;
+          bu = (i + s) / (n - 1);
+          side = Math.sign(vx * ey - vy * ex);
+        }
+      }
+      const w = width(f, bu);
+      const finW = bu > 0.16 && bu < 0.32 ? w * 1.75 : bu > 0.84 ? w * 1.5 : w;
+      const h = ihash(cx, cy);
+      let ch, rgb, a;
+      if (best <= w) {
+        const depth = 1 - best / w;
+        const patch = noise(bu * 3.2 + f.spots, side * 0.8 + best * 0.03 + f.spots * 0.3) > 1 - f.kind.amount;
+        const c = patch ? f.kind.patch : f.kind.base;
+        const shade = 0.5 + 0.5 * depth ** 0.7;
+        rgb = [c[0] * shade, c[1] * shade, c[2] * shade];
+        ch = BODY[Math.min(BODY.length - 1, Math.floor((depth * 0.85 + h * 0.15) * BODY.length))];
+        a = 0.95;
+      } else if (best <= finW) {
+        rgb = bu > 0.84 ? f.kind.patch : f.kind.base;
+        ch = FIN[Math.floor(h * FIN.length)];
+        a = 0.5 * (1 - (best - w) / (finW - w));
+      } else if (best <= finW + 9 && h < 0.7) {
+        rgb = [120, 186, 214];
+        ch = WAKE[Math.floor(h * 11) % WAKE.length];
+        a = 0.4 * (1 - (best - finW) / 9);
+      } else continue;
+      ctx.fillStyle = `rgba(${rgb[0] | 0}, ${rgb[1] | 0}, ${rgb[2] | 0}, ${a * k})`;
+      ctx.fillText(ch, cx * CW, cy * CH);
+    }
+  }
 }
 
 export default function KoiPond() {
@@ -268,7 +323,7 @@ export default function KoiPond() {
       ctx.drawImage(off, 0, 0, gw * P, gh * P);
 
       // --- ASCII: sparse ripples, then the koi and their wakes
-      ctx.font = `700 ${CH}px "JetBrains Mono", monospace`;
+      ctx.font = KOI_FONT;
       ctx.textBaseline = 'top';
       for (const g of gutters) {
         for (let cy = 0; cy < H / CH; cy++) {
@@ -283,58 +338,7 @@ export default function KoiPond() {
           }
         }
       }
-      bodies.forEach((pts, fi) => {
-        const f = fish[fi];
-        const n = pts.length;
-        const pad = f.len * 0.3;
-        const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-        const bx0 = Math.floor((Math.min(...xs) - pad) / CW), bx1 = Math.ceil((Math.max(...xs) + pad) / CW);
-        const by0 = Math.floor((Math.min(...ys) - pad) / CH), by1 = Math.ceil((Math.max(...ys) + pad) / CH);
-        for (let cy = by0; cy <= by1; cy++) {
-          for (let cx = bx0; cx <= bx1; cx++) {
-            const x = cx * CW + CW / 2, y = cy * CH + CH / 2;
-            const k = fade(x);
-            if (k < 0.05) continue;
-            // nearest point on the spine: distance, position along the body, and which side
-            let best = Infinity, bu = 0, side = 0;
-            for (let i = 0; i < n - 1; i++) {
-              const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-              const vx = bx - ax, vy = by - ay;
-              const s = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy)));
-              const ex = x - ax - vx * s, ey = y - ay - vy * s;
-              const dd = Math.hypot(ex, ey);
-              if (dd < best) {
-                best = dd;
-                bu = (i + s) / (n - 1);
-                side = Math.sign(vx * ey - vy * ex);
-              }
-            }
-            const w = width(f, bu);
-            const finW = bu > 0.16 && bu < 0.32 ? w * 1.75 : bu > 0.84 ? w * 1.5 : w;
-            const h = ihash(cx, cy);
-            let ch, rgb, a;
-            if (best <= w) {
-              const depth = 1 - best / w;
-              const patch = noise(bu * 3.2 + f.spots, side * 0.8 + best * 0.03 + f.spots * 0.3) > 1 - f.kind.amount;
-              const c = patch ? f.kind.patch : f.kind.base;
-              const shade = 0.5 + 0.5 * depth ** 0.7;
-              rgb = [c[0] * shade, c[1] * shade, c[2] * shade];
-              ch = BODY[Math.min(BODY.length - 1, Math.floor((depth * 0.85 + h * 0.15) * BODY.length))];
-              a = 0.95;
-            } else if (best <= finW) {
-              rgb = bu > 0.84 ? f.kind.patch : f.kind.base;
-              ch = FIN[Math.floor(h * FIN.length)];
-              a = 0.5 * (1 - (best - w) / (finW - w));
-            } else if (best <= finW + 9 && h < 0.7) {
-              rgb = [120, 186, 214];
-              ch = WAKE[Math.floor(h * 11) % WAKE.length];
-              a = 0.4 * (1 - (best - finW) / 9);
-            } else continue;
-            ctx.fillStyle = `rgba(${rgb[0] | 0}, ${rgb[1] | 0}, ${rgb[2] | 0}, ${a * k})`;
-            ctx.fillText(ch, cx * CW, cy * CH);
-          }
-        }
-      });
+      bodies.forEach((pts, fi) => drawKoi(ctx, fish[fi], pts, fade));
     };
 
     const loop = (now) => {

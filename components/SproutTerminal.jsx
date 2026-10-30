@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { projects } from '@/lib/data';
-import { RULES, SHAPES, ruleCode } from './LifeCanvas';
-import { shareColony } from '@/lib/lifeShare';
 import { THEME_ORDER, readTheme } from '@/lib/themes';
-import { setTheme } from './Daylight';
+import { setTheme, themeName } from './Daylight';
 
 // Real output: sprout 0.2.0 run on this portfolio's own repo.
 const TREE = [
@@ -28,7 +26,7 @@ const ENTRY = [
   '  2. components/Section.jsx     used by 5 files',
   '  3. components/Scramble.jsx    used by 2 files',
   '  4. components/Effects.jsx     used by 1 file',
-  '  5. components/LifeCanvas.jsx  used by 1 file',
+  '  5. components/KoiPond.jsx     used by 2 files',
 ];
 const INSTALL = [
   '# this terminal is a demo; run these in yours',
@@ -45,49 +43,12 @@ const HELP = [
   'install            how to get sprout',
   'ls                 my projects',
   'open <project>     project details, e.g. open flow',
-  'life               control the Game of Life up top',
   'neofetch           what this site runs on',
   'startx             boot the desktop',
   'theme [name]       colour theme: auto, dracula, nord, gruvbox…',
   'whoami, contact, clear',
 ];
-const SUGGESTIONS = ['sprout --entry', 'life', 'life rule highlife', 'ls', 'help'];
-
-const LIFE_HELP = [
-  'life                  status + a live snapshot of the grid',
-  'life pause | resume | reseed',
-  'life share            copy a link to this exact colony',
-  'life sound [on | off] let the colony play music',
-  'life ascii [on | off] draw the colony in characters',
-  `life rule [${Object.keys(RULES).join(' | ')}]`,
-  `life drop [${Object.keys(SHAPES).join(' | ')}]`,
-];
-
-// Talks to the banner through its 'life' event; the reply comes back synchronously.
-function life(args) {
-  const [sub, value] = args;
-  const actions = { ascii: ['view', value === 'on' ? 'ascii' : value === 'off' ? 'cells' : undefined], sound: ['sound', value === 'on' ? true : value === 'off' ? false : undefined], pause: ['pause', true], resume: ['pause', false], reseed: ['reseed'], rule: ['rule', value], drop: ['drop', value] };
-  if (sub === 'help') return LIFE_HELP;
-  if (sub === 'share')
-    return shareColony().then((r) =>
-      r ? [`link ${r.how === 'copied' ? 'copied' : r.how === 'shared' ? 'shared' : 'is in the address bar'}:`, r.url] : ['the grid isn’t running on this page.']
-    );
-  if (sub && !actions[sub]) return [`unknown: life ${sub}`, ...LIFE_HELP];
-  if (sub === 'rule' && value && !Object.hasOwn(RULES, value)) return [`no rule "${value}". Try: ${Object.keys(RULES).join(', ')}`];
-  if (sub === 'drop' && !Object.hasOwn(SHAPES, value ?? '')) return [`drop what? ${Object.keys(SHAPES).join(', ')}`];
-  const [action, v] = actions[sub] ?? ['status'];
-  let status;
-  window.dispatchEvent(new CustomEvent('life', { detail: { action, value: v, reply: (s) => (status = s) } }));
-  if (!status) return ['the grid isn’t running on this page. Try it on the homepage.'];
-  const r = RULES[status.rule];
-  return [
-    `${r.name} ${ruleCode(r)} · generation ${status.gen} · ${status.pop} alive${status.paused ? ' · paused' : ''}${status.sound ? ' · sound on' : ''}`,
-    '',
-    ...status.grid,
-    '',
-    sub ? '# scroll up to watch it' : '# life help for commands',
-  ];
-}
+const SUGGESTIONS = ['sprout --entry', 'ls', 'neofetch', 'theme koi', 'help'];
 
 const inDesktop = () => typeof document !== 'undefined' && document.documentElement.dataset.desktop === 'on';
 
@@ -103,8 +64,8 @@ function neofetch() {
     'Kernel: Next.js 14 (static export)',
     'Shell: sprout-term',
     `DE: Plasma (simulated)${inDesktop() ? '' : ', try startx'}`,
-    'WM: Life B3/S23',
-    'Theme: Bioluminescent',
+    'WM: koi pond',
+    `Theme: ${themeName(readTheme())}`,
     `Uptime: coding for ${days} days`,
     `Projects: ${projects.length}`,
   ];
@@ -135,8 +96,6 @@ function run(input) {
       setTimeout(() => (window.location.href = `/projects/${p.slug}/`), 500);
       return [`opening ${p.name}…`];
     }
-    case 'life':
-      return life(args);
     case 'theme': {
       if (!rest) return [`theme: ${readTheme()}`, `options: ${THEME_ORDER.join(', ')}`];
       if (!THEME_ORDER.includes(rest)) return [`no theme "${rest}". Try: ${THEME_ORDER.join(', ')}`];
@@ -193,12 +152,7 @@ export default function SproutTerminal({ embedded = false, greet = 'neofetch' })
 
   function submit(cmd) {
     if (cmd.trim() === 'clear') return setHistory([]);
-    const out = run(cmd);
-    if (!(out instanceof Promise)) return setHistory((h) => [...h, { cmd, out }]);
-    // async commands (life share) show a placeholder, then their real output
-    const id = Symbol();
-    setHistory((h) => [...h, { id, cmd, out: ['…'] }]);
-    out.then((lines) => setHistory((h) => h.map((e) => (e.id === id ? { ...e, out: lines } : e))));
+    setHistory((h) => [...h, { cmd, out: run(cmd) }]);
   }
 
   useEffect(() => {
