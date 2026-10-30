@@ -22,7 +22,7 @@ export default function NotFound() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 mt-8 font-mono text-sm">
             <a href="/" className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal">home</a>
             <a href="/projects/" className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal">projects</a>
-            <a href="/#writing" className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal">writing</a>
+            <a href="/writing/" className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal">writing</a>
           </div>
         </div>
         <LostKoi />

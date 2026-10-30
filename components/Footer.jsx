@@ -1,8 +1,6 @@
 import { execSync } from 'node:child_process';
 import { Band } from './Section';
-import LedTicker from './LedTicker';
 import ViewCount from './ViewCount';
-import { getTickerData } from '@/lib/ticker';
 import { socials } from '@/lib/data';
 import { SOCIAL_ICONS } from '@/lib/socialIcons';
 
@@ -18,27 +16,26 @@ function buildCommit() {
   }
 }
 
-export default async function Footer() {
-  const ticker = await getTickerData();
+export default function Footer() {
   const sha = buildCommit();
   const built = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
   return (
     <>
     <Band />
-    <footer className="px-6 sm:px-9 pt-24 pb-28 dock:pb-12">
-      <div className="text-center">
-        <p className="font-serif text-3xl sm:text-4xl max-w-xl mx-auto mb-4 text-balance leading-tight">
-          “You have power over your mind — not outside events.”
-        </p>
-        <p className="font-mono text-xs text-mute">Marcus Aurelius</p>
-      </div>
+    <footer className="px-6 sm:px-9 pt-14 pb-28 dock:pb-12">
+      <p className="font-serif text-2xl sm:text-3xl text-text/90 leading-snug max-w-md text-balance m-0">
+        “You have power over your mind — not outside events.”
+      </p>
+      <p className="font-mono text-xs text-mute mt-2">Marcus Aurelius</p>
 
-      <div className="mt-16">
-        <LedTicker data={ticker} />
-      </div>
+      <nav aria-label="Pages" className="flex flex-wrap gap-x-5 gap-y-2 mt-10 font-mono text-xs">
+        {['projects', 'writing', 'reading'].map((p) => (
+          <a key={p} href={`/${p}/`} className="text-text/80 hover:text-signal">{p}</a>
+        ))}
+      </nav>
 
-      <div className="mt-10 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+      <div className="mt-6 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <ul className="list-none p-0 m-0 flex gap-1" aria-label="Elsewhere">
           {socials.map((s) => {
             const Icon = SOCIAL_ICONS[s.label];

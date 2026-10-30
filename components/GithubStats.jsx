@@ -33,7 +33,7 @@ export default function GithubStats() {
         <div key={label}>
           <dt className="sr-only">{label}</dt>
           <dd className="m-0">
-            <span className="font-head text-3xl font-extrabold tracking-tight text-text">{n}</span>
+            <span className="font-serif text-4xl leading-none text-text">{n}</span>
             <span className="block font-mono text-xs text-mute mt-0.5">{label}</span>
           </dd>
         </div>

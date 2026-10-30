@@ -13,6 +13,8 @@ import MarginArt from '@/components/MarginArt';
 import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
+// each project's margin art (components/MarginArt.jsx)
+const SCENE = { sprout: 'sprout', flow: 'flow', atmos: 'air', velora: 'market', 'gradient-works': 'network' };
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 const linkClass = 'font-mono text-sm text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal';
 
@@ -44,7 +46,7 @@ export default async function ProjectPage({ params }) {
 
   return (
     <>
-      <MarginArt scene="garden" />
+      <MarginArt scene={SCENE[p.slug] ?? 'garden'} />
       <Dock />
       <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
