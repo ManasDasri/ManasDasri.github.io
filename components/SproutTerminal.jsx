@@ -1,31 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { projects } from '@/lib/data';
+import DEMO from '@/lib/sproutDemo.json';
 
-// Real output: sprout 0.2.0 run on this portfolio's own repo.
-const TREE = [
-  '.',
-  '├── README.md',
-  '├── app/',
-  '├── components/',
-  '├── lib/',
-  '├── next.config.mjs',
-  '├── package.json',
-  '├── public/',
-  '└── tailwind.config.js',
-  '',
-  '4 directories, 9 files (6 hidden or ignored, --all to show)',
-];
-const ENTRY = [
-  'Reading order for ManasDasri.github.io',
-  '',
-  '  1. README.md                  what the project is',
-  '  2. components/Section.jsx     used by 5 files',
-  '  3. components/Section.jsx     used by 9 files',
-  '  4. components/Effects.jsx     used by 1 file',
-  '  5. components/KoiPond.jsx     used by 2 files',
-];
+// Real output: sprout run on this site's own repo, captured by scripts/sprout-demo.mjs.
+// Typing a captured command (or the start of one, like `sprout tour`) prints it.
 const INSTALL = [
   '# this terminal is a demo; run these in yours',
   'brew install sprout-devlabs/tap/sprout',
@@ -35,78 +14,51 @@ const INSTALL = [
   '# anywhere with go 1.22+',
   'go install github.com/Sprout-DevLabs/sprout@latest',
 ];
-const HELP = [
-  'sprout             tree of this site’s repo',
-  'sprout --entry     where to start reading it',
-  'install            how to get sprout',
-  'ls                 my projects',
-  'open <project>     project details, e.g. open flow',
-  'neofetch           what this site runs on',
-  'whoami, contact, clear',
+const MCP = [
+  '# give your coding agent the same map, as MCP tools',
+  'claude mcp add sprout -- sprout mcp',
+  '# tools: project_map, reading_order, tree, diff_tree, deps,',
+  '#        dependents, impact, context',
 ];
-const SUGGESTIONS = ['sprout --entry', 'ls', 'neofetch', 'open flow', 'help'];
+const HELP = [
+  'sprout tour                     what this repo is and where to start',
+  'sprout --entry                  the reading order',
+  'sprout                          the tree, ignoring what git ignores',
+  'sprout --size / --churn         true folder sizes, or the 90-day hotspots',
+  'sprout --diff HEAD~3 -L 1       the last three commits as a tree',
+  'sprout dependents <file>        what depends on a file, and why',
+  'sprout impact <file>            what a change could break, and the tests',
+  'sprout context <file>           what to know before editing a file',
+  'sprout --ai                     a token-budgeted map for an LLM',
+  'sprout mcp                      the same, as tools for your agent',
+  'install, clear',
+];
+const SUGGESTIONS = ['sprout tour', 'sprout impact components/Section.jsx', 'sprout --diff HEAD~3 -L 1', 'sprout --ai', 'help'];
 
-// the obligatory ricer screenshot, with real values from the site
-function neofetch() {
-  const days = Math.floor((Date.now() - new Date('2026-01-01')) / 86400000);
-  const logo = ['  ·■·  ', '  ··■  ', '  ■■■  ', '       ', ' glider'];
-  const info = [
-    'manas@algorithmicbit',
-    '────────────────────',
-    'OS: algorithmicbit.tech',
-    'Host: GitHub Pages',
-    'Kernel: Next.js 14 (static export)',
-    'Shell: sprout-term',
-    'WM: koi pond',
-    'Theme: Koi Pond',
-    `Uptime: coding for ${days} days`,
-    `Projects: ${projects.length}`,
-  ];
-  return info.map((line, i) => `${(logo[i] ?? '').padEnd(10)}${line}`);
+// the captured command this input asks for: the same, or the one it starts
+function captured(input) {
+  if (input === 'sprout') input = 'sprout -L 1';
+  if (DEMO[input]) return DEMO[input];
+  const key = Object.keys(DEMO).find((k) => k.startsWith(`${input} `));
+  return key ? [`$ ${key}`, ...DEMO[key]] : null;
 }
 
 function run(input) {
-  const [cmd, ...args] = input.trim().split(/\s+/);
-  const rest = args.join(' ');
-  switch (cmd) {
-    case '':
-      return [];
-    case 'help':
-      return HELP;
-    case 'sprout':
-      if (!rest || rest === '-L 1') return TREE;
-      if (rest === '--entry') return ENTRY;
-      if (rest === '--version') return ['sprout 0.2.0'];
-      return [`sprout ${rest} works in the real thing. Try: install`];
-    case 'install':
-    case 'brew':
-      return INSTALL;
-    case 'ls':
-      return projects.map((p) => `${p.name.toLowerCase().padEnd(10)} ${p.status}`);
-    case 'open': {
-      const p = projects.find((p) => p.slug === rest.toLowerCase());
-      if (!p) return [`no project called "${rest}". Try: ls`];
-      setTimeout(() => (window.location.href = `/projects/${p.slug}/`), 500);
-      return [`opening ${p.name}…`];
-    }
-    case 'neofetch':
-      return neofetch();
-    case 'whoami':
-      return ['Manas Dasari: engineer, fintech enthusiast, artist, writer'];
-    case 'contact':
-      return ['email   dasarimanas049@gmail.com', 'github  github.com/ManasDasri', 'x       x.com/ManasDmg9'];
-    case 'sudo':
-      return ['nice try.'];
-    default:
-      return [`command not found: ${cmd}. Try: help`];
-  }
+  const line = input.trim().replace(/\s+/g, ' ');
+  if (!line) return [];
+  if (line === 'help') return HELP;
+  if (line === 'install' || line.startsWith('brew')) return INSTALL;
+  if (line === 'sprout mcp') return MCP;
+  if (line === 'sudo' || line.startsWith('sudo ')) return ['nice try.'];
+  if (!line.startsWith('sprout')) return [`command not found: ${line.split(' ')[0]}. Try: help`];
+  return captured(line) ?? [`this demo has real output for a few commands (help lists them).`, 'For anything else, the real thing: install'];
 }
 
 function lineClass(l) {
-  if (/^[■·]+$/.test(l)) return 'text-signal/80 leading-[1.1]';
-  if (l.startsWith('#')) return 'text-mute/60';
-  if (/\/$/.test(l)) return 'text-accent';
-  if (/^\s+\d+\./.test(l)) return 'text-text';
+  if (/^#{1,2} /.test(l)) return 'text-signal';
+  if (l.startsWith('#') || l.startsWith('$ ')) return 'text-mute/60';
+  if (/^[^\s].*\/(\s|$)|[├└]── [^ ]+\/(\s|$)/.test(l)) return 'text-accent';
+  if (/^\s+\d+\.|^(Affected|Tests|Start here|Impact|Reading order|Tour of)/.test(l)) return 'text-text';
   return 'text-mute';
 }
 
