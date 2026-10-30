@@ -235,9 +235,9 @@ html.theme-wipe::view-transition-new(root) { animation: theme-circle 0.7s var(--
    the root element doesn't re-anchor fixed elements, so the dock and overlays stay put. */
 html { filter: hue-rotate(var(--hue, 0deg)); }
 /* animate palette changes, but not the first paint (the head script set it already) */
-html.palette-ready { transition: filter 1.2s ease; }
-/* photos keep their real colours */
-img { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
+html.palette-ready, html.palette-ready img, html.palette-ready .pond { transition: filter 1.2s ease; }
+/* photos and the koi pond keep their real colours */
+img, .pond { filter: hue-rotate(calc(var(--hue, 0deg) * -1)); }
 
 /* activity calendars scroll sideways on narrow screens: start at the newest weeks (right end) */
 .react-activity-calendar__scroll-container { direction: rtl; }

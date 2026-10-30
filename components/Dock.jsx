@@ -103,7 +103,7 @@ function ThemeItem({ common }) {
   }, [open]);
 
   const swatches = (key) => {
-    const t = THEMES[key === 'auto' ? 'bioluminescent' : key];
+    const t = THEMES[key === 'auto' ? 'koi' : key];
     return [t.paper, t.signal, t.mature, t.accent];
   };
 

@@ -35,6 +35,16 @@ function noise(x, y) {
 }
 const mix = (a, b, t) => a + (b - a) * t;
 
+// CSS hue-rotate() as a colour matrix, applied to one [r, g, b]
+function hueRotate([r, g, b], rad) {
+  const c = Math.cos(rad), s = Math.sin(rad);
+  return [
+    (0.213 + 0.787 * c - 0.213 * s) * r + (0.715 - 0.715 * c - 0.715 * s) * g + (0.072 - 0.072 * c + 0.928 * s) * b,
+    (0.213 - 0.213 * c + 0.143 * s) * r + (0.715 + 0.285 * c + 0.14 * s) * g + (0.072 - 0.072 * c - 0.283 * s) * b,
+    (0.213 - 0.213 * c - 0.787 * s) * r + (0.715 - 0.715 * c + 0.715 * s) * g + (0.072 + 0.928 * c + 0.072 * s) * b,
+  ].map((v) => Math.max(0, Math.min(255, v)));
+}
+
 // water colour ramps, dark to light: deep blue, and the teal it shifts to in places
 const NAVY = [[3, 6, 16], [10, 18, 46], [20, 36, 82], [34, 58, 120], [58, 92, 158]];
 const TEAL = [[3, 10, 14], [10, 32, 40], [18, 58, 64], [32, 88, 90], [60, 124, 120]];
@@ -51,7 +61,7 @@ const KOI = [
 ];
 
 function makeFish(g, i) {
-  const len = Math.max(90, Math.min(230, g.w * 0.9));
+  const len = Math.max(130, Math.min(300, g.w * 1.25));
   const x = g.x + rand(0.3, 0.7) * g.w;
   const y = rand(0.15, 0.85) * g.h;
   const heading = rand(0, Math.PI * 2);
@@ -123,6 +133,18 @@ export default function KoiPond() {
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let W, H, gw, gh, img, gutters, fish, pads, glows, ink, raf, last = 0, t = rand(0, 500);
 
+    // The page's background as it appears on screen, for the pond to fade into. The pond
+    // cancels the page's time-of-day hue shift (globals.css) so the koi keep their colours,
+    // so the shift is applied to this colour here instead. Read again every second, which
+    // follows theme switches and the drifting hue without restarting the pond.
+    const readInk = () => {
+      const css = getComputedStyle(document.documentElement);
+      const v = css.getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
+      const hue = parseFloat(css.getPropertyValue('--hue')) || 0;
+      ink = hueRotate(v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0], (hue * Math.PI) / 180);
+    };
+    let inkAt = 0;
+
     const setup = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       W = window.innerWidth;
@@ -135,8 +157,7 @@ export default function KoiPond() {
       off.width = gw;
       off.height = gh;
       img = octx.createImageData(gw, gh);
-      const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
-      ink = v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0];
+      readInk();
       const col = document.getElementById('main')?.getBoundingClientRect();
       const left = col ? col.left : W / 2;
       const right = col ? col.right : W / 2;
@@ -159,6 +180,10 @@ export default function KoiPond() {
 
     const frame = (dt) => {
       t += dt;
+      if (t - inkAt > 1) {
+        inkAt = t;
+        readInk();
+      }
       fish.forEach((f) => swim(f, t, dt));
       const bodies = fish.map((f) => body(f, t));
       for (const p of pads) {
@@ -332,17 +357,23 @@ export default function KoiPond() {
       raf = requestAnimationFrame(loop);
     };
     const onVisibility = () => (document.hidden ? cancelAnimationFrame(raf) : start());
+    // a theme switch only changes the colour the pond fades into: redraw with it straight
+    // away (inside the switch's view transition, so the new snapshot has it), fish in place
+    const onTheme = () => {
+      readInk();
+      if (gutters.length) frame(0);
+    };
 
     // the column's position decides the margins; the font changes the ASCII metrics
     document.fonts?.ready.then(start);
     start();
     window.addEventListener('resize', start);
-    window.addEventListener('theme-change', start);
+    window.addEventListener('theme-change', onTheme);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
-      window.removeEventListener('theme-change', start);
+      window.removeEventListener('theme-change', onTheme);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);

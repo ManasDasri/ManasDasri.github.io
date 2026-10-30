@@ -9,8 +9,8 @@ import { BitIndex } from './Bits';
 export const InTab = createContext(false);
 
 // The break between sections: a hatched strip across the whole window, over the pond.
-export function Band() {
-  return <div className="band" aria-hidden="true" />;
+export function Band({ className = '' }) {
+  return <div className={`band ${className}`} aria-hidden="true" />;
 }
 
 // The title and note sit above the content; the content rises in when scrolled to, with
