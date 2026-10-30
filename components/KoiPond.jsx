@@ -3,78 +3,97 @@
 import { useEffect, useRef } from 'react';
 
 // The background: a koi pond in the margins either side of the content column. The water
-// is a dithered pixel layer (with lily pads, drifting petals and the fishes' shadows), and
-// the koi and the ripples are drawn on top in ASCII. Only the margins are computed, since
-// the column covers the rest. Paused while the tab is hidden; a still frame for reduced motion.
+// is a pixel layer, ordered-dithered to a few levels (with blurred lily pads, a pale
+// reflection and the fishes' shadows), with gold leaves floating on it as solid pixel
+// clusters. The koi, their wakes and the ripples are dense ASCII on top. Only the margins
+// are computed, since the column covers the rest. Paused while the tab is hidden; a still
+// frame for reduced motion.
 
 const P = 4; // css px per water pixel
-const CW = 6; // ASCII cell, css px
-const CH = 9;
+const CW = 5; // ASCII cell, css px
+const CH = 8;
 const FPS = 30;
-const RAMP = '.:;-=+*xzoIX#%&0@';
-const RIPPLE = "~-=*!|:'v+";
-
-const KINDS = [
-  // kohaku: white with red patches
-  { base: [236, 232, 222], patch: [232, 78, 48], patchAt: 0.15 },
-  // ogon: gold
-  { base: [232, 176, 64], patch: [250, 206, 110], patchAt: 0.7 },
-  // orange
-  { base: [242, 112, 44], patch: [252, 170, 90], patchAt: 0.55 },
-  // showa: dark with red and white
-  { base: [58, 56, 66], patch: [226, 84, 52], patchAt: 0.05 },
-];
+const STEP = 20; // colour quantisation step for the dither
+const BODY = ':;~=+*ixzoIX%#&0@'; // edge to core
+const WAKE = "~-=+:!'`";
+const FIN = ":;!'~";
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
 const rand = (a, b) => a + Math.random() * (b - a);
-const hash = (x, y) => {
-  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return s - Math.floor(s);
+const ihash = (x, y) => {
+  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+// smooth value noise in [0, 1]
+function noise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = ihash(xi, yi), b = ihash(xi + 1, yi), c = ihash(xi, yi + 1), d = ihash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+const mix = (a, b, t) => a + (b - a) * t;
+
+// water colour ramps, dark to light: deep blue, and the teal it shifts to in places
+const NAVY = [[3, 6, 16], [10, 18, 46], [20, 36, 82], [34, 58, 120], [58, 92, 158]];
+const TEAL = [[3, 10, 14], [10, 32, 40], [18, 58, 64], [32, 88, 90], [60, 124, 120]];
+const ramp = (r, l) => {
+  const s = Math.max(0, Math.min(0.999, l)) * (r.length - 1);
+  const i = Math.floor(s), f = s - i;
+  return [mix(r[i][0], r[i + 1][0], f), mix(r[i][1], r[i + 1][1], f), mix(r[i][2], r[i + 1][2], f)];
 };
 
-function makeFish(g, kind) {
-  const len = Math.max(80, Math.min(190, g.w * 0.7));
+// floating leaves, in water pixels
+const LEAVES = [['##', '##'], ['###', '##.'], ['.#', '##', '#.'], ['##.', '.##'], ['#', '#'], ['###', '#..'], ['.##', '##.', '#..'], ['#']];
+
+const KOI = [
+  { base: [238, 228, 208], patch: [230, 92, 54], amount: 0.6 }, // kohaku
+  { base: [240, 232, 214], patch: [236, 108, 56], amount: 0.45 },
+  { base: [232, 104, 56], patch: [244, 214, 186], amount: 0.3 }, // orange with pale patches
+];
+
+function makeFish(g, i) {
+  const len = Math.max(90, Math.min(230, g.w * 0.9));
   const x = g.x + rand(0.3, 0.7) * g.w;
   const y = rand(0.15, 0.85) * g.h;
   const heading = rand(0, Math.PI * 2);
-  const K = 16;
+  const K = 18;
   const seg = len / K;
   return {
     g,
-    kind: KINDS[kind % KINDS.length],
+    kind: KOI[i % KOI.length],
     len,
     seg,
     heading,
-    speed: rand(14, 26),
+    speed: rand(10, 18),
     phase: rand(0, 100),
-    spots: rand(0, 10),
-    spine: Array.from({ length: K }, (_, i) => [x - Math.cos(heading) * seg * i, y - Math.sin(heading) * seg * i]),
+    spots: rand(0, 50),
+    spine: Array.from({ length: K }, (_, j) => [x - Math.cos(heading) * seg * j, y - Math.sin(heading) * seg * j]),
   };
 }
 
 // half-width of the body at u (0 head, 1 tail tip)
 function width(f, u) {
-  const w = f.len * 0.13;
-  if (u < 0.22) return w * (0.55 + 2 * u);
-  if (u > 0.86) return w * (0.25 + (u - 0.86) * 9); // tail fin fans out
-  return w * Math.pow((1 - u) / 0.78, 0.8) * 0.98 + w * 0.1;
+  const w = f.len * 0.15;
+  if (u < 0.18) return w * (0.45 + 3 * u);
+  if (u > 0.84) return w * (0.2 + (u - 0.84) * 7);
+  return w * (0.99 - 0.82 * ((u - 0.18) / 0.66) ** 1.3);
 }
 
 function swim(f, t, dt) {
   const { g } = f;
   const [hx, hy] = f.spine[0];
-  // wander, then turn back towards the middle of its margin when near an edge
-  let turn = Math.sin(t * 0.4 + f.phase) * 0.5 + Math.sin(t * 0.13 + f.phase * 2) * 0.4;
-  const m = Math.min(f.len * 0.6, g.w * 0.3);
+  let turn = Math.sin(t * 0.3 + f.phase) * 0.35 + Math.sin(t * 0.11 + f.phase * 2) * 0.3;
+  const m = Math.min(f.len * 0.5, g.w * 0.35);
   if (hx < g.x + m || hx > g.x + g.w - m || hy < m || hy > g.h - m) {
     const want = Math.atan2(g.h / 2 - hy, g.x + g.w / 2 - hx);
-    let d = want - f.heading;
-    d = Math.atan2(Math.sin(d), Math.cos(d));
-    turn += d * 2.2;
+    const d = Math.atan2(Math.sin(want - f.heading), Math.cos(want - f.heading));
+    turn += d * 1.6;
   }
   f.heading += turn * dt;
-  const v = f.speed * (0.8 + 0.3 * Math.sin(t * 0.7 + f.phase));
+  const v = f.speed * (0.75 + 0.35 * Math.sin(t * 0.5 + f.phase));
   f.spine[0] = [hx + Math.cos(f.heading) * v * dt, hy + Math.sin(f.heading) * v * dt];
-  // the body follows the head like a rope, with a swimming wiggle toward the tail
   for (let i = 1; i < f.spine.length; i++) {
     const [px, py] = f.spine[i - 1];
     const [cx, cy] = f.spine[i];
@@ -83,7 +102,7 @@ function swim(f, t, dt) {
   }
 }
 
-// spine with the swimming wave applied, for drawing
+// the spine with the swimming wave applied
 function body(f, t) {
   const n = f.spine.length;
   return f.spine.map(([x, y], i) => {
@@ -91,7 +110,7 @@ function body(f, t) {
     const [bx, by] = f.spine[Math.min(n - 1, i + 1)];
     const a = Math.atan2(by - ay, bx - ax);
     const u = i / (n - 1);
-    const s = Math.sin(t * 5 + f.phase - u * 4) * f.len * 0.05 * u * u;
+    const s = Math.sin(t * 3.2 + f.phase - u * 3.5) * f.len * 0.045 * u * u;
     return [x - Math.sin(a) * s, y + Math.cos(a) * s];
   });
 }
@@ -105,7 +124,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W, H, gw, gh, img, gutters, fish, pads, petals, raf, last = 0, t = rand(0, 50);
+    let W, H, gw, gh, img, gutters, fish, pads, glows, leaves, raf, last = 0, t = rand(0, 500);
 
     const setup = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -123,23 +142,28 @@ export default function KoiPond() {
       const left = col ? col.left : W / 2;
       const right = col ? col.right : W / 2;
       gutters = [
-        { x: 0, w: left, h: H, edge: left, side: 'l' },
-        { x: right, w: W - right, h: H, edge: right, side: 'r' },
+        { x: 0, w: left, h: H, edge: left },
+        { x: right, w: W - right, h: H, edge: right },
       ].filter((g) => g.w >= 48);
-      fish = gutters.flatMap((g, gi) =>
-        Array.from({ length: g.w < 160 ? 1 : g.w < 320 ? 2 : 3 }, (_, i) => makeFish(g, gi * 2 + i))
-      );
+      fish = gutters.flatMap((g, gi) => Array.from({ length: g.w < 260 ? 1 : g.w < 520 ? 2 : 3 }, (_, i) => makeFish(g, gi + i * 2)));
       pads = gutters.flatMap((g) =>
-        Array.from({ length: 3 }, () => ({ g, x: g.x + rand(0.1, 0.9) * g.w, y: rand(0.05, 0.95) * H, r: rand(12, Math.min(34, g.w * 0.22)), a: rand(0, 6.28), da: rand(-0.04, 0.04), dx: rand(-2, 2), dy: rand(-2, 2) }))
+        Array.from({ length: 2 + Math.floor(H / 500) }, () => ({ x: g.x + rand(0.15, 0.85) * g.w, y: rand(0, H), r: rand(18, 34), a: rand(0, 6.28), dx: rand(-1.5, 1.5), dy: rand(-1.5, 1.5), lit: rand(0.3, 1) }))
       );
-      petals = gutters.flatMap((g) =>
-        Array.from({ length: Math.round((g.w * H) / 9000) }, () => ({ g, x: g.x + Math.random() * g.w, y: Math.random() * H, s: Math.random() < 0.3 ? 3 : 2, p: rand(0, 6.28), v: rand(2, 6) }))
-      );
+      glows = gutters.map((g) => ({ x: g.x + rand(0.3, 0.7) * g.w, y: rand(0.1, 0.5) * H, r: rand(24, 34), p: rand(0, 6.28) }));
+      leaves = [];
+      for (const g of gutters) {
+        const clusters = Math.max(3, Math.round((g.w * H) / 16000));
+        for (let c = 0; c < clusters; c++) {
+          const cx = g.x + rand(0, g.w), cy = rand(0, H);
+          for (let k = 0, n = Math.floor(rand(3, 9)); k < n; k++)
+            leaves.push({ g, x: cx + rand(-40, 40), y: cy + rand(-50, 50), s: LEAVES[Math.floor(Math.random() * LEAVES.length)], tone: rand(0.8, 1.08), p: rand(0, 6.28), dx: rand(0.6, 2.2), dy: rand(1.5, 3.5) });
+        }
+      }
     };
 
     // darkens toward the column, so the pond fades out under the content
     const fade = (x) => {
-      for (const g of gutters) if (x >= g.x && x < g.x + g.w) return Math.min(1, Math.abs(x - g.edge) / Math.min(110, g.w * 0.45)) ** 1.2;
+      for (const g of gutters) if (x >= g.x && x < g.x + g.w) return Math.min(1, Math.abs(x - g.edge) / Math.min(120, g.w * 0.5)) ** 1.5;
       return 0;
     };
 
@@ -147,136 +171,175 @@ export default function KoiPond() {
       t += dt;
       fish.forEach((f) => swim(f, t, dt));
       const bodies = fish.map((f) => body(f, t));
+      for (const p of pads) {
+        p.x += p.dx * dt;
+        p.y += p.dy * dt;
+        p.a += 0.02 * dt;
+        if (p.y < -p.r * 2) p.y = H + p.r;
+        if (p.y > H + p.r * 2) p.y = -p.r;
+      }
+      for (const l of leaves) {
+        l.x += (l.dx + Math.sin(t * 0.4 + l.p) * 1.2) * dt;
+        l.y += l.dy * dt;
+        if (l.y > H + 12) l.y = -12;
+        if (l.x > l.g.x + l.g.w + 12) l.x = l.g.x - 12;
+      }
 
-      // --- water, lily pads, petals and shadows, in the pixel layer
+      // --- the water: continuous colour, then ordered dither
       const d = img.data;
       d.fill(0);
+      // a few circles along each fish, offset down and right, for its shadow
+      const shadows = bodies.flatMap((pts, fi) =>
+        pts.filter((_, i) => i % 2 === 0).map(([x, y], j) => [x + 9, y + 12, width(fish[fi], (j * 2) / (pts.length - 1)) + 4])
+      );
       for (const g of gutters) {
         const x0 = Math.floor(g.x / P), x1 = Math.ceil((g.x + g.w) / P);
         for (let py = 0; py < gh; py++) {
           for (let px = x0; px < x1; px++) {
             const x = px * P, y = py * P;
-            const n =
-              Math.sin(x * 0.012 + t * 0.35) * Math.sin(y * 0.016 - t * 0.25) +
-              Math.sin((x + y) * 0.008 + t * 0.2) * 0.6 +
-              Math.sin(x * 0.03 - y * 0.02 + t * 0.6) * 0.25;
-            let b = 0.5 + n * 0.28;
-            if ((px + py) & 1) b *= 0.72; // checker dither
             const k = fade(x);
-            const teal = 0.5 + 0.5 * Math.sin(x * 0.006 - y * 0.01 + t * 0.1);
             const i = (py * gw + px) * 4;
-            d[i] = (10 + 22 * b) * k;
-            d[i + 1] = (22 + (44 + 30 * teal) * b) * k;
-            d[i + 2] = (48 + 92 * b) * k;
             d[i + 3] = 255;
+            if (k < 0.02) continue;
+            const l =
+              noise(x / 150 + t * 0.015, y / 230 - t * 0.012) * 0.55 +
+              noise(x / 40 - t * 0.04, y / 64 + t * 0.03) * 0.28 +
+              noise(x / 26 + 9, y / 420 + t * 0.01) * 0.25;
+            const tl = noise(x / 210 + 40, y / 190 + t * 0.008);
+            // teal in places, checkered where it meets the blue
+            const teal = tl > 0.55 || (tl > 0.45 && (px + py) & 1);
+            let [r, gr, b] = ramp(teal ? TEAL : NAVY, l * 0.95 - 0.08);
+            // the pale reflection
+            for (const o of glows) {
+              const q = ((x - o.x) ** 2 + (y - o.y - Math.sin(t * 0.2 + o.p) * 8) ** 2) / (o.r * o.r);
+              if (q < 4) {
+                const a = Math.exp(-q * 1.6) * 0.6;
+                r = mix(r, 120, a);
+                gr = mix(gr, 134, a);
+                b = mix(b, 160, a);
+              }
+            }
+            // lily pads: blurred discs with a notch, lighter where the light catches them
+            for (const p of pads) {
+              const dx = x - p.x, dy = y - p.y;
+              const q = (dx * dx + dy * dy) / (p.r * p.r);
+              if (q > 2.2) continue;
+              const ang = Math.atan2(dy, dx) - p.a;
+              const notch = Math.abs(Math.atan2(Math.sin(ang), Math.cos(ang))) < 0.3 && q > 0.05 ? 0.25 : 1;
+              const a = Math.exp(-q * q * 1.4) * 0.92 * notch;
+              const lit = p.lit * Math.exp((-((dx + p.r * 0.3) ** 2 + (dy + p.r * 0.3) ** 2) / (p.r * p.r)) * 2);
+              r = mix(r, 22 + 40 * lit, a);
+              gr = mix(gr, 62 + 110 * lit, a);
+              b = mix(b, 30 + 36 * lit, a);
+            }
+            for (const [sx, sy, sr] of shadows) {
+              const q = ((x - sx) ** 2 + (y - sy) ** 2) / (sr * sr);
+              if (q < 1) {
+                const a = (1 - q) * 0.3;
+                r *= 1 - a;
+                gr *= 1 - a;
+                b *= 1 - a;
+              }
+            }
+            const th = BAYER[(py & 3) * 4 + (px & 3)];
+            d[i] = Math.floor((r * k) / STEP + th) * STEP;
+            d[i + 1] = Math.floor((gr * k) / STEP + th) * STEP;
+            d[i + 2] = Math.floor((b * k) / STEP + th) * STEP;
           }
         }
       }
-      const blend = (px, py, rgb, a) => {
-        if (px < 0 || py < 0 || px >= gw || py >= gh) return;
-        const i = (py * gw + px) * 4;
-        if (!d[i + 3]) return;
-        const k = fade(px * P);
-        for (let c = 0; c < 3; c++) d[i + c] = d[i + c] * (1 - a) + rgb[c] * k * a;
-      };
-      // shadows under the fish
-      bodies.forEach((pts, fi) => {
-        const f = fish[fi];
-        pts.forEach(([x, y], i) => {
-          const r = width(f, i / (pts.length - 1)) / P + 1;
-          const cx = (x + 6) / P, cy = (y + 9) / P;
-          for (let yy = Math.floor(cy - r); yy <= cy + r; yy++)
-            for (let xx = Math.floor(cx - r); xx <= cx + r; xx++)
-              if ((xx - cx) ** 2 + (yy - cy) ** 2 <= r * r) blend(xx, yy, [2, 6, 16], 0.08);
-        });
-      });
-      // lily pads: a disc with a notch, soft at the edge
-      for (const p of pads) {
-        p.x += p.dx * dt;
-        p.y += p.dy * dt;
-        p.a += p.da * dt;
-        if (p.y < -p.r) p.y = H + p.r;
-        if (p.y > H + p.r) p.y = -p.r;
-        if (p.x < p.g.x - p.r || p.x > p.g.x + p.g.w + p.r) p.dx *= -1;
-        const r = p.r / P;
-        const cx = p.x / P, cy = p.y / P;
-        for (let yy = Math.floor(cy - r); yy <= cy + r; yy++)
-          for (let xx = Math.floor(cx - r); xx <= cx + r; xx++) {
-            const dist = Math.hypot(xx - cx, yy - cy);
-            if (dist > r) continue;
-            let ang = Math.atan2(yy - cy, xx - cx) - p.a;
-            ang = Math.atan2(Math.sin(ang), Math.cos(ang));
-            if (Math.abs(ang) < 0.32 && dist > r * 0.15) continue;
-            const edge = Math.min(1, (r - dist) / 3.5);
-            const lit = 1 - dist / r;
-            blend(xx, yy, [38 + 50 * lit, 104 + 70 * lit, 46 + 30 * lit], 0.7 * edge);
-          }
-      }
-      // petals: small gold squares drifting on the surface
-      for (const p of petals) {
-        p.y += p.v * dt * 0.4;
-        p.x += Math.sin(t * 0.5 + p.p) * dt * 3;
-        if (p.y > H) p.y = -4;
-        const px = Math.floor(p.x / P), py = Math.floor(p.y / P);
-        const shine = 0.75 + 0.25 * Math.sin(t * 1.3 + p.p);
-        for (let yy = 0; yy < p.s; yy++) for (let xx = 0; xx < p.s; xx++) blend(px + xx, py + yy, [214 * shine, 168 * shine, 72 * shine], 0.95);
+      // gold leaves, solid on the surface
+      for (const l of leaves) {
+        const k = Math.min(1, fade(l.x) * 1.8);
+        if (k < 0.1) continue;
+        const lx = Math.floor(l.x / P), ly = Math.floor(l.y / P);
+        const shine = l.tone * (0.85 + 0.15 * Math.sin(t * 0.8 + l.p));
+        l.s.forEach((row, yy) =>
+          [...row].forEach((c, xx) => {
+            if (c !== '#') return;
+            const e = (yy === l.s.length - 1 ? 0.78 : 1) * shine * k;
+            // each leaf pixel is 2×2 water pixels
+            for (let q = 0; q < 4; q++) {
+              const px = lx + xx * 2 + (q & 1), py = ly + yy * 2 + (q >> 1);
+              if (px < 0 || py < 0 || px >= gw || py >= gh) continue;
+              const i = (py * gw + px) * 4;
+              const dim = q === 3 ? 0.86 : 1;
+              d[i] = 224 * e * dim;
+              d[i + 1] = 180 * e * dim;
+              d[i + 2] = 76 * e * dim;
+            }
+          })
+        );
       }
       octx.putImageData(img, 0, 0);
       ctx.clearRect(0, 0, W, H);
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(off, 0, 0, gw * P, gh * P);
 
-      // --- ripples and koi, in ASCII
+      // --- ASCII: sparse ripples, then the koi and their wakes
       ctx.font = `700 ${CH}px "JetBrains Mono", monospace`;
       ctx.textBaseline = 'top';
       for (const g of gutters) {
         for (let cy = 0; cy < H / CH; cy++) {
           for (let cx = Math.floor(g.x / CW); cx < (g.x + g.w) / CW; cx++) {
-            const h = hash(cx, cy);
-            if (h > 0.22) continue;
-            const r = Math.sin(cx * 0.31 + t * 0.9) * Math.sin(cy * 0.47 - t * 0.6) + Math.sin((cx + cy) * 0.17 + t * 0.5) * 0.7;
-            if (r < 0.95) continue;
+            const h = ihash(cx, cy);
+            if (h > 0.1) continue;
+            const r = noise(cx * 0.12 + t * 0.25, cy * 0.2 - t * 0.2);
+            if (r < 0.62) continue;
             const k = fade(cx * CW);
-            ctx.fillStyle = `rgba(140, 188, 236, ${(0.18 + (r - 0.95) * 0.5) * k})`;
-            ctx.fillText(RIPPLE[Math.floor(h * 45) % RIPPLE.length], cx * CW, cy * CH);
+            ctx.fillStyle = `rgba(120, 186, 214, ${(r - 0.62) * 1.1 * k})`;
+            ctx.fillText(WAKE[Math.floor(h * 80) % WAKE.length], cx * CW, cy * CH);
           }
         }
       }
       bodies.forEach((pts, fi) => {
         const f = fish[fi];
         const n = pts.length;
-        const pad = f.len * 0.2;
+        const pad = f.len * 0.3;
         const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
         const bx0 = Math.floor((Math.min(...xs) - pad) / CW), bx1 = Math.ceil((Math.max(...xs) + pad) / CW);
         const by0 = Math.floor((Math.min(...ys) - pad) / CH), by1 = Math.ceil((Math.max(...ys) + pad) / CH);
         for (let cy = by0; cy <= by1; cy++) {
           for (let cx = bx0; cx <= bx1; cx++) {
             const x = cx * CW + CW / 2, y = cy * CH + CH / 2;
+            const k = fade(x);
+            if (k < 0.05) continue;
             // nearest point on the spine: distance, position along the body, and which side
-            let best = Infinity, bu = 0;
+            let best = Infinity, bu = 0, side = 0;
             for (let i = 0; i < n - 1; i++) {
               const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
               const vx = bx - ax, vy = by - ay;
               const s = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy)));
-              const dd = Math.hypot(x - ax - vx * s, y - ay - vy * s);
+              const ex = x - ax - vx * s, ey = y - ay - vy * s;
+              const dd = Math.hypot(ex, ey);
               if (dd < best) {
                 best = dd;
                 bu = (i + s) / (n - 1);
+                side = Math.sign(vx * ey - vy * ex);
               }
             }
-            let w = width(f, bu);
-            // pectoral fins, just behind the head
-            if (bu > 0.2 && bu < 0.34) w *= 1.55;
-            if (best > w) continue;
-            const k = fade(x);
-            if (k < 0.05) continue;
-            const depth = 1 - best / w;
-            const fin = bu > 0.86 || (bu > 0.2 && bu < 0.34 && best > w / 1.55);
-            const patch = Math.sin(bu * 11 + f.spots) + Math.sin(bu * 5 - f.spots * 1.7 + best * 0.08) * 0.6 > 1 - f.kind.patchAt * 2;
-            const rgb = patch && !fin ? f.kind.patch : f.kind.base;
-            const ch = fin ? "~'`"[Math.floor(hash(cx, cy) * 3)] : RAMP[Math.min(RAMP.length - 1, Math.floor(depth * RAMP.length * 1.15))];
-            const a = (fin ? 0.55 : 0.75 + depth * 0.25) * k;
-            ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`;
+            const w = width(f, bu);
+            const finW = bu > 0.16 && bu < 0.32 ? w * 1.75 : bu > 0.84 ? w * 1.5 : w;
+            const h = ihash(cx, cy);
+            let ch, rgb, a;
+            if (best <= w) {
+              const depth = 1 - best / w;
+              const patch = noise(bu * 3.2 + f.spots, side * 0.8 + best * 0.03 + f.spots * 0.3) > 1 - f.kind.amount;
+              const c = patch ? f.kind.patch : f.kind.base;
+              const shade = 0.5 + 0.5 * depth ** 0.7;
+              rgb = [c[0] * shade, c[1] * shade, c[2] * shade];
+              ch = BODY[Math.min(BODY.length - 1, Math.floor((depth * 0.85 + h * 0.15) * BODY.length))];
+              a = 0.95;
+            } else if (best <= finW) {
+              rgb = bu > 0.84 ? f.kind.patch : f.kind.base;
+              ch = FIN[Math.floor(h * FIN.length)];
+              a = 0.5 * (1 - (best - w) / (finW - w));
+            } else if (best <= finW + 9 && h < 0.7) {
+              rgb = [120, 186, 214];
+              ch = WAKE[Math.floor(h * 11) % WAKE.length];
+              a = 0.4 * (1 - (best - finW) / 9);
+            } else continue;
+            ctx.fillStyle = `rgba(${rgb[0] | 0}, ${rgb[1] | 0}, ${rgb[2] | 0}, ${a * k})`;
             ctx.fillText(ch, cx * CW, cy * CH);
           }
         }
@@ -304,7 +367,7 @@ export default function KoiPond() {
     };
     const onVisibility = () => (document.hidden ? cancelAnimationFrame(raf) : start());
 
-    // the column's position decides the margins; fonts change the ASCII metrics
+    // the column's position decides the margins; the font changes the ASCII metrics
     document.fonts?.ready.then(start);
     start();
     window.addEventListener('resize', start);
