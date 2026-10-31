@@ -193,7 +193,7 @@ export function swim(f, t, dt, others = []) {
     const near = 1 - d / (f.len * 0.75);
     if (near > 0) want += wrap(Math.atan2(hy - oy, hx - ox) - want) * Math.min(1, near * 1.5);
   }
-  const maxTurn = f.v / (f.len * (f.food ? 0.28 : 0.45));
+  const maxTurn = f.v / (f.len * (f.food ? 0.28 : f.turning ?? 0.45));
   const desired = Math.max(-maxTurn, Math.min(maxTurn, wrap(want - f.heading) * 0.9));
   f.turn += (desired - f.turn) * Math.min(1, dt * 1.2);
   f.heading = wrap(f.heading + f.turn * dt);
@@ -209,11 +209,12 @@ export function swim(f, t, dt, others = []) {
   }
   f.spine[0] = [hx + Math.cos(f.heading) * f.v * dt, hy + Math.sin(f.heading) * f.v * dt];
   // the body follows the head, each segment bending at most MAX_BEND from the one before
+  const bend = f.bend ?? MAX_BEND; // the post about the pond turns these down to show why
   let ref = f.heading + Math.PI;
   for (let i = 1; i < f.spine.length; i++) {
     const [px, py] = f.spine[i - 1];
     const [cx, cy] = f.spine[i];
-    const a = ref + Math.max(-MAX_BEND, Math.min(MAX_BEND, wrap(Math.atan2(cy - py, cx - px) - ref)));
+    const a = ref + Math.max(-bend, Math.min(bend, wrap(Math.atan2(cy - py, cx - px) - ref)));
     f.spine[i] = [px + Math.cos(a) * f.seg, py + Math.sin(a) * f.seg];
     ref = a;
   }

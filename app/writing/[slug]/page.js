@@ -5,15 +5,17 @@ import MarginArt from '@/components/MarginArt';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import GradientDescent from '@/components/demos/GradientDescent';
+import KoiSwim from '@/components/demos/KoiSwim';
 import SproutTerminal from '@/components/SproutTerminal';
 import CodeCopy from '@/components/CodeCopy';
 
 // "::demo <name>" in a post renders the matching component
 const DEMOS = {
+  'koi-swim': KoiSwim,
   'gradient-descent': GradientDescent,
   'sprout-entry': () => (
     <div className="not-prose my-8">
-      <SproutTerminal embedded greet="sprout --entry" />
+      <SproutTerminal greet="sprout --entry" />
     </div>
   ),
 };

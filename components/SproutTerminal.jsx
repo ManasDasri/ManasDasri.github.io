@@ -62,7 +62,8 @@ function lineClass(l) {
   return 'text-mute';
 }
 
-export default function SproutTerminal() {
+// greet: the command it types when it first comes into view
+export default function SproutTerminal({ greet = 'sprout' }) {
   const ref = useRef(null);
   const bodyRef = useRef(null);
   const inputRef = useRef(null);
@@ -102,7 +103,7 @@ export default function SproutTerminal() {
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          type('sprout');
+          type(greet);
           io.disconnect();
         }
       },
