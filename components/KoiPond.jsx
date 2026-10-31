@@ -136,6 +136,8 @@ function lightNow() {
 // water colour ramps, dark to light: deep blue, and the teal it shifts to in places
 const NAVY = [[3, 6, 16], [10, 18, 46], [20, 36, 82], [34, 58, 120], [58, 92, 158]];
 const TEAL = [[3, 10, 14], [10, 32, 40], [18, 58, 64], [32, 88, 90], [60, 124, 120]];
+const GREEN = [[3, 9, 6], [10, 30, 20], [22, 58, 36], [42, 92, 56], [72, 126, 82]];
+const SKY = [[4, 8, 20], [16, 30, 64], [34, 60, 112], [62, 98, 160], [104, 140, 196]];
 const ramp = (r, l) => {
   const s = Math.max(0, Math.min(0.999, l)) * (r.length - 1);
   const i = Math.floor(s), f = s - i;
@@ -177,7 +179,7 @@ export function makeFish(g, i, len = Math.max(110, Math.min(240, g.w * 0.9))) {
 function width(f, u) {
   const w = f.len * 0.15;
   if (u < 0.18) return w * (0.3 + 0.7 * Math.sin((u / 0.18) * Math.PI * 0.5) ** 0.7); // rounded snout
-  if (u > 0.84) return w * (0.2 + (u - 0.84) * 7);
+  if (u > 0.84) return w * (0.2 + (u - 0.84) * 2.5); // the tail's root; the fin is drawn round it
   return w * (0.99 - 0.82 * ((u - 0.18) / 0.66) ** 1.3);
 }
 
@@ -330,11 +332,11 @@ export function drawKoi(ctx, f, pts, fade) {
         // pectoral fins: fans swept back from just behind the head
         const pect = bu > 0.15 && bu < 0.36 ? w * (1 + 1.2 * Math.sin(((bu - 0.15) / 0.21) * Math.PI)) : 0;
         // the tail: two lobes with a notch between them
-        const tail = bu > 0.82 ? w + W0 * (bu - 0.82) * 5.5 * (0.35 + 0.65 * Math.min(1, best / (W0 * 0.25))) : 0;
+        const tail = bu > 0.86 ? w + W0 * (bu - 0.86) * 3.2 * (0.35 + 0.65 * Math.min(1, best / (W0 * 0.25))) : 0;
         const finW = Math.max(pect, tail);
         if (best <= finW) {
           const ray = Math.abs(Math.sin(dir * 3 + (best / W0) * 5 + bu * 20));
-          rgb = bu > 0.82 ? f.kind.patch : f.kind.base;
+          rgb = bu > 0.86 ? f.kind.patch : f.kind.base;
           ch = ray > 0.6 ? (side > 0 ? '\\' : '/') : FIN[Math.floor(h * FIN.length)];
           a = 0.55 * (1 - ((best - w) / (finW - w)) * 0.7);
         } else if (best <= finW + 10 && h < 0.6) {
@@ -417,8 +419,8 @@ export default function KoiPond() {
         if (p.y > H + p.r * 2) p.y = -p.r;
       }
       // --- the water: continuous colour, then ordered dither
-      frameNo++;
-      if (frameNo === 1) frameNo = 3; // a fresh buffer is filled straight away
+      // a fresh buffer is filled whole; after that a sixth of its rows are redone each frame
+      const full = frameNo++ === 0;
       const d = img.data;
       d.fill(0);
       // fish shadows, offset down and right: a few soft circles along each body, drawn into a
@@ -450,18 +452,24 @@ export default function KoiPond() {
               d[i + 2] = ink[2];
               continue;
             }
-            // the water's own colour changes slowly, so it's worked out every third frame and
-            // kept; shadows and the dither are applied every frame
+            // the water's own colour changes slowly, so each row is worked out every sixth frame
+            // (a sixth of them each frame) and kept; shadows and the dither are every frame
             const j = (py * gw + px) * 3;
-            if (frameNo % 3 === 0) {
+            if (full || py % 6 === frameNo % 6) {
+              // the water flows: sample the noise through a slowly drifting warp
+              const wx = x + (noise(x / 110 + t * 0.06, y / 110) - 0.5) * 70;
+              const wy = y + (noise(x / 110 + 31, y / 110 - t * 0.05) - 0.5) * 70;
               const l =
-                noise(x / 150 + t * 0.015, y / 230 - t * 0.012) * 0.55 +
-                noise(x / 40 - t * 0.04, y / 64 + t * 0.03) * 0.28 +
-                noise(x / 26 + 9, y / 420 + t * 0.01) * 0.25;
-              const tl = noise(x / 210 + 40, y / 190 + t * 0.008);
-              // teal in places, checkered where it meets the blue
-              const teal = tl > 0.55 || (tl > 0.45 && (px + py) & 1);
-              let [r, gr, b] = ramp(teal ? TEAL : NAVY, (l * 0.95 - 0.08) * light.bright);
+                noise(wx / 150 + t * 0.015, wy / 230 - t * 0.012) * 0.55 +
+                noise(wx / 40 - t * 0.04, wy / 64 + t * 0.03) * 0.28 +
+                noise(wx / 26 + 9, wy / 420 + t * 0.01) * 0.25;
+              // colour scattered through the blue in patches: green, teal, a lighter sky blue.
+              // The dither threshold jitters each patch's edge, so they break up into specks.
+              const jit = (BAYER[(py & 3) * 4 + (px & 3)] - 0.5) * 0.34;
+              const c1 = noise(wx / 70 + 40, wy / 90 + t * 0.01) + jit;
+              const c2 = noise(wx / 45 + 120, wy / 45) + jit;
+              const fam = c1 > 0.68 ? GREEN : c1 < 0.3 ? TEAL : c2 > 0.7 ? SKY : NAVY;
+              let [r, gr, b] = ramp(fam, (l * 0.95 - 0.08) * light.bright);
               // the pale reflection
               for (const o of glows) {
                 const q = ((x - o.x) ** 2 + (y - o.y - Math.sin(t * 0.2 + o.p) * 8) ** 2) / (o.r * o.r);
@@ -505,16 +513,20 @@ export default function KoiPond() {
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(off, 0, 0, gw * P, gh * P);
 
-      // --- ASCII: sparse ripples, then the koi and their wakes
+      // --- ASCII: the surface, then the koi and their wakes. The surface is a dense, faint
+      // texture of ripple characters on a coarser grid, flowing with the water: brighter
+      // where the current runs, a few greener ones among the blue.
       for (const g of gutters) {
-        for (let cy = 0; cy < H / CH; cy++) {
-          for (let cx = Math.floor(g.x / CW); cx < (g.x + g.w) / CW; cx++) {
+        for (let cy = 0; cy < H / (CH * 2); cy++) {
+          for (let cx = Math.floor(g.x / (CW * 3)); cx < (g.x + g.w) / (CW * 3); cx++) {
             const h = ihash(cx, cy);
-            if (h > 0.14) continue;
-            const r = noise(cx * 0.12 + t * 0.25, cy * 0.2 - t * 0.2);
-            if (r < 0.62) continue;
-            const k = fade(cx * CW);
-            stampKoi(ctx, WAKE[Math.floor(h * 80) % WAKE.length], WAKE_RGB, (r - 0.62) * 1.1 * k, cx * CW, cy * CH);
+            if (h > 0.5) continue;
+            const x = cx * CW * 3, y = cy * CH * 2;
+            const k = fade(x);
+            if (k < 0.05) continue;
+            const r = noise(x / 48 + t * 0.2, y / 30 - t * 0.16);
+            const a = (0.14 + Math.max(0, r - 0.45) * 1.1) * k;
+            stampKoi(ctx, WAKE[Math.floor((h + r) * 40) % WAKE.length], h < 0.08 ? [120, 190, 140] : WAKE_RGB, a, x, y);
           }
         }
       }
@@ -541,10 +553,17 @@ export default function KoiPond() {
         rain.push({ x: g.x + Math.random() * g.w, y: Math.random() * H, t });
         nextDrop = t + 0.05 + 0.5 / (1 + (weather.precip ?? 0) * 2);
       }
-      rain = rain.filter((d) => t - d.t < 1.1);
+      // each koi leaves rings behind its head as it swims, more often while it's beating hard
+      for (const f of fish) {
+        if (t < (f.nextRing ?? 0)) continue;
+        const [hx, hy] = f.spine[2];
+        rain.push({ x: hx, y: hy, t, koi: true });
+        f.nextRing = t + 0.5 + 1.3 * (1 - f.thrust);
+      }
+      rain = rain.filter((d) => t - d.t < (d.koi ? 1.8 : 1.1));
       for (const d of rain) {
-        const age = t - d.t, a = (0.5 - age * 0.45) * fade(d.x);
-        if (a > 0.03) ring(d.x, d.y, 3 + age * 26, a);
+        const age = t - d.t, a = (d.koi ? 0.42 - age * 0.24 : 0.5 - age * 0.45) * fade(d.x);
+        if (a > 0.03) ring(d.x, d.y, (d.koi ? 6 : 3) + age * (d.koi ? 22 : 26), a);
       }
     };
 
