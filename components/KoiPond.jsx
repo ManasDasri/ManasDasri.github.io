@@ -42,6 +42,24 @@ export function noise(x, y) {
 }
 export const mix = (a, b, t) => a + (b - a) * t;
 
+// Whether to hold the animations still: the visitor's system asks for less motion, or they
+// paused them from the dock (stored, and announced with a 'motion-change' event).
+export function motionPaused() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+  try {
+    return localStorage.getItem('motion') === 'paused';
+  } catch {
+    return false;
+  }
+}
+
+export function toggleMotion() {
+  try {
+    localStorage.setItem('motion', motionPaused() ? 'playing' : 'paused');
+  } catch {}
+  window.dispatchEvent(new Event('motion-change'));
+}
+
 // Runs fn once the browser is idle after the page loads, so the canvases don't compete with
 // it. Returns a function that cancels it.
 export function whenIdle(fn) {
@@ -337,7 +355,7 @@ export default function KoiPond() {
     const ctx = canvas.getContext('2d');
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let still = motionPaused();
     let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], rain = [], weather = null, nextDrop = 0, raf, last = 0, t = rand(0, 500);
 
     // the page's background, for the pond to fade into
@@ -539,6 +557,7 @@ export default function KoiPond() {
 
     const start = () => {
       cancelAnimationFrame(raf);
+      still = motionPaused();
       setup();
       if (!gutters.length) return ctx.clearRect(0, 0, W, H);
       if (still) {
@@ -573,6 +592,7 @@ export default function KoiPond() {
     });
     document.fonts?.ready.then(() => started && start());
     window.addEventListener('resize', start);
+    window.addEventListener('motion-change', start);
     window.addEventListener('pointerdown', feed);
     window.addEventListener('pointermove', hover);
     document.addEventListener('visibilitychange', onVisibility);
@@ -580,6 +600,7 @@ export default function KoiPond() {
       cancelIdle();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
+      window.removeEventListener('motion-change', start);
       window.removeEventListener('pointerdown', feed);
       window.removeEventListener('pointermove', hover);
       document.removeEventListener('visibilitychange', onVisibility);

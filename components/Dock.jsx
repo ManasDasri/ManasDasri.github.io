@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
-import { FiActivity, FiMail, FiCommand, FiCpu, FiFeather, FiHome, FiLayers, FiZap } from 'react-icons/fi';
+import { FiActivity, FiMail, FiCommand, FiCpu, FiFeather, FiHome, FiLayers, FiPause, FiPlay, FiZap } from 'react-icons/fi';
+import { motionPaused, toggleMotion } from './KoiPond';
 
 const ITEMS = [
   { id: 'top', label: 'Top', icon: FiHome },
@@ -76,6 +77,22 @@ function DockItem({ label, icon: Icon, href, onClick, active, mouse, vertical, b
   );
 }
 
+// Pauses or resumes the pond and the scenes. The choice is remembered; with reduced motion
+// set on the system they stay still regardless, so the button isn't shown.
+function MotionItem({ common }) {
+  const [state, setState] = useState(null); // null until mounted: 'paused', 'playing' or 'system'
+  useEffect(() => {
+    // the command palette can toggle it too
+    const read = () => setState(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'system' : motionPaused() ? 'paused' : 'playing');
+    read();
+    window.addEventListener('motion-change', read);
+    return () => window.removeEventListener('motion-change', read);
+  }, []);
+  if (!state || state === 'system') return null;
+  const paused = state === 'paused';
+  return <DockItem {...common} label={paused ? 'Play the animations' : 'Pause the animations'} icon={paused ? FiPlay : FiPause} onClick={toggleMotion} />;
+}
+
 export default function Dock() {
   const { vertical, base } = useLayout();
   const mouse = useMotionValue(Infinity);
@@ -103,8 +120,7 @@ export default function Dock() {
     <nav
       aria-label="Sections"
       style={{ viewTransitionName: 'dock' }}
-      // the theme menu lives inside the dock; browsing it shouldn't magnify the icons
-      onMouseMove={(e) => mouse.set(e.target.closest('[role=menu]') ? Infinity : vertical ? e.clientY : e.clientX)}
+      onMouseMove={(e) => mouse.set(vertical ? e.clientY : e.clientX)}
       onMouseLeave={() => mouse.set(Infinity)}
       className="fixed z-40 flex gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-ink/75 backdrop-blur-md border border-line/80 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] bottom-3 left-1/2 -translate-x-1/2 items-end max-w-[calc(100vw-16px)] dock:bottom-auto dock:left-5 dock:top-1/2 dock:-translate-y-1/2 dock:translate-x-0 dock:flex-col dock:items-start dock:max-w-none"
     >
@@ -112,6 +128,7 @@ export default function Dock() {
         <DockItem key={item.id} {...item} {...common} href={`/#${item.id}`} active={active === item.id} />
       ))}
       <span className="bg-line self-center w-px h-6 mx-0.5 dock:h-px dock:w-6 dock:mx-0 dock:my-0.5" aria-hidden="true" />
+      <MotionItem common={common} />
       <DockItem
         {...common}
         label="Command palette (⌘K)"

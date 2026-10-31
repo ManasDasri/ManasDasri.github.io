@@ -3,6 +3,7 @@
 import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
 import { commands } from '@/lib/data';
+import { toggleMotion } from './KoiPond';
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -26,16 +27,23 @@ export default function CommandPalette() {
 
   function runCommand(cmd) {
     setOpen(false);
-    if (cmd.terminal) {
-      document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (cmd.motion) {
+      toggleMotion();
+    } else if (cmd.terminal) {
+      // the terminal lives on Sprout's page
+      const term = document.getElementById('terminal');
+      if (!term) return (location.href = '/projects/sprout/#try');
+      term.scrollIntoView({ behavior: 'smooth', block: 'center' });
       window.dispatchEvent(new CustomEvent('terminal-run', { detail: cmd.terminal }));
     } else if (cmd.href?.startsWith('/')) {
       window.location.href = cmd.href;
     } else if (cmd.href) {
       window.open(cmd.href, '_blank', 'noopener');
     } else if (cmd.section) {
-      // via the hash, so tabbed sections (Log, Reading, Pull requests) open the right tab
-      window.location.hash = cmd.section;
+      // via the hash, so tabbed sections (Log, Pull requests) open the right tab; the
+      // sections are on the homepage
+      if (location.pathname === '/') window.location.hash = cmd.section;
+      else location.href = `/#${cmd.section}`;
     }
   }
 
