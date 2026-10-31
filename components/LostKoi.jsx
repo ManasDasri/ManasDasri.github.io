@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { body, drawKoi, makeFish, swim } from './KoiPond';
+import { body, drawKoi, makeFish, motionPaused, swim } from './KoiPond';
 
 // For the 404: one koi circling a small dark pool, as if looking for the page.
 export default function LostKoi() {
@@ -30,11 +30,21 @@ export default function LostKoi() {
       swim(koi, t, dt);
       draw();
     };
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      for (let i = 0; i < 60; i++) swim(koi, (t += 1 / 30), 1 / 30);
+    const start = () => {
+      cancelAnimationFrame(raf);
+      if (!motionPaused()) {
+        last = performance.now();
+        return (raf = requestAnimationFrame(loop));
+      }
+      if (!t) for (let i = 0; i < 60; i++) swim(koi, (t += 1 / 30), 1 / 30); // settle into a pose
       draw();
-    } else raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    };
+    start();
+    window.addEventListener('motion-change', start);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('motion-change', start);
+    };
   }, []);
 
   return (

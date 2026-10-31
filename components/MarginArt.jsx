@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { BAYER, STEP, ihash, makeStamper, mix, noise, rand, whenIdle } from './KoiPond';
+import { BAYER, STEP, ihash, makeStamper, mix, motionPaused, noise, rand, whenIdle } from './KoiPond';
 
 // The margins of the inner pages, in the same style as the homepage's pond: a scene drawn
 // as dithered pixels with dense ASCII over it, fading into the page toward the column.
@@ -16,7 +16,8 @@ import { BAYER, STEP, ihash, makeStamper, mix, noise, rand, whenIdle } from './K
 //   rain       rain running down a window, city lights blurred behind (the writing list)
 //   books      library shelves under a lamp, titles down the spines (the reading list)
 // Only the margins are computed. The garden is still and drawn once; the others move
-// slowly. Paused while the tab is hidden; still for reduced motion.
+// slowly. Paused while the tab is hidden; still when motion is reduced or paused. On a
+// phone there are no margins, so the scene is a strip across the top of the page instead.
 
 const P = 4; // css px per pixel of the scene
 const CW = 4; // ASCII cell
@@ -491,7 +492,7 @@ export default function MarginArt({ scene: name }) {
     const ctx = canvas.getContext('2d');
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
-    const still = !scene.moving || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let still;
     const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
     const ink = v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0];
     let W, H, gw, gh, img, gutters, state, raf, last = 0, t = rand(0, 100), frameNo = 0;
@@ -503,8 +504,9 @@ export default function MarginArt({ scene: name }) {
 
     const setup = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      W = window.innerWidth;
-      H = window.innerHeight;
+      // the whole window behind the page, or the strip on a phone (see the classes below)
+      W = canvas.clientWidth;
+      H = canvas.clientHeight;
       canvas.width = W * dpr;
       canvas.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -519,6 +521,8 @@ export default function MarginArt({ scene: name }) {
         { x: 0, w: left, edge: left },
         { x: right, w: W - right, edge: right },
       ].filter((g) => g.w >= 48);
+      // no margins: the strip is all scene, with no column to fade toward
+      if (!gutters.length) gutters = [{ x: 0, w: W, edge: -1e6 }];
       // set up each margin and merge them: lists (stalks, stones) span both; anything else
       // (the moon) comes from the first
       const parts = gutters.map((g) => scene.setup(g, H));
@@ -567,8 +571,8 @@ export default function MarginArt({ scene: name }) {
     };
     const start = () => {
       cancelAnimationFrame(raf);
+      still = !scene.moving || motionPaused();
       setup();
-      if (!gutters.length) return ctx.clearRect(0, 0, W, H);
       frameNo = 0;
       frame(0);
       if (still) return;
@@ -584,14 +588,22 @@ export default function MarginArt({ scene: name }) {
     });
     document.fonts?.ready.then(() => started && start());
     window.addEventListener('resize', start);
+    window.addEventListener('motion-change', start);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelIdle();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
+      window.removeEventListener('motion-change', start);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [name]);
 
-  return <canvas ref={ref} className="pond fixed inset-0 w-screen h-screen pointer-events-none" aria-hidden="true" />;
+  return (
+    <canvas
+      ref={ref}
+      className="pond fixed inset-0 w-screen h-screen pointer-events-none max-md:static max-md:block max-md:w-full max-md:h-40 max-md:[mask-image:linear-gradient(#000_55%,transparent)]"
+      aria-hidden="true"
+    />
+  );
 }

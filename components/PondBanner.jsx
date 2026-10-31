@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { getWeather } from '@/lib/weather';
-import { body, drawKoi, makeFish, makeStamper, swim, whenIdle } from './KoiPond';
+import { body, drawKoi, makeFish, makeStamper, motionPaused, swim, whenIdle } from './KoiPond';
 
 // The banner: the pond's surface, seen from above, in ASCII. Ripples run on a small wave
 // simulation; moving the pointer stirs the water, a click drops a stone, and a koi glides
@@ -28,7 +28,7 @@ export default function PondBanner() {
   useEffect(() => {
     const canvas = ref.current;
     const ctx = canvas.getContext('2d');
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let still = motionPaused();
     let W, H, cols, rows, cur, prev, koi, colours, raf, last = 0, t = 0, nextDrop = 0, visible = true;
 
     const stamp = makeStamper(FONT, CW, CH);
@@ -150,7 +150,13 @@ export default function PondBanner() {
     io.observe(canvas);
     header.addEventListener('pointermove', stir);
     header.addEventListener('pointerdown', stone);
+    const onMotion = () => {
+      still = motionPaused();
+      if (still) cancelAnimationFrame(raf);
+      run();
+    };
     window.addEventListener('resize', onResize);
+    window.addEventListener('motion-change', onMotion);
     document.addEventListener('visibilitychange', run);
     document.fonts?.ready.then(() => draw());
     return () => {
@@ -160,6 +166,7 @@ export default function PondBanner() {
       header.removeEventListener('pointermove', stir);
       header.removeEventListener('pointerdown', stone);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('motion-change', onMotion);
       document.removeEventListener('visibilitychange', run);
     };
   }, []);
