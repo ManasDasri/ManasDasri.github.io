@@ -359,7 +359,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     let still = motionPaused();
-    let W, H, gw, gh, img, shade, glint, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], rain = [], weather = null, nextDrop = 0, raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], rain = [], weather = null, nextDrop = 0, raf, last = 0, t = rand(0, 500);
 
     // the page's background, for the pond to fade into
     const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
@@ -379,7 +379,6 @@ export default function KoiPond() {
       off.height = gh;
       img = octx.createImageData(gw, gh);
       shade = new Float32Array(gw * gh);
-      glint = new Float32Array(gw * gh);
       base = new Float32Array(gw * gh * 3);
       frameNo = 0;
       light = lightNow();
@@ -427,22 +426,6 @@ export default function KoiPond() {
       // fish shadows, offset down and right: a few soft circles along each body, drawn into a
       // darkening buffer once rather than tested for every water pixel
       shade.fill(0);
-      // the water catches the light along each koi's ripples (the rings below, a frame
-      // behind, which doesn't show): a soft band of pale blue at each ring's edge
-      glint.fill(0);
-      for (const d of rain) {
-        if (!d.koi) continue;
-        const age = t - d.t, a = Math.max(0, 0.8 - age * 0.22) * 0.7;
-        for (const rr of [6 + age * 30, age > 0.35 ? 6 + (age - 0.35) * 30 : -1]) {
-          if (rr < 0) continue;
-          const rp = rr / P, cx = d.x / P, cy = d.y / P;
-          for (let py = Math.max(0, Math.floor(cy - rp - 2)); py <= Math.min(gh - 1, cy + rp + 2); py++)
-            for (let px = Math.max(0, Math.floor(cx - rp - 2)); px <= Math.min(gw - 1, cx + rp + 2); px++) {
-              const off = Math.abs(Math.hypot(px - cx, (py - cy) / 0.8) - rp);
-              if (off < 1.6) glint[py * gw + px] = Math.max(glint[py * gw + px], a * (1 - off / 1.6));
-            }
-        }
-      }
       bodies.forEach((pts, fi) =>
         pts.forEach(([x, y], j) => {
           if (j % 2) return;
@@ -515,13 +498,12 @@ export default function KoiPond() {
               base[j + 2] = b;
             }
             const sh = 1 - shade[py * gw + px];
-            const gl = glint[py * gw + px];
-            const r = mix(base[j] * sh, 150, gl), gr = mix(base[j + 1] * sh, 196, gl), b = mix(base[j + 2] * sh, 226, gl);
+            const r = base[j] * sh, gr = base[j + 1] * sh, b = base[j + 2] * sh;
             const th = BAYER[(py & 3) * 4 + (px & 3)];
             // dither the water, then fade it into the page colour
-            d[i] = mix(ink[0], Math.floor((r * 0.78) / STEP + th) * STEP, k);
-            d[i + 1] = mix(ink[1], Math.floor((gr * 0.78) / STEP + th) * STEP, k);
-            d[i + 2] = mix(ink[2], Math.floor((b * 0.78) / STEP + th) * STEP, k);
+            d[i] = mix(ink[0], Math.floor((r * 0.96) / STEP + th) * STEP, k);
+            d[i + 1] = mix(ink[1], Math.floor((gr * 0.96) / STEP + th) * STEP, k);
+            d[i + 2] = mix(ink[2], Math.floor((b * 0.96) / STEP + th) * STEP, k);
           }
         }
       }
@@ -550,32 +532,22 @@ export default function KoiPond() {
       }
       // a ring of ASCII spreading out from (x, y)
       const ring = (x, y, r, a) => {
-        for (let k = 0, n = Math.max(12, Math.round(r / 1.2)); k < n; k++) {
+        for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
           const ang = (k / n) * Math.PI * 2;
-          stampKoi(ctx, k % 3 ? '~' : '-', [214, 238, 250], a, x + Math.cos(ang) * r - 2, y + Math.sin(ang) * r * 0.8 - 4);
+          stampKoi(ctx, k % 2 ? '~' : '-', [150, 200, 225], a, x + Math.cos(ang) * r - 2, y + Math.sin(ang) * r * 0.8 - 4);
         }
       };
-      // ripples, drawn under the koi. While it's raining in Bengaluru it rains on the pond:
-      // small rings, more of them the harder it falls
+      // while it's raining in Bengaluru it rains on the pond: small rings, under the koi,
+      // more of them the harder it falls
       if (weather?.rain && t > nextDrop) {
         const g = gutters[Math.floor(Math.random() * gutters.length)];
         rain.push({ x: g.x + Math.random() * g.w, y: Math.random() * H, t });
         nextDrop = t + 0.05 + 0.5 / (1 + (weather.precip ?? 0) * 2);
       }
-      // each koi leaves rings behind its head as it swims, more often while it's beating hard
-      for (const f of fish) {
-        if (t < (f.nextRing ?? 0)) continue;
-        const [hx, hy] = f.spine[2];
-        rain.push({ x: hx, y: hy, t, koi: true });
-        f.nextRing = t + 0.5 + 1.3 * (1 - f.thrust);
-      }
-      rain = rain.filter((d) => t - d.t < (d.koi ? 3.4 : 1.1));
+      rain = rain.filter((d) => t - d.t < 1.1);
       for (const d of rain) {
-        const age = t - d.t, a = (d.koi ? 0.8 - age * 0.22 : 0.5 - age * 0.45) * fade(d.x);
-        if (a <= 0.03) continue;
-        ring(d.x, d.y, (d.koi ? 6 : 3) + age * (d.koi ? 30 : 26), a);
-        // a koi's ripple is a pair of rings, the second a little behind the first
-        if (d.koi && age > 0.35) ring(d.x, d.y, 6 + (age - 0.35) * 30, a * 0.6);
+        const age = t - d.t, a = (0.5 - age * 0.45) * fade(d.x);
+        if (a > 0.03) ring(d.x, d.y, 3 + age * 26, a);
       }
       bodies.forEach((pts, fi) => drawKoi(ctx, fish[fi], pts, fade));
       // food: a pellet, and a ring spreading from where it landed
