@@ -13,6 +13,7 @@ import { BAYER, STEP, ihash, makeStamper, mix, motionPaused, noise, rand, whenId
 //   flow       a calm stream running down, currents drawn over it (Flow)
 //   air        a city's air: haze, drifting particles, sensors on the roofs (Atmos)
 //   market     a chart's dark grid (Velora)
+//   horizon    a starfield over a planet's glowing horizon (Forme)
 //   rain       rain running down a window, city lights blurred behind (the writing list)
 //   books      library shelves under a lamp, titles down the spines (the reading list)
 // Only the margins are computed. The garden is still and drawn once; the others move
@@ -480,6 +481,37 @@ const SCENES = {
       return x % 30 < 1 || y % 30 < 1 ? [18, 24, 38] : [8, 11, 20];
     },
     ascii() {},
+  },
+
+  // Forme: a starfield over a planet's glowing horizon, like its own homepage
+  horizon: {
+    moving: true,
+    setup(g, H) {
+      return { planets: [{ x: g.x + g.w / 2, y: H * 1.5, r: H * 0.82 }] };
+    },
+    colour(x, y, t, s, H) {
+      const pl = s.planets.reduce((a, b) => (Math.abs(b.x - x) < Math.abs(a.x - x) ? b : a));
+      const d = Math.hypot(x - pl.x, y - pl.y) - pl.r; // distance outside the planet's edge
+      if (d < 0) return [3, 3, 7].map((v, i) => v + [60, 64, 96][i] * Math.exp(d / 10)); // its night side, lit at the rim
+      const k = 1 - y / H;
+      let c = [4 + 4 * k, 5 + 5 * k, 12 + 8 * k];
+      c = c.map((v, i) => v + [120, 130, 200][i] * Math.exp(-d / 46) * 0.7 + [230, 232, 255][i] * Math.exp(-d / 5) * 0.9);
+      // stars, twinkling
+      const h = ihash(x >> 2, y >> 2);
+      if (h < 0.006) c = c.map((v) => Math.max(v, 150 + 90 * Math.sin(t * 1.5 + h * 4000)));
+      return c;
+    },
+    ascii(ctx, t, s, H, fade, gutters) {
+      for (const g of gutters)
+        for (let y = 0; y < H * 0.75; y += CH * 3)
+          for (let x = g.x; x < g.x + g.w; x += CW * 3) {
+            const h = ihash(x, y);
+            if (h > 0.03) continue;
+            const f = fade(x);
+            const tw = 0.5 + 0.5 * Math.sin(t * 2 + h * 900);
+            if (f > 0.05) stamp(ctx, h < 0.01 ? '*' : h < 0.02 ? '+' : '.', [210, 214, 240], tw * 0.8 * f, x, y);
+          }
+    },
   },
 };
 
