@@ -14,7 +14,7 @@ import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
 // each project's margin art (components/MarginArt.jsx)
-const SCENE = { sprout: 'sprout', flow: 'flow', atmos: 'air', velora: 'market', 'gradient-works': 'network' };
+const SCENE = { sprout: 'sprout', flow: 'flow', atmos: 'air', velora: 'market', 'gradient-works': 'network', forme: 'horizon' };
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 const linkClass = 'font-mono text-sm text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal';
 
