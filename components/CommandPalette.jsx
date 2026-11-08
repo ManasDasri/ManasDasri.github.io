@@ -4,6 +4,7 @@ import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
 import { commands } from '@/lib/data';
 import { toggleMotion } from './KoiPond';
+import { setTheme } from '@/lib/themes';
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -29,6 +30,8 @@ export default function CommandPalette() {
     setOpen(false);
     if (cmd.motion) {
       toggleMotion();
+    } else if (cmd.theme) {
+      setTheme(cmd.theme);
     } else if (cmd.terminal) {
       // the terminal lives on Sprout's page
       const term = document.getElementById('terminal');

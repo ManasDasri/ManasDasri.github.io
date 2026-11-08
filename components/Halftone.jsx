@@ -128,6 +128,7 @@ export default function Halftone() {
     window.addEventListener('pointermove', move);
     document.addEventListener('pointerleave', leave);
     window.addEventListener('resize', onResize);
+    window.addEventListener('theme-change', onResize);
     window.addEventListener('motion-change', onMotion);
     document.addEventListener('visibilitychange', run);
     return () => {
@@ -136,6 +137,7 @@ export default function Halftone() {
       window.removeEventListener('pointermove', move);
       document.removeEventListener('pointerleave', leave);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('theme-change', onResize);
       window.removeEventListener('motion-change', onMotion);
       document.removeEventListener('visibilitychange', run);
     };
