@@ -16,7 +16,7 @@ export default function GithubStats() {
     ])
       .then(([user, merged]) =>
         setStats([
-          [merged.total_count, 'pull requests merged'],
+          [merged.total_count, 'pull requests merged, my own repos included'],
           [user.public_repos, 'public repositories'],
           [user.followers, 'followers'],
         ])

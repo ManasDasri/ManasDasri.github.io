@@ -17,7 +17,7 @@ import Footer from '@/components/Footer';
 import Starfield from '@/components/Starfield';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
-import { getTickerData } from '@/lib/ticker';
+import { getContributions, getTickerData } from '@/lib/ticker';
 import { log } from '@/lib/data';
 
 // only the home page is canonical for '/' (set here, not in the layout, or every page would claim it)
@@ -27,6 +27,7 @@ export const metadata = {
 
 export default async function Home() {
   const leetcode = await getLeetCodeStats('ManasDasari');
+  const contributions = await getContributions();
   const { sprout, mergedPRs } = await getTickerData();
   const milestone = log.find((e) => e.date !== 'upcoming');
   // three facts for someone skimming; any that failed to load at build are left out
@@ -66,7 +67,7 @@ export default async function Home() {
          
           title="Activity"
           tabs={[
-            { id: 'contributions', label: 'contributions', note: 'GitHub live; LeetCode as of the last daily build', content: <GithubActivity leetcode={leetcode} /> },
+            { id: 'contributions', label: 'contributions', note: 'GitHub numbers live; calendars as of the last build', content: <GithubActivity leetcode={leetcode} contributions={contributions} /> },
             { id: 'proof-of-work', label: 'pull requests', note: 'my pull requests, live from GitHub', content: <ProofOfWork /> },
           ]}
         />

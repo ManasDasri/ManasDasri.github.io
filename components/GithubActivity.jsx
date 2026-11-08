@@ -7,11 +7,9 @@ import Section from './Section';
 import GithubStats from './GithubStats';
 
 const loading = () => <p className="font-display text-xs text-mute">loading activity…</p>;
-const GitHubCalendar = dynamic(() => import('react-github-calendar').then((m) => m.GitHubCalendar), { ssr: false, loading });
 const ActivityCalendar = dynamic(() => import('react-activity-calendar').then((m) => m.ActivityCalendar), { ssr: false, loading });
 const Tooltip = dynamic(() => import('react-tooltip').then((mod) => mod.Tooltip), { ssr: false });
 
-const GITHUB_USERNAME = 'ManasDasri';
 const MONTHS_TO_SHOW = 8;
 
 // Both grids share the look of the cells up top.
@@ -110,21 +108,23 @@ function useCalendarTheme() {
   return theme;
 }
 
-export default function GithubActivity({ leetcode }) {
+export default function GithubActivity({ leetcode, contributions }) {
   const theme = useCalendarTheme();
   return (
-    <Section id="activity" title="Activity" note="GitHub live; LeetCode as of the last daily build">
+    <Section id="activity" title="Activity" note="GitHub numbers live; calendars as of the last build">
       <div className={panel}>
         <h3 className="sr-only">GitHub</h3>
         <GithubStats />
         <div className={grid}>
-          <GitHubCalendar
-            {...CALENDAR}
-            theme={theme ?? undefined}
-            username={GITHUB_USERNAME}
-            transformData={filterToRecentMonths}
-            renderBlock={withTooltip('contribution')}
-          />
+          {contributions?.length ? (
+            <ActivityCalendar
+              {...CALENDAR}
+              theme={theme ?? undefined}
+              data={filterToRecentMonths(contributions)}
+              labels={{ ...CALENDAR.labels, totalCount: '{{count}} contributions in the last 8 months' }}
+              renderBlock={withTooltip('contribution')}
+            />
+          ) : null}
         </div>
       </div>
       <LeetCodePanel stats={leetcode} />
