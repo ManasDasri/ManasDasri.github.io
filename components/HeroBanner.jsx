@@ -2,11 +2,11 @@ import NowPlaying from './NowPlaying';
 import VideoBanner from './VideoBanner';
 
 // The banner: a looping black hole (VideoBanner) fading out before the name. Inside the content
-// column so its edges line up with the page. data-video tells the dot field (Halftone.jsx) to
-// leave the header to it.
+// column so its edges line up with the page. The starfield in the margins (Starfield.jsx) bends
+// round it.
 export default function HeroBanner() {
   return (
-    <header id="top" data-video className="relative z-[2] max-w-2xl mx-auto border-x border-dashed border-line/70 h-[clamp(260px,40svh,380px)] overflow-hidden">
+    <header id="top" className="relative z-[2] max-w-2xl mx-auto border-x border-dashed border-line/70 h-[clamp(260px,40svh,380px)] overflow-hidden">
       <VideoBanner />
       {/* rise sits on the wrapper: both it and the hover shimmer use `animation`, so on the
           same element un-hovering would replay the fade-in */}
