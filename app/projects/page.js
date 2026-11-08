@@ -5,7 +5,7 @@ import PageShell from '@/components/PageShell';
 
 export const metadata = {
   title: 'Projects · Manas Dasari',
-  description: 'Everything I’ve built: developer tools, real-time apps, quant research and an applied AI studio.',
+  description: 'Everything I’ve built: ML research, developer tools, real-time apps, quant research and an applied AI studio.',
   alternates: { canonical: '/projects/' },
 };
 

@@ -13,12 +13,12 @@ import { SITE, socials } from '@/lib/data';
 const NO_RISE_AFTER_MORPH = `addEventListener('pagereveal',function(e){if(e.viewTransition){var s=new CSSStyleSheet();s.replaceSync('.morph{animation:none}');document.adoptedStyleSheets=document.adoptedStyleSheets.concat(s)}})`;
 
 const description =
-  'CS undergrad at Amrita building developer tools and real-time web apps: Sprout, Flow, Atmos and Velora.';
+  'CS undergrad at Amrita running reproducible machine learning experiments (Clause Risk Review, Med-EEG) and building developer tools (Sprout).';
 
 export const metadata = {
   metadataBase: new URL(SITE),
   // the home page's title in search results; other pages set their own
-  title: 'Manas Dasari · Developer tools, real-time apps and fintech',
+  title: 'Manas Dasari · ML research and developer tools',
   description,
   alternates: { types: { 'application/rss+xml': [{ url: '/feed.xml', title: 'Manas Dasari · Writing' }] } },
   openGraph: { title: 'Manas Dasari', description, url: '/', siteName: 'Manas Dasari', type: 'website' },

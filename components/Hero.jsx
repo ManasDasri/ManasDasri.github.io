@@ -5,7 +5,7 @@ import Socials from './Socials';
 import Typewriter from './Typewriter';
 import { status } from '@/lib/data';
 
-const ROLES = ['Engineer', 'Fintech Enthusiast', 'Artist', 'Writer'];
+const ROLES = ['ML Researcher', 'Engineer', 'Artist', 'Writer'];
 
 const CODING_START_DATE = new Date('2026-01-01');
 
@@ -32,7 +32,7 @@ export default function Hero({ highlights = [] }) {
             <span className="text-mute">$ whoami</span> <Typewriter words={ROLES} />
           </p>
           <p className="font-mono text-xs text-mute mt-1">
-            5th sem CSE, Amrita School of Engineering · coding for {uptime}
+            5th sem CSE, Amrita School of Engineering, class of 2028 · coding for {uptime}
           </p>
           {status && (
             <a
@@ -50,10 +50,14 @@ export default function Hero({ highlights = [] }) {
       </div>
 
       <p style={{ '--i': 2 }} className="rise text-lg sm:text-xl text-text/80 leading-relaxed max-w-[54ch]">
-        I build developer tools and real-time web apps, and I like problems where software
-        meets finance. Right now that means shipping{' '}
-        <a href="#building" className="text-signal font-bold">Sprout</a>, a codebase mapper for
-        developers and AI agents, alongside <strong className="text-text">Flow</strong> and <strong className="text-text">Atmos</strong>.
+        I run machine learning experiments built to be checked: held-out tests, baselines,
+        and the null results reported alongside the rest. Right now that's{' '}
+        <a href="/projects/clause-risk-review/" className="text-signal font-bold">Clause Risk Review</a>, BERT
+        against Legal-BERT on contracts, and{' '}
+        <a href="/projects/med-eeg/" className="text-signal font-bold">Med-EEG</a>, EEG biomarkers tested against
+        non-EEG baselines. I also build developer tools, like{' '}
+        <a href="/projects/sprout/" className="text-signal font-bold">Sprout</a>, a codebase mapper for
+        developers and AI agents.
       </p>
 
       <div style={{ '--i': 3 }} className="rise flex gap-3 flex-wrap mt-7">

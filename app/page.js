@@ -32,7 +32,7 @@ export default async function Home() {
   // three facts for someone skimming; any that failed to load at build are left out
   const highlights = [
     sprout && { value: `Sprout ${sprout}`, label: 'shipped', href: 'https://github.com/Sprout-DevLabs/sprout/releases' },
-    mergedPRs && { value: `${mergedPRs} PRs`, label: 'merged', href: '#proof-of-work' },
+    mergedPRs && { value: `${mergedPRs} PRs`, label: 'merged into open source', href: '#proof-of-work' },
     milestone && { value: milestone.title.replace(/,.*$/, ''), label: milestone.note ?? '', href: '#log' },
   ].filter(Boolean);
 
