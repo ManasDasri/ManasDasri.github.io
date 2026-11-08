@@ -150,7 +150,13 @@ export default function Starfield() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize);
-    window.addEventListener('theme-change', onResize);
+    // a new accent recolours the stars where they are; the field isn't scattered again
+    const recolour = () => {
+      star = rgb('text', star);
+      accent = rgb('signal', accent);
+      draw();
+    };
+    window.addEventListener('theme-change', recolour);
     window.addEventListener('motion-change', onMotion);
     document.addEventListener('visibilitychange', run);
     return () => {
@@ -158,7 +164,7 @@ export default function Starfield() {
       cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('theme-change', onResize);
+      window.removeEventListener('theme-change', recolour);
       window.removeEventListener('motion-change', onMotion);
       document.removeEventListener('visibilitychange', run);
     };
