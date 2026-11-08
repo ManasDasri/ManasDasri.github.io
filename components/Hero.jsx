@@ -75,6 +75,12 @@ export default function Hero({ highlights = [] }) {
         >
           Resume (PDF)
         </a>
+        <a
+          href="/recruiter/"
+          className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
+        >
+          Recruiter view
+        </a>
       </div>
 
       {highlights.length > 0 && (
