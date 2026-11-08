@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Socials from './Socials';
 import Typewriter from './Typewriter';
 import { status } from '@/lib/data';
 
@@ -99,10 +98,6 @@ export default function Hero({ highlights = [] }) {
           ))}
         </ul>
       )}
-
-      <div style={{ '--i': 5 }} className="rise mt-10">
-        <Socials />
-      </div>
     </section>
   );
 }
