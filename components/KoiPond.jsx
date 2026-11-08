@@ -15,7 +15,7 @@ const P = 4; // css px per water pixel
 const CW = 4; // ASCII cell, css px
 const CH = 6;
 const FPS = 30;
-const KOI_FONT = `700 ${CH}px "JetBrains Mono", monospace`;
+const KOI_FONT = `700 ${CH}px "Space Mono", monospace`;
 export const STEP = 20; // colour quantisation step for the dither
 const BODY = ':;~=+*ixzoIX%#&0@'; // edge to core
 const SCALE = 'xX%&#8'; // scale texture across the body

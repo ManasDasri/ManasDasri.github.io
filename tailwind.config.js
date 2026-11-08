@@ -20,13 +20,14 @@ module.exports = {
         accent: 'rgb(var(--c-accent) / <alpha-value>)',
       },
       fontFamily: {
-        head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
-        // display titles: names, section and page headings
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        display: ['"JetBrains Mono"', 'monospace'],
-        mono: ['"JetBrains Mono"', 'monospace'],
-        // prose is set in the grotesque; mono is kept for labels, data and code
-        body: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        // Space Grotesk and its sibling Space Mono
+        head: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        // display titles: names, section and page headings (the name is historical)
+        serif: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        display: ['"Space Mono"', 'monospace'],
+        mono: ['"Space Mono"', 'monospace'],
+        // prose is set in the grotesk; mono is kept for labels, data and code
+        body: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
       },
       // where the dock moves to the left side: the 42rem column plus room for the dock beside it
       screens: { dock: '960px' },
