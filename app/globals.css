@@ -259,3 +259,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .shimmer:hover { animation: none; }
 }
+
+/* The recruiter view, printed: black on white, links spelled out, no page chrome */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .recruiter, .recruiter * { color: #000 !important; background: transparent !important; border-color: #ccc !important; box-shadow: none !important; }
+  .recruiter a[href^="http"]::after, .recruiter a[href^="mailto"]::after { content: " (" attr(href) ")"; font-size: 0.8em; word-break: break-all; }
+}

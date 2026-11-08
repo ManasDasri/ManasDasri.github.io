@@ -11,10 +11,18 @@ const detailed = projects.filter((p) => p.slug);
 const fmt = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 export function generateStaticParams() {
-  return [...detailed.map((p) => ({ card: `project-${p.slug}.png` })), ...getPosts().map((p) => ({ card: `post-${p.slug}.png` }))];
+  return [{ card: 'recruiter.png' }, ...detailed.map((p) => ({ card: `project-${p.slug}.png` })), ...getPosts().map((p) => ({ card: `post-${p.slug}.png` }))];
 }
 
 export function GET(_req, { params }) {
+  if (params.card === 'recruiter.png')
+    return shareCard({
+      kicker: 'Recruiter view',
+      title: 'Manas Dasari',
+      subtitle: 'AI/ML engineering, research and applied AI internships',
+      meta: 'Clause Risk Review · Med-EEG · Sprout',
+      path: '/recruiter/',
+    });
   const [, kind, slug] = params.card.match(/^(project|post)-(.+)\.png$/);
   if (kind === 'project') {
     const p = detailed.find((p) => p.slug === slug);
