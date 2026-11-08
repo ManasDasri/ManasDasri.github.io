@@ -1,7 +1,7 @@
 import VideoBanner from './VideoBanner';
 import NowPlaying from './NowPlaying';
 
-// The banner: a looping halftone animation, inside the content column so its edges line up
+// The banner: a looping black-and-white montage, inside the content column so its edges line up
 // with the page, with the name over its foot.
 export default function HeroBanner() {
   return (

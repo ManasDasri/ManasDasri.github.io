@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motionPaused } from './KoiPond';
 
-// The banner's loop: a 7-second halftone animation, muted. It plays only while it's on
+// The banner's loop: a 12-second black-and-white montage (light streaks, smoke, a jet), muted. It plays only while it's on
 // screen, and stands on its first frame when motion is reduced or paused from the dock.
 export default function VideoBanner() {
   const ref = useRef(null);
