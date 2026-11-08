@@ -1,6 +1,6 @@
 import { SiGithub } from 'react-icons/si';
 import { FiGlobe } from 'react-icons/fi';
-import { projects } from '@/lib/data';
+import { byRank, projects } from '@/lib/data';
 import PageShell from '@/components/PageShell';
 
 export const metadata = {
@@ -11,10 +11,10 @@ export const metadata = {
 
 const iconLink = 'w-8 h-8 flex items-center justify-center rounded-md text-mute hover:text-signal hover:bg-paper transition-colors';
 
-// Every project, newest first with the featured one leading: its name (to its page), what it
+// Every project, the featured ones first (research, then Sprout and Atmos), then newest first: its name (to its page), what it
 // is, what it's made with, and links to the site and the source.
 export default function Projects() {
-  const list = [...projects].sort((a, b) => (b.featured ?? 0) - (a.featured ?? 0) || (b.started ?? '').localeCompare(a.started ?? ''));
+  const list = [...projects].sort(byRank);
   return (
     <PageShell scene="bamboo" title="Projects">
       <h2 className="font-serif text-3xl text-text/90 mb-8">Selected</h2>
