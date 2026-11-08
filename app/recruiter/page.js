@@ -57,7 +57,7 @@ export default async function Recruiter() {
 
       <header className="mt-10">
         <h1 className="font-serif text-5xl sm:text-6xl leading-none m-0">Manas Dasari</h1>
-        <p className="font-head text-lg sm:text-xl text-text mt-4 mb-0">AI/ML engineering · research · applied AI internships</p>
+        <p className="font-head text-lg sm:text-xl text-text mt-4 mb-0">AI/ML engineering · research · applied AI internships, and freelance work</p>
         <p className="text-mute mt-2 mb-0">CSE undergraduate (5th semester, class of 2028), Amrita School of Engineering · Bangalore, Karnataka, India</p>
         <p className="text-text/90 leading-relaxed mt-5 max-w-[60ch]">
           I run machine learning experiments built to be checked (held-out tests, baselines, null results reported) and build the tools around them.
