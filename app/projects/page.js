@@ -11,30 +11,44 @@ export const metadata = {
 
 const iconLink = 'w-8 h-8 flex items-center justify-center rounded-md text-mute hover:text-signal hover:bg-paper transition-colors';
 
-// Every project, the featured ones first (research, then Sprout and Atmos), then newest first: its name (to its page), what it
-// is, what it's made with, and links to the site and the source.
+// Every project as a card, the featured ones first, then newest first: a picture (or, for one
+// with nothing to show yet, the GitHub mark on a dotted tile), what it is, what it does, a line of evidence where
+// there is one, and links to the site and the source.
 export default function Projects() {
   const list = [...projects].sort(byRank);
   return (
     <PageShell scene="bamboo" title="Projects">
-      <h2 className="font-serif text-3xl text-text/90 mb-8">Selected</h2>
-      <ul className="list-none m-0 p-0">
+      <ul className="list-none m-0 p-0 grid gap-x-6 gap-y-12 sm:grid-cols-2">
         {list.map((p) => {
           const site = p.link && !p.link.includes('github.com') ? p.link : null;
           const repo = p.repoUrl ?? (p.repo ? `https://github.com/${p.repo}` : p.link?.includes('github.com') ? p.link : null);
+          const href = p.slug ? `/projects/${p.slug}/` : repo;
+          const out = p.slug ? {} : { target: '_blank', rel: 'noopener noreferrer' };
           return (
-            <li key={p.name} className="border-t border-line py-7">
-              <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
-                <a
-                  href={p.slug ? `/projects/${p.slug}/` : repo}
-                  {...(p.slug ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-                  className="font-serif text-4xl leading-none text-text no-underline border-b border-dashed border-mute/50 hover:text-signal hover:border-signal transition-colors"
-                  style={p.slug ? { viewTransitionName: `project-${p.slug}` } : undefined}
-                >
-                  {p.name}
-                </a>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-mute">{p.tags.slice(0, 2).map((t) => t.label).join(' · ')}</span>
+            <li key={p.name} className="flex flex-col">
+              <a href={href} {...out} className="group block no-underline" aria-label={p.name}>
+                <span className="block aspect-[16/10] overflow-hidden rounded-lg border border-line bg-paper">
+                  {p.screenshots?.length ? (
+                    <img
+                      src={p.screenshots[0].src}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
+                    />
+                  ) : (
+                    // nothing to show yet: the GitHub mark on a dotted tile, since the source is what there is
+                    <span className="flex w-full h-full items-center justify-center bg-[radial-gradient(rgb(var(--c-text)/0.14)_1.2px,transparent_1.2px)] [background-size:12px_12px]">
+                      <SiGithub className="w-14 h-14 text-text/70 transition-colors group-hover:text-signal" aria-hidden="true" />
+                    </span>
+                  )}
+                </span>
+              </a>
+              <div className="flex items-start justify-between gap-3 mt-3">
+                <span className="font-mono text-[11px] text-mute pt-1">
+                  {p.kind}
+                  {p.badge ? ` · ${p.badge}` : ''}
+                </span>
+                <span className="flex items-center -mr-2">
                   {site && (
                     <a href={site} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} website`} className={iconLink}>
                       <FiGlobe className="w-4 h-4" aria-hidden="true" />
@@ -45,9 +59,19 @@ export default function Projects() {
                       <SiGithub className="w-4 h-4" aria-hidden="true" />
                     </a>
                   )}
-                </div>
+                </span>
               </div>
-              <p className="text-mute leading-relaxed mt-3 max-w-[54ch] line-clamp-2">{p.description}</p>
+              <a
+                href={href}
+                {...out}
+                className="w-fit font-serif text-3xl leading-tight text-text no-underline hover:text-signal transition-colors"
+                style={p.slug ? { viewTransitionName: `project-${p.slug}` } : undefined}
+              >
+                {p.name}
+              </a>
+              <p className="text-sm text-text/75 leading-relaxed mt-2 mb-0 line-clamp-3">{p.description}</p>
+              {p.proof && <p className="font-mono text-[11px] leading-relaxed text-signal/90 mt-2 mb-0">{p.proof}</p>}
+              <p className="font-mono text-[11px] text-mute mt-3 mb-0">{p.tags.map((t) => t.label).join(' · ')}</p>
             </li>
           );
         })}
