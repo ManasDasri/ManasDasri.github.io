@@ -6,7 +6,6 @@ import '@fontsource/bricolage-grotesque/latin-600.css';
 import '@fontsource/bricolage-grotesque/latin-700.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
 import '@fontsource/jetbrains-mono/latin-700.css';
-import { ScrollProgress } from '@/components/Effects';
 import { SITE, socials } from '@/lib/data';
 
 // A title reached through a view transition already morphed in, so its rise stays off for
@@ -54,7 +53,6 @@ export default function RootLayout({ children }) {
         >
           Skip to content
         </a>
-        <ScrollProgress />
         {children}
       </body>
     </html>
