@@ -11,7 +11,7 @@ export const metadata = {
   alternates: { canonical: '/recruiter/' },
   openGraph: {
     title: 'Manas Dasari · Recruiter view',
-    description: 'AI/ML and research internships. Three projects with their results, open-source work, resume and contact.',
+    description: 'AI/ML and research internships, and freelance work. Three projects with their results, open-source work, resume and contact.',
     url: '/recruiter/',
     images: [{ url: '/og/recruiter.png', width: 1200, height: 630, alt: 'Manas Dasari: recruiter view' }],
   },
@@ -28,6 +28,7 @@ const SKILLS = [
 ];
 const OSS = [
   { repo: 'exercism/vbnet', href: 'https://github.com/exercism/vbnet/pulls?q=is%3Apr+is%3Amerged+author%3AManasDasri', what: '12 merged PRs syncing exercises and their tests with the canonical problem specifications (poker, linked-list, wordy, crypto-square and others)' },
+  { repo: 'AnushreeKasturi/Survivorship', href: 'https://github.com/AnushreeKasturi/Survivorship/pulls?q=is%3Apr+is%3Amerged+author%3AManasDasri', what: '15 merged PRs as a contributor to a Scala + Spark study of whether news sentiment predicts startup survival: leak-free features and cross-validated evaluation, Scala CI, the web demo and its deployment' },
   { repo: 'gleam-lang/gleam', href: 'https://github.com/gleam-lang/gleam/pull/6361', what: '1 merged PR: link to the Hex diff for changed packages when updating dependencies' },
 ];
 const WRITING = [
@@ -57,7 +58,7 @@ export default async function Recruiter() {
       <header className="mt-10">
         <h1 className="font-serif text-5xl sm:text-6xl leading-none m-0">Manas Dasari</h1>
         <p className="font-head text-lg sm:text-xl text-text mt-4 mb-0">AI/ML engineering · research · applied AI internships</p>
-        <p className="text-mute mt-2 mb-0">CSE undergraduate, 5th semester, Amrita School of Engineering · Bengaluru, India</p>
+        <p className="text-mute mt-2 mb-0">CSE undergraduate (5th semester, class of 2028), Amrita School of Engineering · Bangalore, Karnataka, India</p>
         <p className="text-text/90 leading-relaxed mt-5 max-w-[60ch]">
           I run machine learning experiments built to be checked (held-out tests, baselines, null results reported) and build the tools around them.
         </p>
