@@ -4,11 +4,11 @@ import { ImageResponse } from 'next/og';
 
 // The share card for a project or post (1200×630), drawn at build time: a kicker, the
 // title in the display serif, a subtitle, a meta line and the page's address, in the
-// Koi Pond palette.
+// site palette with the default red accent.
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-const C = { ink: '#0A0A0A', paper: '#121212', line: '#2E2E2E', text: '#EEEEEA', mute: '#8E8E8C', signal: '#F07A4A', accent: '#CECECA' };
+const C = { ink: '#0A0A0A', paper: '#121212', line: '#2E2E2E', text: '#EEEEEA', mute: '#8E8E8C', signal: '#E8363E', accent: '#CECECA' };
 const font = (file) => readFileSync(join(process.cwd(), 'lib/og', file));
 const FONTS = [
   // the site's fonts: Space Grotesk for titles ('Serif' is the title role), Space Mono for the rest
@@ -33,7 +33,7 @@ export function shareCard({ kicker, title, subtitle, meta, path, badge }) {
         {subtitle && <div style={{ fontSize: 34, color: C.text, marginTop: 40, lineHeight: 1.35, maxWidth: 1000 }}>{subtitle}</div>}
         <div style={{ display: 'flex', marginTop: 'auto', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: 24, color: C.mute }}>
           <span>{meta}</span>
-          <span style={{ color: C.signal }}>algorithmicbit.tech{path}</span>
+          <span style={{ color: C.signal, flexShrink: 0, whiteSpace: 'nowrap', marginLeft: 32 }}>algorithmicbit.tech{path}</span>
         </div>
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 10, background: C.signal }} />
       </div>
