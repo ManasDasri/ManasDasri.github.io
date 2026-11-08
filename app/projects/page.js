@@ -12,7 +12,7 @@ export const metadata = {
 const iconLink = 'w-8 h-8 flex items-center justify-center rounded-md text-mute hover:text-signal hover:bg-paper transition-colors';
 
 // Every project as a card, the featured ones first, then newest first: a picture (or, for one
-// with nothing to show yet, a dotted tile), what it is, what it does, a line of evidence where
+// with nothing to show yet, the GitHub mark on a dotted tile), what it is, what it does, a line of evidence where
 // there is one, and links to the site and the source.
 export default function Projects() {
   const list = [...projects].sort(byRank);
@@ -36,8 +36,9 @@ export default function Projects() {
                       className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
                     />
                   ) : (
-                    <span className="flex w-full h-full items-end p-4 bg-[radial-gradient(rgb(var(--c-text)/0.16)_1.2px,transparent_1.2px)] [background-size:12px_12px]">
-                      <span className="font-mono text-xs text-mute">{p.status}</span>
+                    // nothing to show yet: the GitHub mark on a dotted tile, since the source is what there is
+                    <span className="flex w-full h-full items-center justify-center bg-[radial-gradient(rgb(var(--c-text)/0.14)_1.2px,transparent_1.2px)] [background-size:12px_12px]">
+                      <SiGithub className="w-14 h-14 text-text/70 transition-colors group-hover:text-signal" aria-hidden="true" />
                     </span>
                   )}
                 </span>
