@@ -3,7 +3,7 @@
 # size stays crisp. Run from the repo root: python3 scripts/icon.py
 from PIL import Image
 
-INK, TILE, PIXEL = (7, 11, 20), '#070B14', '#ECE4D6'
+INK, TILE, PIXEL = (10, 10, 10), '#0A0A0A', '#EEEEEA'
 GLYPHS = {
     'm': ['##.#.', '#.#.#', '#.#.#', '#.#.#', '#.#.#'],
     'd': ['....#', '....#', '.####', '#...#', '#...#', '#...#', '.####'],

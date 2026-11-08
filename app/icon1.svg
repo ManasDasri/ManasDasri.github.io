@@ -1,7 +1,7 @@
 <svg width="64" height="64" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
   <!-- "md" in pixels on the site's dark tile (scripts/icon.py) -->
-  <rect width="16" height="16" rx="2" fill="#070B14"/>
-  <g fill="#ECE4D6">
+  <rect width="16" height="16" rx="2" fill="#0A0A0A"/>
+  <g fill="#EEEEEA">
     <rect x="2" y="7" width="1" height="1"/>
     <rect x="2" y="8" width="1" height="1"/>
     <rect x="2" y="9" width="1" height="1"/>
