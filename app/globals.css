@@ -259,3 +259,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .shimmer:hover { animation: none; }
 }
+
+/* the banner's git log scrolls up by one copy of itself, then repeats */
+@keyframes commit-scroll { to { transform: translateY(-50%); } }
+.commit-scroll { animation: commit-scroll linear infinite; }
+@media (prefers-reduced-motion: reduce) { .commit-scroll { animation: none; } }
