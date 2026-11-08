@@ -14,7 +14,7 @@ import { reading } from '@/lib/data';
 import Writing from '@/components/Writing';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import Halftone from '@/components/Halftone';
+import Starfield from '@/components/Starfield';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
 import { getTickerData } from '@/lib/ticker';
@@ -38,7 +38,7 @@ export default async function Home() {
 
   return (
     <>
-      <Halftone />
+      <Starfield />
       <Dock />
       <div className="relative z-[2] max-w-2xl mx-auto">
         <Band className="!h-10" />
