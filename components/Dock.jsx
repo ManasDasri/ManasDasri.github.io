@@ -94,7 +94,7 @@ function MotionItem({ common }) {
   return <DockItem {...common} label={paused ? 'Play the animations' : 'Pause the animations'} icon={paused ? FiPlay : FiPause} onClick={toggleMotion} />;
 }
 
-// Opens a menu of colour themes, each with swatches of its palette.
+// Opens a menu of accent colours; the rest of the palette stays black and white.
 function ThemeItem({ common }) {
   const [theme, setThemeState] = useState('print');
   const [open, setOpen] = useState(false);
@@ -120,12 +120,12 @@ function ThemeItem({ common }) {
 
   return (
     <div ref={ref} className="relative">
-      <DockItem {...common} label={`Theme: ${THEMES[theme].name}`} icon={FiDroplet} onClick={() => setOpen((o) => !o)} />
+      <DockItem {...common} label={`Accent: ${THEMES[theme].name}`} icon={FiDroplet} onClick={() => setOpen((o) => !o)} />
       {open && (
         <div
           role="menu"
-          aria-label="Colour theme"
-          className="absolute z-50 w-56 rounded-xl border border-line bg-paper/95 backdrop-blur-md p-1.5 shadow-2xl bottom-full mb-3 right-0 dock:right-auto dock:left-full dock:ml-3 dock:bottom-0 dock:mb-0"
+          aria-label="Accent colour"
+          className="absolute z-50 w-44 rounded-xl border border-line bg-paper/95 backdrop-blur-md p-1.5 shadow-2xl bottom-full mb-3 right-0 dock:right-auto dock:left-full dock:ml-3 dock:bottom-0 dock:mb-0"
         >
           {Object.entries(THEMES).map(([key, t]) => (
             <button
@@ -138,11 +138,7 @@ function ThemeItem({ common }) {
               }}
               className={`w-full flex items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm ${theme === key ? 'bg-raised text-signal' : 'text-text hover:bg-raised'}`}
             >
-              <span className="flex shrink-0 rounded overflow-hidden ring-1 ring-black/30" aria-hidden="true">
-                {[t.paper, t.text, t.signal, t.mature].map((c, i) => (
-                  <span key={i} className="w-2.5 h-4" style={{ background: c }} />
-                ))}
-              </span>
+              <span className="w-3 h-3 shrink-0 rounded-full ring-1 ring-black/30" style={{ background: t.signal }} aria-hidden="true" />
               <span className="flex-1">{t.name}</span>
               {theme === key && <span aria-hidden="true">✓</span>}
             </button>
