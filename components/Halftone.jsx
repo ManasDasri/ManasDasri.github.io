@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { motionPaused, noise, whenIdle } from './KoiPond';
 
-// The homepage's margins: a halftone dot field in the same print language as the banner's
-// video. Each dot's size follows slow noise, so the field breathes like a print shifting
+// The homepage's background: a halftone dot field in the margins and across the top of the
+// header, where it fades out before the name. Each dot's size follows slow noise, so the field breathes like a print shifting
 // under a lens, and dots swell around the pointer. Only the margins are drawn, fading out
 // toward the content column. Still when motion is reduced or paused from the dock.
 
@@ -59,13 +59,25 @@ export default function Halftone() {
     // 0 at the column's edge, 1 well into the margin
     const fade = (x, g) => Math.min(1, Math.abs(x - g.edge) / Math.min(160, g.w * 0.6)) ** 1.4;
 
+    // where to draw: the margins, fading toward the column, and the header above the name,
+    // fading out before it (the header scrolls, so it's measured each frame)
+    const zones = () => {
+      const z = gutters.map((g) => ({ x0: g.x, x1: g.x + g.w, y0: 0, y1: H, f: (x) => fade(x, g) }));
+      const hdr = document.getElementById('top')?.getBoundingClientRect();
+      if (hdr && hdr.bottom > 0 && hdr.top < H)
+        z.push({ x0: hdr.left, x1: hdr.right, y0: Math.max(0, hdr.top), y1: Math.min(H, hdr.bottom), f: (x, y) => 0.85 * Math.max(0, 1 - (y - hdr.top) / (hdr.height * 0.62)) ** 1.3 });
+      return z;
+    };
+
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const side = Math.ceil(R * 2 * dpr) + 2;
-      for (const g of gutters)
-        for (let y = GAP / 2; y < H; y += GAP)
-          for (let x = g.x + GAP / 2; x < g.x + g.w; x += GAP) {
-            const f = fade(x, g);
+      // one grid across every zone, so the header's dots line up with the margins'
+      const snap = (v) => Math.ceil((v - GAP / 2) / GAP) * GAP + GAP / 2;
+      for (const z of zones())
+        for (let y = snap(z.y0); y < z.y1; y += GAP)
+          for (let x = snap(z.x0); x < z.x1; x += GAP) {
+            const f = z.f(x, y);
             if (f < 0.04) continue;
             // two layers of noise: broad tone that drifts, and a finer one that moves faster
             let v = noise(x / 260 + t * 0.03, y / 260 - t * 0.02) * 0.75 + noise(x / 70 - t * 0.08, y / 70 + t * 0.05) * 0.4 - 0.18;
@@ -125,6 +137,8 @@ export default function Halftone() {
       still = motionPaused();
       run();
     };
+    const onScroll = () => still && draw();
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('pointermove', move);
     document.addEventListener('pointerleave', leave);
     window.addEventListener('resize', onResize);
@@ -134,6 +148,7 @@ export default function Halftone() {
     return () => {
       cancelIdle();
       cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', move);
       document.removeEventListener('pointerleave', leave);
       window.removeEventListener('resize', onResize);
