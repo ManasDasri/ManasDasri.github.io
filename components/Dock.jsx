@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
-import { FiActivity, FiMail, FiCommand, FiCpu, FiFeather, FiHome, FiLayers, FiPause, FiPlay, FiZap } from 'react-icons/fi';
+import { FiActivity, FiDroplet, FiMail, FiCommand, FiCpu, FiFeather, FiHome, FiLayers, FiPause, FiPlay, FiZap } from 'react-icons/fi';
+import { THEMES, readTheme, setTheme } from '@/lib/themes';
 import { motionPaused, toggleMotion } from './KoiPond';
 
 const ITEMS = [
@@ -93,6 +94,65 @@ function MotionItem({ common }) {
   return <DockItem {...common} label={paused ? 'Play the animations' : 'Pause the animations'} icon={paused ? FiPlay : FiPause} onClick={toggleMotion} />;
 }
 
+// Opens a menu of colour themes, each with swatches of its palette.
+function ThemeItem({ common }) {
+  const [theme, setThemeState] = useState('print');
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const sync = () => setThemeState(readTheme());
+    sync();
+    window.addEventListener('theme-change', sync);
+    return () => window.removeEventListener('theme-change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => (e.key === 'Escape' || (e.type === 'pointerdown' && !ref.current?.contains(e.target))) && setOpen(false);
+    window.addEventListener('keydown', close);
+    window.addEventListener('pointerdown', close);
+    return () => {
+      window.removeEventListener('keydown', close);
+      window.removeEventListener('pointerdown', close);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <DockItem {...common} label={`Theme: ${THEMES[theme].name}`} icon={FiDroplet} onClick={() => setOpen((o) => !o)} />
+      {open && (
+        <div
+          role="menu"
+          aria-label="Colour theme"
+          className="absolute z-50 w-56 rounded-xl border border-line bg-paper/95 backdrop-blur-md p-1.5 shadow-2xl bottom-full mb-3 right-0 dock:right-auto dock:left-full dock:ml-3 dock:bottom-0 dock:mb-0"
+        >
+          {Object.entries(THEMES).map(([key, t]) => (
+            <button
+              key={key}
+              role="menuitemradio"
+              aria-checked={theme === key}
+              onClick={() => {
+                setTheme(key);
+                setOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm ${theme === key ? 'bg-raised text-signal' : 'text-text hover:bg-raised'}`}
+            >
+              <span className="flex shrink-0 rounded overflow-hidden ring-1 ring-black/30" aria-hidden="true">
+                {[t.paper, t.text, t.signal, t.mature].map((c, i) => (
+                  <span key={i} className="w-2.5 h-4" style={{ background: c }} />
+                ))}
+              </span>
+              <span className="flex-1">{t.name}</span>
+              {theme === key && <span aria-hidden="true">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dock() {
   const { vertical, base } = useLayout();
   const mouse = useMotionValue(Infinity);
@@ -120,7 +180,8 @@ export default function Dock() {
     <nav
       aria-label="Sections"
       style={{ viewTransitionName: 'dock' }}
-      onMouseMove={(e) => mouse.set(vertical ? e.clientY : e.clientX)}
+      // the theme menu lives inside the dock; browsing it shouldn't magnify the icons
+      onMouseMove={(e) => mouse.set(e.target.closest('[role=menu]') ? Infinity : vertical ? e.clientY : e.clientX)}
       onMouseLeave={() => mouse.set(Infinity)}
       className="fixed z-40 flex gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-ink/75 backdrop-blur-md border border-line/80 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] bottom-3 left-1/2 -translate-x-1/2 items-end max-w-[calc(100vw-16px)] dock:bottom-auto dock:left-5 dock:top-1/2 dock:-translate-y-1/2 dock:translate-x-0 dock:flex-col dock:items-start dock:max-w-none"
     >
@@ -128,6 +189,7 @@ export default function Dock() {
         <DockItem key={item.id} {...item} {...common} href={`/#${item.id}`} active={active === item.id} />
       ))}
       <span className="bg-line self-center w-px h-6 mx-0.5 dock:h-px dock:w-6 dock:mx-0 dock:my-0.5" aria-hidden="true" />
+      <ThemeItem common={common} />
       <MotionItem common={common} />
       <DockItem
         {...common}

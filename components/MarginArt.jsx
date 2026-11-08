@@ -703,10 +703,15 @@ export default function MarginArt({ scene: name }) {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     let still;
-    const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
-    const ink = v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0];
-    const sg = getComputedStyle(document.documentElement).getPropertyValue('--c-signal').trim().split(/\s+/).map(Number);
-    if (sg.length === 3) SIG = sg;
+    let ink = [0, 0, 0];
+    // the page colour to fade into, and the accent; read again when the theme changes
+    const readPalette = () => {
+      const css = getComputedStyle(document.documentElement);
+      const v = css.getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
+      if (v.length === 3 && v.every((n) => n >= 0)) ink = v;
+      const sg = css.getPropertyValue('--c-signal').trim().split(/\s+/).map(Number);
+      if (sg.length === 3) SIG = sg;
+    };
     let W, H, gw, gh, img, gutters, state, raf, last = 0, t = rand(0, 100), frameNo = 0;
 
     const fade = (x) => {
@@ -784,6 +789,7 @@ export default function MarginArt({ scene: name }) {
     const start = () => {
       cancelAnimationFrame(raf);
       still = !scene.moving || motionPaused();
+      readPalette();
       setup();
       frameNo = 0;
       frame(0);
@@ -800,12 +806,14 @@ export default function MarginArt({ scene: name }) {
     });
     document.fonts?.ready.then(() => started && start());
     window.addEventListener('resize', start);
+    window.addEventListener('theme-change', start);
     window.addEventListener('motion-change', start);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelIdle();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
+      window.removeEventListener('theme-change', start);
       window.removeEventListener('motion-change', start);
       document.removeEventListener('visibilitychange', onVisibility);
     };

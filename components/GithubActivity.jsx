@@ -101,7 +101,12 @@ function LeetCodePanel({ stats }) {
 // the calendar library needs real colour values, read once mounted
 function useCalendarTheme() {
   const [theme, setTheme] = useState(null);
-  useEffect(() => setTheme({ dark: [cssColor('raised'), cssColor('old'), cssColor('mature'), cssColor('signal', 0.7), cssColor('signal')] }), []);
+  useEffect(() => {
+    const read = () => setTheme({ dark: [cssColor('raised'), cssColor('old'), cssColor('mature'), cssColor('signal', 0.7), cssColor('signal')] });
+    read();
+    window.addEventListener('theme-change', read);
+    return () => window.removeEventListener('theme-change', read);
+  }, []);
   return theme;
 }
 

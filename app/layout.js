@@ -7,6 +7,7 @@ import '@fontsource/space-grotesk/latin-700.css';
 import '@fontsource/space-mono/latin-400.css';
 import '@fontsource/space-mono/latin-700.css';
 import { SITE, socials } from '@/lib/data';
+import { THEME_SCRIPT } from '@/lib/themes';
 
 // A title reached through a view transition already morphed in, so its rise stays off for
 // good (a rule that only matched during the morph restarted it afterwards, a visible bounce).
@@ -43,6 +44,8 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://api.github.com" crossOrigin="anonymous" />
         {/* page views via GoatCounter: no cookies, no personal data, so no consent banner */}
         <script data-goatcounter="https://manas049.goatcounter.com/count" async src="https://gc.zgo.at/count.js" />
+        {/* the saved colour theme, before first paint */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON }} />
       </head>
