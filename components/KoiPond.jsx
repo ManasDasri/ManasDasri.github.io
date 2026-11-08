@@ -21,7 +21,7 @@ const BODY = ':;~=+*ixzoIX%#&0@'; // edge to core
 const SCALE = 'xX%&#8'; // scale texture across the body
 const WAKE = "~-=+:!'`";
 const FIN = ":;!'~";
-const WAKE_RGB = [120, 186, 214];
+const WAKE_RGB = [176, 176, 180];
 const EYE = [18, 16, 22];
 const INK = [34, 32, 40]; // sumi, the black of showa and sanke
 export const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
@@ -144,11 +144,13 @@ const ramp = (r, l) => {
   return [mix(r[i][0], r[i + 1][0], f), mix(r[i][1], r[i + 1][1], f), mix(r[i][2], r[i + 1][2], f)];
 };
 
+// black and white, like the halftone banner above, with one kohaku keeping its red as the
+// pond's only colour
 const KOI = [
-  { base: [240, 232, 214], patch: [228, 76, 44], amount: 0.58, ink: 0 }, // kohaku: white and red
-  { base: [240, 232, 214], patch: [232, 92, 50], amount: 0.45, ink: 0.12 }, // sanke: kohaku with black flecks
-  { base: [236, 112, 56], patch: [248, 206, 160], amount: 0.3, ink: 0 }, // orange with pale patches
-  { base: [70, 66, 78], patch: [226, 84, 50], amount: 0.42, ink: 0, white: 0.25 }, // showa: black, red, white
+  { base: [240, 236, 228], patch: [46, 44, 50], amount: 0.45, ink: 0 }, // shiro utsuri: white with black
+  { base: [240, 236, 228], patch: [232, 92, 50], amount: 0.5, ink: 0 }, // kohaku: white and red
+  { base: [200, 198, 194], patch: [250, 248, 242], amount: 0.3, ink: 0.12 }, // grey with white, black flecks
+  { base: [58, 56, 62], patch: [236, 232, 224], amount: 0.42, ink: 0 }, // black with white
 ];
 
 export function makeFish(g, i, len = Math.max(110, Math.min(240, g.w * 0.9))) {
@@ -500,10 +502,11 @@ export default function KoiPond() {
             const sh = 1 - shade[py * gw + px];
             const r = base[j] * sh, gr = base[j + 1] * sh, b = base[j + 2] * sh;
             const th = BAYER[(py & 3) * 4 + (px & 3)];
-            // dither the water, then fade it into the page colour
-            d[i] = mix(ink[0], Math.floor((r * 0.96) / STEP + th) * STEP, k);
-            d[i + 1] = mix(ink[1], Math.floor((gr * 0.96) / STEP + th) * STEP, k);
-            d[i + 2] = mix(ink[2], Math.floor((b * 0.96) / STEP + th) * STEP, k);
+            // grey, to sit with the black-and-white banner; then dither it and fade it into the page
+            const lum = Math.floor((0.36 * r + 0.5 * gr + 0.14 * b) * 1.18 / STEP + th) * STEP;
+            d[i] = mix(ink[0], lum, k);
+            d[i + 1] = mix(ink[1], lum, k);
+            d[i + 2] = mix(ink[2], lum, k);
           }
         }
       }
@@ -526,7 +529,7 @@ export default function KoiPond() {
             if (k < 0.05) continue;
             const r = noise(x / 48 + t * 0.2, y / 30 - t * 0.16);
             const a = (0.14 + Math.max(0, r - 0.45) * 1.1) * k;
-            stampKoi(ctx, WAKE[Math.floor((h + r) * 40) % WAKE.length], h < 0.08 ? [120, 190, 140] : WAKE_RGB, a, x, y);
+            stampKoi(ctx, WAKE[Math.floor((h + r) * 40) % WAKE.length], h < 0.08 ? [220, 220, 222] : WAKE_RGB, a, x, y);
           }
         }
       }
@@ -534,7 +537,7 @@ export default function KoiPond() {
       const ring = (x, y, r, a) => {
         for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
           const ang = (k / n) * Math.PI * 2;
-          stampKoi(ctx, k % 2 ? '~' : '-', [150, 200, 225], a, x + Math.cos(ang) * r - 2, y + Math.sin(ang) * r * 0.8 - 4);
+          stampKoi(ctx, k % 2 ? '~' : '-', [200, 200, 204], a, x + Math.cos(ang) * r - 2, y + Math.sin(ang) * r * 0.8 - 4);
         }
       };
       // while it's raining in Bengaluru it rains on the pond: small rings, under the koi,
@@ -555,7 +558,7 @@ export default function KoiPond() {
       fish.forEach((f) => f.food && !food.includes(f.food) && (f.food = null));
       for (const p of food) {
         const age = t - p.t;
-        stampKoi(ctx, 'o', [232, 196, 120], 0.95, p.x - 2, p.y - 4);
+        stampKoi(ctx, 'o', [236, 232, 224], 0.95, p.x - 2, p.y - 4);
         if (age < 1.7) ring(p.x, p.y, age * 40, 0.6 - age * 0.35);
       }
     };
