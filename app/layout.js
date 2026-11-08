@@ -1,11 +1,11 @@
 import './globals.css';
-// fonts are self-hosted (no render-blocking trip to Google); same family names as before
-import '@fontsource/instrument-serif/latin-400.css';
-import '@fontsource/bricolage-grotesque/latin-400.css';
-import '@fontsource/bricolage-grotesque/latin-600.css';
-import '@fontsource/bricolage-grotesque/latin-700.css';
-import '@fontsource/jetbrains-mono/latin-400.css';
-import '@fontsource/jetbrains-mono/latin-700.css';
+// two sibling fonts: Space Grotesk for titles and prose, Space Mono for labels, data and code.
+// Self-hosted, so no render-blocking trip to Google.
+import '@fontsource/space-grotesk/latin-400.css';
+import '@fontsource/space-grotesk/latin-600.css';
+import '@fontsource/space-grotesk/latin-700.css';
+import '@fontsource/space-mono/latin-400.css';
+import '@fontsource/space-mono/latin-700.css';
 import { SITE, socials } from '@/lib/data';
 
 // A title reached through a view transition already morphed in, so its rise stays off for
