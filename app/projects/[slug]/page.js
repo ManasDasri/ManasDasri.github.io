@@ -10,6 +10,7 @@ import Gallery from '@/components/Gallery';
 import RepoStats from '@/components/RepoStats';
 import SproutTerminal from '@/components/SproutTerminal';
 import MarginArt from '@/components/MarginArt';
+import Study from '@/components/Study';
 import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
@@ -77,7 +78,7 @@ export default async function ProjectPage({ params }) {
           <div className="rise flex flex-wrap gap-x-6 gap-y-2 mt-6" style={{ '--i': 5 }}>
             {p.link && !p.link.includes('github.com') && (
               <a href={p.link} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                {hostOf(p.link)}
+                {p.linkLabel ?? hostOf(p.link)}
               </a>
             )}
             {repo && (
@@ -119,7 +120,9 @@ export default async function ProjectPage({ params }) {
           </Section>
         )}
 
-        <Section id="features" title="What it does">
+        {p.study && <Study study={p.study} />}
+
+        <Section id="features" title={p.study ? 'The pipeline' : 'What it does'}>
           <ul className="list-none p-0 m-0 flex flex-col gap-3 max-w-[68ch]">
             {p.features.map((f) => (
               <li key={f} className="flex gap-3 text-sm leading-relaxed text-text/90">
