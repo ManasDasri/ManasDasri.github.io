@@ -1,10 +1,13 @@
 import NowPlaying from './NowPlaying';
+import VideoBanner from './VideoBanner';
 
-// The banner: no picture of its own; the homepage's dot field (Halftone.jsx) shows through it
-// and fades out before the name. Inside the content column so its edges line up with the page.
+// The banner: a looping black hole (VideoBanner) fading out before the name. Inside the content
+// column so its edges line up with the page. data-video tells the dot field (Halftone.jsx) to
+// leave the header to it.
 export default function HeroBanner() {
   return (
-    <header id="top" className="relative z-[2] max-w-2xl mx-auto border-x border-dashed border-line/70 h-[clamp(240px,34svh,320px)]">
+    <header id="top" data-video className="relative z-[2] max-w-2xl mx-auto border-x border-dashed border-line/70 h-[clamp(260px,40svh,380px)] overflow-hidden">
+      <VideoBanner />
       {/* rise sits on the wrapper: both it and the hover shimmer use `animation`, so on the
           same element un-hovering would replay the fade-in */}
       <div className="rise absolute inset-x-0 bottom-0 px-6 sm:px-9 pb-5 sm:pb-7">
