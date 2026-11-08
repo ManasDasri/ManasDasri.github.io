@@ -67,7 +67,7 @@ export default async function ProjectPage({ params }) {
             )}
           </div>
           <h1
-            className="rise morph font-serif leading-[0.95] text-[clamp(3.5rem,10vw,5.5rem)] w-fit"
+            className="rise morph font-serif leading-[0.95] text-[clamp(2.75rem,8vw,4.5rem)] w-fit"
             style={{ viewTransitionName: `project-${p.slug}`, '--i': 2 }}
           >
             {p.name}

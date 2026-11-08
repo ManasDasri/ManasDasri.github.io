@@ -1,11 +1,12 @@
 import './globals.css';
-// fonts are self-hosted (no render-blocking trip to Google); same family names as before
-import '@fontsource/instrument-serif/latin-400.css';
-import '@fontsource/bricolage-grotesque/latin-400.css';
-import '@fontsource/bricolage-grotesque/latin-600.css';
-import '@fontsource/bricolage-grotesque/latin-700.css';
-import '@fontsource/jetbrains-mono/latin-400.css';
-import '@fontsource/jetbrains-mono/latin-700.css';
+// one family throughout, IBM Plex: Serif for titles, Sans for prose, Mono for labels and code.
+// Self-hosted, so no render-blocking trip to Google.
+import '@fontsource/ibm-plex-serif/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-sans/latin-700.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-700.css';
 import { SITE, socials } from '@/lib/data';
 
 // A title reached through a view transition already morphed in, so its rise stays off for

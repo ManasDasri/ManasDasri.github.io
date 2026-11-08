@@ -97,7 +97,7 @@ body {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 40px 100px -30px rgba(0,0,0,0.7);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 [cmdk-input] {
@@ -173,7 +173,7 @@ body {
 .post-body { color: rgb(var(--c-text) / 0.88); line-height: 1.8; }
 .post-body > * + * { margin-top: 1.25em; }
 .post-body h2, .post-body h3 {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   color: rgb(var(--c-text));
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -203,7 +203,7 @@ body {
 .post-body pre code { background: none; border: 0; padding: 0; }
 /* code blocks: a language label and copy button (components/CodeCopy.jsx) */
 .post-body pre { position: relative; }
-.post-body .code-tools { display: flex; justify-content: flex-end; gap: 0.75rem; margin: -0.35rem -0.4rem 0.5rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgb(var(--c-mute)); }
+.post-body .code-tools { display: flex; justify-content: flex-end; gap: 0.75rem; margin: -0.35rem -0.4rem 0.5rem 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: rgb(var(--c-mute)); }
 .post-body .code-tools button { color: rgb(var(--c-mute)); border: 1px solid rgb(var(--c-line)); border-radius: 4px; padding: 0 0.4rem; }
 .post-body .code-tools button:hover { color: rgb(var(--c-signal)); border-color: rgb(var(--c-signal)); }
 /* headings land below the top of the screen when jumped to */
@@ -259,3 +259,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .shimmer:hover { animation: none; }
 }
+
+/* Plex Serif is wider than a display serif; titles set tight */
+.font-serif { letter-spacing: -0.025em; }

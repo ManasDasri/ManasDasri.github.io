@@ -24,7 +24,7 @@ const P = 4; // css px per pixel of the scene
 const CW = 4; // ASCII cell
 const CH = 6;
 const FPS = 20;
-const stamp = typeof document === 'undefined' ? null : makeStamper(`700 ${CH}px "JetBrains Mono", monospace`, CW, CH);
+const stamp = typeof document === 'undefined' ? null : makeStamper(`700 ${CH}px "IBM Plex Mono", monospace`, CW, CH);
 
 const shadeOf = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 

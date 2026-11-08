@@ -14,7 +14,7 @@ const CH = 10;
 const FPS = 30;
 const DAMP = 0.975;
 const RAMP = " .·:-=+*#%@";
-const FONT = `400 ${CH - 2}px "JetBrains Mono", monospace`;
+const FONT = `400 ${CH - 2}px "IBM Plex Mono", monospace`;
 
 export default function PondBanner() {
   const ref = useRef(null);

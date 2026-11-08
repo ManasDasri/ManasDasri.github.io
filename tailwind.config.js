@@ -20,13 +20,14 @@ module.exports = {
         accent: 'rgb(var(--c-accent) / <alpha-value>)',
       },
       fontFamily: {
-        head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        // one family, IBM Plex, in its three cuts
+        head: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
         // display titles: names, section and page headings
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        display: ['"JetBrains Mono"', 'monospace'],
-        mono: ['"JetBrains Mono"', 'monospace'],
-        // prose is set in the grotesque; mono is kept for labels, data and code
-        body: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        serif: ['"IBM Plex Serif"', 'Georgia', 'serif'],
+        display: ['"IBM Plex Mono"', 'monospace'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
+        // prose is set in the sans; mono is kept for labels, data and code
+        body: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
       },
       // where the dock moves to the left side: the 42rem column plus room for the dock beside it
       screens: { dock: '960px' },

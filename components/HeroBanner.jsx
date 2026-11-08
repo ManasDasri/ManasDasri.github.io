@@ -12,7 +12,7 @@ export default function HeroBanner() {
         {/* rise sits on the wrapper: both it and the hover shimmer use `animation`, so on the
             same element un-hovering would replay the fade-in */}
         <div className="rise px-6 sm:px-9 pb-5 sm:pb-7">
-          <h1 className="pointer-events-auto w-fit font-serif leading-[0.9] text-[clamp(3.5rem,11vw,6rem)]">
+          <h1 className="pointer-events-auto w-fit font-serif leading-[0.9] whitespace-nowrap text-[clamp(2.6rem,9vw,4.75rem)]">
             Manas Dasari
           </h1>
           <NowPlaying />

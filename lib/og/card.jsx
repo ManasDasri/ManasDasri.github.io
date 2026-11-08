@@ -11,9 +11,9 @@ export const contentType = 'image/png';
 const C = { ink: '#070B14', paper: '#0C1322', line: '#1F2C46', text: '#ECE4D6', mute: '#97A0B3', signal: '#F07A4A', accent: '#7EC8D6' };
 const font = (file) => readFileSync(join(process.cwd(), 'lib/og', file));
 const FONTS = [
-  { name: 'Serif', data: font('instrument-serif-latin-400-normal.woff'), weight: 400 },
-  { name: 'Mono', data: font('jetbrains-mono-latin-400-normal.woff'), weight: 400 },
-  { name: 'Mono', data: font('jetbrains-mono-latin-700-normal.woff'), weight: 700 },
+  { name: 'Serif', data: font('ibm-plex-serif-latin-400-normal.woff'), weight: 400 },
+  { name: 'Mono', data: font('ibm-plex-mono-latin-400-normal.woff'), weight: 400 },
+  { name: 'Mono', data: font('ibm-plex-mono-latin-700-normal.woff'), weight: 700 },
 ];
 
 export function shareCard({ kicker, title, subtitle, meta, path, badge }) {
