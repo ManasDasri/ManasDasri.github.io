@@ -14,6 +14,8 @@ import { BAYER, STEP, ihash, makeStamper, mix, motionPaused, noise, rand, whenId
 //   air        a city's air: haze, drifting particles, sensors on the roofs (Atmos)
 //   market     a chart's dark grid (Velora)
 //   horizon    a planet's night side, its glowing rim, a nebula overhead (Forme)
+//   eeg        an EEG recording scrolling past, gamma bursts lit (Med-EEG)
+//   contract   contract pages drifting past, flagged clauses labelled (Clause Risk Review)
 //   rain       rain running down a window, city lights blurred behind (the writing list)
 //   books      library shelves under a lamp, titles down the spines (the reading list)
 // Only the margins are computed. The garden is still and drawn once; the others move
@@ -27,6 +29,9 @@ const FPS = 20;
 const stamp = typeof document === 'undefined' ? null : makeStamper(`700 ${CH}px "Space Mono", monospace`, CW, CH);
 
 const shadeOf = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
+// the theme's accent (--c-signal), read when a scene starts; for the scenes' highlights
+let SIG = [240, 122, 74];
+const tint = (k) => SIG.map((v) => v * k);
 
 const SCENES = {
   bamboo: {
@@ -203,7 +208,7 @@ const SCENES = {
         const q = ((x - nx) ** 2 + (y - ny) ** 2) / 140;
         if (q > 9) continue;
         const a = Math.exp(-q) * 0.6;
-        c = c.map((v, i) => v + (n.hot ? [240, 122, 74] : [79, 163, 160])[i] * a * 0.5);
+        c = c.map((v, i) => v + (n.hot ? SIG : [79, 163, 160])[i] * a * 0.5);
       }
       return c;
     },
@@ -483,6 +488,129 @@ const SCENES = {
     ascii() {},
   },
 
+  // Med-EEG: an EEG recording scrolling past, one trace per electrode, with bursts of fast
+  // (gamma) activity lit up where they happen
+  eeg: {
+    moving: true,
+    setup() {
+      const names = ['AF7', 'AF8', 'F3', 'Fz', 'F4', 'C3', 'Cz', 'C4', 'P3', 'Pz', 'P4', 'O1', 'O2'];
+      return { chans: names.map((n, i) => ({ n, i, ph: rand(0, 6.28), ph2: rand(0, 6.28) })), seed: rand(0, 100) };
+    },
+    // one channel's trace at screen x: alpha and theta rhythms, a little noise, and a gamma
+    // burst where a slow envelope rises. Returns [value, burst strength].
+    trace(c, x, t, seed) {
+      const s = x + t * 46;
+      const burst = Math.max(0, noise(s / 140 + seed, c.i * 3.1) - 0.6) * 3.2;
+      const v =
+        0.55 * Math.sin(s / 6.5 + c.ph) +
+        0.35 * Math.sin(s / 15 + c.ph2) +
+        0.3 * (noise(s / 9, c.i * 7 + seed) - 0.5) +
+        burst * 0.55 * Math.sin(s / 1.4);
+      return [v, burst];
+    },
+    colour(x, y, t, s, H) {
+      // a dark chart, with faint second lines scrolling with the trace
+      const gap = H / (s.chans.length + 1);
+      const band = Math.floor(y / gap) % 2 ? 11 : 8;
+      return (x + t * 46) % 92 < 1.2 ? [26, 26, 26] : [band, band, band];
+    },
+    ascii(ctx, t, s, H, fade, gutters) {
+      const gap = H / (s.chans.length + 1);
+      for (const g of gutters) {
+        const far = g.edge > g.x + g.w / 2 ? g.x + 6 : g.x + g.w - 26; // labels away from the column
+        for (const c of s.chans) {
+          const yc = gap * (c.i + 1);
+          const fl = fade(far);
+          if (fl > 0.05) for (let k = 0; k < c.n.length; k++) stamp(ctx, c.n[k], [120, 120, 118], 0.8 * fl, far + k * CW, yc - CH - 2);
+          let prev = null;
+          for (let x = g.x; x < g.x + g.w; x += CW) {
+            const f = fade(x);
+            const [v, burst] = this.trace(c, x, t, s.seed);
+            const y = yc + v * gap * 0.38;
+            if (f > 0.05) {
+              const dy = prev === null ? 0 : y - prev;
+              const ch = Math.abs(dy) < 1.2 ? '-' : dy > 0 ? '\\' : '/';
+              const hot = burst > 0.15;
+              stamp(ctx, ch, hot ? SIG : [190, 190, 186], (hot ? 0.95 : 0.6) * f, x, y - CH / 2);
+              // steep stretches get filled in, so the line doesn't break
+              if (Math.abs(dy) > CH) for (let yy = Math.min(y, prev) + CH / 2; yy < Math.max(y, prev) - CH / 2; yy += CH) stamp(ctx, '|', hot ? SIG : [150, 150, 146], 0.45 * f, x, yy - CH / 2);
+            }
+            prev = y;
+          }
+        }
+      }
+    },
+  },
+
+  // Clause Risk Review: contract pages drifting past, their lines in dense characters. A model
+  // window scans down each page, and the clauses it flags carry their label.
+  contract: {
+    moving: true,
+    setup(g) {
+      const pw = Math.min(230, g.w * 0.72);
+      return { pages: [{ x: g.x + (g.w - pw) / 2, w: pw }], seed: rand(0, 100) };
+    },
+    PH: 330,
+    GAP: 26,
+    LINE: 9,
+    LABELS: ['cap on liability', 'non-compete', 'license grant', 'audit rights', 'termination for convenience', 'insurance'],
+    // which page a y falls on, and how far down it, as the pages drift upward
+    at(y, t) {
+      const s = y + t * 9;
+      const k = Math.floor(s / (this.PH + this.GAP));
+      const py = s - k * (this.PH + this.GAP);
+      return py < this.PH ? { k, py } : null;
+    },
+    flagged(k, line, seed) {
+      return ihash(k * 131 + Math.floor(seed), line) < 0.06;
+    },
+    colour(x, y, t, s) {
+      const page = s.pages.find((p) => x >= p.x && x < p.x + p.w);
+      const on = page && this.at(y, t);
+      if (!on) return [8, 8, 8];
+      const line = Math.floor((on.py - 24) / this.LINE);
+      // the model's window: a band sliding down the page
+      const win = ((t * 40 + on.k * 97) % (this.PH + 60)) - 30;
+      const inWin = on.py > win && on.py < win + 54;
+      if (on.py > 24 && on.py < this.PH - 20 && this.flagged(on.k, line, s.seed)) return inWin ? tint(0.4) : tint(0.22);
+      return inWin ? [30, 30, 30] : [18, 18, 18];
+    },
+    ascii(ctx, t, s, H, fade) {
+      for (const p of s.pages) {
+        for (let y = 0; y < H; y += this.LINE) {
+          // align to the drifting lines
+          const yy = y - ((t * 9) % this.LINE);
+          const on = this.at(yy, t);
+          if (!on || on.py < 24 || on.py > this.PH - 20) continue;
+          const line = Math.round((on.py - 24) / this.LINE);
+          const flag = this.flagged(on.k, line, s.seed);
+          // a line of words, ragged at the end; the paragraph's last line short
+          const len = ihash(on.k, line * 3) < 0.15 ? 0.45 : 0.82 + 0.18 * ihash(line, on.k);
+          let x = p.x + 14;
+          const end = p.x + 14 + (p.w - 28) * len;
+          while (x < end) {
+            const word = 2 + Math.floor(ihash(x, line + on.k * 7) * 6);
+            for (let i = 0; i < word && x < end; i++, x += CW) {
+              const f = fade(x);
+              if (f < 0.05) continue;
+              const ch = 'abcdefghilmnorstuy'[Math.floor(ihash(x * 3, line * 5 + on.k) * 18)];
+              stamp(ctx, ch, flag ? SIG.map((v) => v + (255 - v) * 0.45) : [150, 150, 146], (flag ? 0.9 : 0.45) * f, x, yy);
+            }
+            x += CW;
+          }
+          if (flag) {
+            const label = `[${this.LABELS[Math.floor(ihash(on.k, line) * this.LABELS.length)]}]`;
+            const lx = p.x + 14;
+            for (let i = 0; i < label.length; i++) {
+              const f = fade(lx + i * CW);
+              if (f > 0.05) stamp(ctx, label[i], SIG, f, lx + i * CW, yy - this.LINE + 1);
+            }
+          }
+        }
+      }
+    },
+  },
+
   // Forme: a planet's night side under a glowing rim of atmosphere, a nebula drifting
   // across the stars above it, like its own homepage
   horizon: {
@@ -577,6 +705,8 @@ export default function MarginArt({ scene: name }) {
     let still;
     const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
     const ink = v.length === 3 && v.every((n) => n >= 0) ? v : [0, 0, 0];
+    const sg = getComputedStyle(document.documentElement).getPropertyValue('--c-signal').trim().split(/\s+/).map(Number);
+    if (sg.length === 3) SIG = sg;
     let W, H, gw, gh, img, gutters, state, raf, last = 0, t = rand(0, 100), frameNo = 0;
 
     const fade = (x) => {
