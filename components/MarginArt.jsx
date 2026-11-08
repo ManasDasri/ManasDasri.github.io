@@ -806,14 +806,19 @@ export default function MarginArt({ scene: name }) {
     });
     document.fonts?.ready.then(() => started && start());
     window.addEventListener('resize', start);
-    window.addEventListener('theme-change', start);
+    // a new accent recolours the scene where it is; it doesn't start over
+    const recolour = () => {
+      readPalette();
+      if (still) frame(0);
+    };
+    window.addEventListener('theme-change', recolour);
     window.addEventListener('motion-change', start);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelIdle();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', start);
-      window.removeEventListener('theme-change', start);
+      window.removeEventListener('theme-change', recolour);
       window.removeEventListener('motion-change', start);
       document.removeEventListener('visibilitychange', onVisibility);
     };
