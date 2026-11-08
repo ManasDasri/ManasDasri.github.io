@@ -33,6 +33,7 @@ export default function Footer() {
         {['projects', 'writing', 'reading'].map((p) => (
           <a key={p} href={`/${p}/`} className="text-text/80 hover:text-signal">{p}</a>
         ))}
+        <a href="/recruiter/" className="text-text/80 hover:text-signal">recruiter view</a>
       </nav>
 
       <div className="mt-6 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
