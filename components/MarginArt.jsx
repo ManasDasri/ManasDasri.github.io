@@ -13,7 +13,7 @@ import { BAYER, STEP, ihash, makeStamper, mix, motionPaused, noise, rand, whenId
 //   flow       a calm stream running down, currents drawn over it (Flow)
 //   air        a city's air: haze, drifting particles, sensors on the roofs (Atmos)
 //   market     a chart's dark grid (Velora)
-//   horizon    a starfield over a planet's glowing horizon (Forme)
+//   horizon    a planet's night side, its glowing rim, a nebula overhead (Forme)
 //   rain       rain running down a window, city lights blurred behind (the writing list)
 //   books      library shelves under a lamp, titles down the spines (the reading list)
 // Only the margins are computed. The garden is still and drawn once; the others move
@@ -483,34 +483,84 @@ const SCENES = {
     ascii() {},
   },
 
-  // Forme: a starfield over a planet's glowing horizon, like its own homepage
+  // Forme: a planet's night side under a glowing rim of atmosphere, a nebula drifting
+  // across the stars above it, like its own homepage
   horizon: {
     moving: true,
     setup(g, H) {
-      return { planets: [{ x: g.x + g.w / 2, y: H * 1.5, r: H * 0.82 }] };
+      return { planets: [{ x: g.x + g.w / 2, y: H * 1.32, r: H * 0.66 }], seed: rand(0, 100), shots: [] };
+    },
+    near(x, s) {
+      return s.planets.reduce((a, b) => (Math.abs(b.x - x) < Math.abs(a.x - x) ? b : a));
+    },
+    // how thick the nebula is: a band slanting down across the sky, torn up by noise
+    nebula(x, y, t, s, H) {
+      const band = Math.exp(-(((y - H * 0.28 - (x % 900) * 0.18) / (H * 0.16)) ** 2));
+      return band * noise(x / 90 + t * 0.012 + s.seed, y / 70) * (0.6 + 0.6 * noise(x / 30 + s.seed, y / 26 - t * 0.02));
     },
     colour(x, y, t, s, H) {
-      const pl = s.planets.reduce((a, b) => (Math.abs(b.x - x) < Math.abs(a.x - x) ? b : a));
+      const pl = this.near(x, s);
       const d = Math.hypot(x - pl.x, y - pl.y) - pl.r; // distance outside the planet's edge
-      if (d < 0) return [3, 3, 7].map((v, i) => v + [60, 64, 96][i] * Math.exp(d / 10)); // its night side, lit at the rim
+      if (d < 0) {
+        // the night side: faint cloud bands, city lights, and the rim lit from behind
+        const u = (Math.atan2(y - pl.y, x - pl.x) + t * 0.004) * pl.r, v = -d;
+        const cloud = noise(u / 60, v / 14 + s.seed);
+        let c = [6 + 10 * cloud, 7 + 12 * cloud, 14 + 22 * cloud].map((c0, i) => c0 + [70, 80, 130][i] * Math.exp(d / 12));
+        const city = ihash(Math.round(u) >> 2, Math.round(v) >> 2);
+        if (v > 10 && city < 0.02 * noise(u / 50 + 7, v / 40)) c = [190, 150, 90].map((w) => w * (0.6 + 0.4 * Math.sin(t * 0.8 + city * 900)));
+        return c;
+      }
       const k = 1 - y / H;
-      let c = [4 + 4 * k, 5 + 5 * k, 12 + 8 * k];
-      c = c.map((v, i) => v + [120, 130, 200][i] * Math.exp(-d / 46) * 0.7 + [230, 232, 255][i] * Math.exp(-d / 5) * 0.9);
-      // stars, twinkling
+      const n = this.nebula(x, y, t, s, H);
+      let c = [4 + 4 * k + 70 * n, 5 + 5 * k + 30 * n, 12 + 8 * k + 90 * n];
+      // the atmosphere: a wide blue glow and a thin bright edge
+      c = c.map((v, i) => v + [110, 140, 220][i] * Math.exp(-d / 40) * 0.7 + [230, 236, 255][i] * Math.exp(-d / 4) * 0.95);
       const h = ihash(x >> 2, y >> 2);
-      if (h < 0.006) c = c.map((v) => Math.max(v, 150 + 90 * Math.sin(t * 1.5 + h * 4000)));
+      if (h < 0.006 + 0.02 * n) c = c.map((v) => Math.max(v, 150 + 90 * Math.sin(t * 1.5 + h * 4000)));
       return c;
     },
     ascii(ctx, t, s, H, fade, gutters) {
+      const DUST = ' .·:;+*';
       for (const g of gutters)
-        for (let y = 0; y < H * 0.75; y += CH * 3)
-          for (let x = g.x; x < g.x + g.w; x += CW * 3) {
-            const h = ihash(x, y);
-            if (h > 0.03) continue;
+        for (let y = 0; y < H; y += CH)
+          for (let x = g.x; x < g.x + g.w; x += CW) {
             const f = fade(x);
-            const tw = 0.5 + 0.5 * Math.sin(t * 2 + h * 900);
-            if (f > 0.05) stamp(ctx, h < 0.01 ? '*' : h < 0.02 ? '+' : '.', [210, 214, 240], tw * 0.8 * f, x, y);
+            if (f < 0.05) continue;
+            const pl = this.near(x, s);
+            const d = Math.hypot(x + CW / 2 - pl.x, y + CH / 2 - pl.y) - pl.r;
+            const h = ihash(x, y);
+            if (d < 0) {
+              // latitude lines across the night side, thinning away from the rim
+              const v = -d;
+              const lat = Math.sin(v / 9 + noise(x / 70, s.seed) * 2);
+              if (lat > 0.82 && h < 0.7) stamp(ctx, v < 30 ? '=' : '-', [110, 130, 200], (0.55 - Math.min(0.4, v / 400)) * f, x, y);
+            } else if (d < 26) {
+              // the atmosphere's rim, densest at the edge
+              const a = Math.exp(-d / 9);
+              if (h < a) stamp(ctx, d < 5 ? '=' : d < 12 ? '~' : '-', [190, 205, 255], (0.3 + 0.6 * a) * f, x, y);
+            } else {
+              const n = this.nebula(x, y, t, s, H);
+              const i = Math.floor(n * 1.8 * (DUST.length - 1) + h * 0.8);
+              if (i > 0) stamp(ctx, DUST[Math.min(DUST.length - 1, i)], [200, 160, 230], (0.18 + 0.5 * n) * f, x, y);
+              else if (h < 0.004) stamp(ctx, h < 0.0015 ? '*' : '+', [210, 214, 240], (0.5 + 0.5 * Math.sin(t * 2 + h * 9e4)) * 0.8 * f, x, y);
+            }
           }
+      // now and then a shooting star, across the top of a margin
+      if (Math.random() < 0.004 && s.shots.length < 2) {
+        const g = gutters[Math.floor(Math.random() * gutters.length)];
+        s.shots.push({ x: g.x + rand(0.1, 0.9) * g.w, y: rand(0.05, 0.35) * H, vx: rand(-1, 1) < 0 ? -90 : 90, life: 1 });
+      }
+      for (const sh of s.shots) {
+        sh.life -= 1 / FPS;
+        sh.x += sh.vx / FPS;
+        sh.y += 40 / FPS;
+        for (let k = 0; k < 6; k++) {
+          const tx = sh.x - (sh.vx / 90) * k * CW, ty = sh.y - k * 2;
+          const f = fade(tx);
+          if (f > 0.05) stamp(ctx, k ? (sh.vx > 0 ? '\\' : '/') : '*', [235, 238, 255], sh.life * (1 - k / 6) * f, tx, ty);
+        }
+      }
+      s.shots = s.shots.filter((sh) => sh.life > 0);
     },
   },
 };
