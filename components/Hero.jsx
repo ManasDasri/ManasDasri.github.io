@@ -32,7 +32,7 @@ export default function Hero({ highlights = [] }) {
             <span className="text-mute">$ whoami</span> <Typewriter words={ROLES} />
           </p>
           <p className="font-mono text-xs text-mute mt-1">
-            5th sem CSE, Amrita School of Engineering · coding for {uptime}
+            5th sem CSE, Amrita School of Engineering, class of 2028 · coding for {uptime}
           </p>
           {status && (
             <a
