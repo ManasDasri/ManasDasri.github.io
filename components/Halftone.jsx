@@ -63,7 +63,8 @@ export default function Halftone() {
     // fading out before it (the header scrolls, so it's measured each frame)
     const zones = () => {
       const z = gutters.map((g) => ({ x0: g.x, x1: g.x + g.w, y0: 0, y1: H, f: (x) => fade(x, g) }));
-      const hdr = document.getElementById('top')?.getBoundingClientRect();
+      const top = document.getElementById('top');
+      const hdr = top && !top.hasAttribute('data-video') && top.getBoundingClientRect();
       if (hdr && hdr.bottom > 0 && hdr.top < H)
         z.push({ x0: hdr.left, x1: hdr.right, y0: Math.max(0, hdr.top), y1: Math.min(H, hdr.bottom), f: (x, y) => 0.85 * Math.max(0, 1 - (y - hdr.top) / (hdr.height * 0.62)) ** 1.3 });
       return z;
