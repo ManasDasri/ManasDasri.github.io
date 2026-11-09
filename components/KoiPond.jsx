@@ -212,45 +212,89 @@ export function width(f, u) {
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const MAX_BEND = 0.11; // rad between neighbouring segments: the body curves, it never folds
 
-// How a koi swims: it cruises toward a spot in its margin, picking a new one now and then,
-// in slow wide arcs (its turning circle grows with its length), alternating a few tail
-// beats with a long glide, and veers away from other koi. Food in the water overrides the
-// wandering: it turns harder and hurries.
+// How a koi swims: it cruises toward a spot in its margin with the most room, picking a new
+// one now and then, in slow wide arcs (its turning circle grows with its length), alternating
+// a few tail beats with a long glide. It keeps clear of the other koi's whole bodies, looking
+// a second ahead and easing off when one is in front; sometimes it stops and hovers; a sharp
+// change of direction is a quick flick of the tail. Food overrides the wandering: it turns
+// harder and hurries.
 export function swim(f, t, dt, others = []) {
   const { g } = f;
   const [hx, hy] = f.spine[0];
-  if (!f.food && (!f.goal || t > f.goalUntil || Math.hypot(f.goal.x - hx, f.goal.y - hy) < f.len * 0.5)) {
-    // somewhere in the margin at least a body length away
-    let gx, gy, tries = 0;
+  const gy0 = g.y ?? 0;
+  const mates = others.filter((o) => o !== f && o.g === g);
+  const clampX = (x) => Math.max(g.x + 20, Math.min(g.x + g.w - 20, x));
+  const clampY = (y) => Math.max(gy0 + 20, Math.min(gy0 + g.h - 20, y));
+  const arrived = f.goal && Math.hypot(f.goal.x - hx, f.goal.y - hy) < f.len * 0.5;
+  if (!f.food && (!f.goal || t > f.goalUntil || arrived)) {
+    // arriving, it sometimes stops and hovers a while, holding itself in place with its fins
+    if (arrived && Math.random() < 0.5) f.restUntil = t + rand(2.5, 6);
+    // the next place to head for: of a few spots at least a body length away, the one with
+    // the most room, furthest from the other koi and from where they're heading
     const near = t < (f.linger ?? 0); // just fed: nose about close by, in case there's more
-    do {
-      gx = near ? Math.max(g.x + 20, Math.min(g.x + g.w - 20, hx + rand(-1, 1) * f.len)) : g.x + rand(0.15, 0.85) * g.w;
-      gy = near ? Math.max((g.y ?? 0) + 20, Math.min((g.y ?? 0) + g.h - 20, hy + rand(-1, 1) * f.len)) : (g.y ?? 0) + rand(0.1, 0.9) * g.h;
-    } while (!near && Math.hypot(gx - hx, gy - hy) < f.len && ++tries < 8);
-    f.goal = { x: gx, y: gy };
+    let best = null, bestScore = -Infinity;
+    for (let k = 0; k < (near ? 1 : 7); k++) {
+      const c = near
+        ? { x: clampX(hx + rand(-1, 1) * f.len), y: clampY(hy + rand(-1, 1) * f.len) }
+        : { x: g.x + rand(0.15, 0.85) * g.w, y: gy0 + rand(0.1, 0.9) * g.h };
+      let room = f.len * 2;
+      for (const o of mates) {
+        room = Math.min(room, Math.hypot(c.x - o.spine[0][0], c.y - o.spine[0][1]));
+        if (o.goal) room = Math.min(room, Math.hypot(c.x - o.goal.x, c.y - o.goal.y));
+      }
+      const score = room - (Math.hypot(c.x - hx, c.y - hy) < f.len ? f.len * 3 : 0);
+      if (score > bestScore) (bestScore = score), (best = c);
+    }
+    f.goal = best;
     f.goalUntil = t + rand(10, 22);
   }
+  const resting = !f.food && t < (f.restUntil ?? 0);
   const target = f.food ?? f.goal;
-  let want = Math.atan2(target.y - hy, target.x - hx) + (f.food ? 0 : Math.sin(t * 0.23 + f.phase) * 0.25);
-  // keep clear of the other koi: veer away from the middle of any that's close
+  const aim = Math.atan2(target.y - hy, target.x - hx) + (f.food ? 0 : Math.sin(t * 0.23 + f.phase) * 0.25);
+  // Keep clear of the other koi's whole bodies, where the head is now and where it'll be in
+  // a second: each close point pushes it away, harder the closer it is. Something just in
+  // front makes it ease off too, so koi pass each other instead of piling up.
+  let sx = Math.cos(aim), sy = Math.sin(aim), brake = 0;
+  const lead = Math.max(f.v, 10) * 1.1;
+  const [mx, my] = f.spine[f.spine.length >> 1];
+  const probes = [[hx, hy, 1], [hx + Math.cos(f.heading) * lead, hy + Math.sin(f.heading) * lead, 0.8], [mx, my, 0.6]];
   for (const o of others) {
     if (o === f) continue;
-    const [ox, oy] = o.spine[o.spine.length >> 1];
-    const d = Math.hypot(hx - ox, hy - oy);
-    const near = 1 - d / (f.len * 0.75);
-    if (near > 0) want += wrap(Math.atan2(hy - oy, hx - ox) - want) * Math.min(1, near * 1.5);
+    const R = (f.len + o.len) * 0.36;
+    for (let j = 0; j < o.spine.length; j += 2) {
+      const [ox, oy] = o.spine[j];
+      for (const [px, py, w] of probes) {
+        const d = Math.hypot(px - ox, py - oy);
+        if (d >= R || d < 0.001) continue;
+        const push = (1 - d / R) ** 2 * w;
+        sx += ((px - ox) / d) * push * 3.5;
+        sy += ((py - oy) / d) * push * 3.5;
+        const ahead = Math.cos(Math.atan2(oy - hy, ox - hx) - f.heading);
+        if (ahead > 0.2) brake = Math.max(brake, Math.min(1, push * ahead * 3));
+      }
+    }
   }
-  const maxTurn = f.v / (f.len * (f.food ? 0.28 : f.turning ?? 0.45));
+  const want = Math.atan2(sy, sx);
+  // a sharp change of mind (somewhere new to go, not just dodging): a quick flick of the
+  // tail turns it round, as koi do
+  if (!resting && t > (f.flickCool ?? 0) && f.goal !== f.flickedFor && Math.abs(wrap(aim - f.heading)) > 1.6 && f.v > 6) {
+    f.flickUntil = t + 0.45;
+    f.flickCool = t + 6;
+    f.flickedFor = f.goal;
+  }
+  const flicking = t < (f.flickUntil ?? 0);
+  const maxTurn = (f.v / (f.len * (f.food ? 0.28 : f.turning ?? 0.45))) * (flicking ? 2.2 : 1);
   const desired = Math.max(-maxTurn, Math.min(maxTurn, wrap(want - f.heading) * 0.9));
-  f.turn += (desired - f.turn) * Math.min(1, dt * 1.2);
+  f.turn += (desired - f.turn) * Math.min(1, dt * (flicking ? 4 : 1.2));
   f.heading = wrap(f.heading + f.turn * dt);
-  // a few beats, then a glide; turning hard costs speed
+  // a few beats, then a glide; turning hard costs speed; resting, barely a stir
   const pulse = Math.max(0, Math.sin(t * 0.55 + f.phase));
   // food: hurry over, then ease off on the way in so it isn't rammed and pushed away
   const fd = f.food ? Math.hypot(f.food.x - hx, f.food.y - hy) : Infinity;
-  f.thrust = f.food ? Math.min(1, 0.35 + fd / 90) : 0.15 + 0.85 * pulse ** 2;
-  const vWant = (f.food ? Math.max(7, Math.min(32, fd * 0.45)) : 9 + 16 * f.thrust) * (1 - 0.35 * Math.min(1, Math.abs(f.turn) / maxTurn));
-  f.v += (vWant - f.v) * Math.min(1, dt * (f.food ? 1.6 : 0.8));
+  f.thrust = f.food ? Math.min(1, 0.35 + fd / 90) : flicking ? 1 : resting ? 0.06 + 0.1 * Math.max(0, Math.sin(t * 1.3 + f.phase)) : 0.15 + 0.85 * pulse ** 2;
+  const cruise = f.food ? Math.max(7, Math.min(32, fd * 0.45)) : resting ? 1.5 : flicking ? 30 : 9 + 16 * f.thrust;
+  const vWant = cruise * (1 - 0.35 * Math.min(1, Math.abs(f.turn) / maxTurn)) * (1 - brake * 0.75);
+  f.v += (vWant - f.v) * Math.min(1, dt * (f.food || flicking ? 1.6 : 0.8));
   f.beat += dt * (2 + 5 * f.thrust);
   f.gulp = Math.max(0, (f.gulp ?? 0) - dt);
   // close enough: the mouth opens and the pellet is sucked in
