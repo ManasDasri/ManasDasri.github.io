@@ -1,4 +1,4 @@
-import TiltShot from '@/components/TiltShot';
+import RippleShot from '@/components/RippleShot';
 import { SiGithub } from 'react-icons/si';
 import { FiGlobe } from 'react-icons/fi';
 import { byRank, projects } from '@/lib/data';
@@ -28,7 +28,7 @@ export default function Projects() {
           return (
             <li key={p.name} className="flex flex-col">
               <a href={href} {...out} className="group block no-underline" aria-label={p.name}>
-                <TiltShot>
+                <RippleShot>
                   {p.screenshots?.length ? (
                     <img src={p.screenshots[0].src} alt="" loading="lazy" />
                   ) : (
@@ -37,7 +37,7 @@ export default function Projects() {
                       <SiGithub className="w-14 h-14 text-text/70 transition-colors group-hover:text-signal" aria-hidden="true" />
                     </span>
                   )}
-                </TiltShot>
+                </RippleShot>
               </a>
               <div className="flex items-start justify-between gap-3 mt-3">
                 <span className="font-mono text-[11px] text-mute pt-1">

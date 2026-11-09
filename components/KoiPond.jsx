@@ -77,6 +77,7 @@ export function rippleAt(waves, x, y, t) {
   let s = 0;
   for (const w of waves) {
     const age = t - w.t0;
+    if (age < 0) continue; // scheduled a moment ahead
     const spread = 3 + age * 5;
     const d = Math.hypot(x - w.x, y - w.y) - age * w.speed;
     if (d > spread * 2.2 || d < -spread * 2.6) continue;
@@ -221,10 +222,11 @@ export function swim(f, t, dt, others = []) {
   if (!f.food && (!f.goal || t > f.goalUntil || Math.hypot(f.goal.x - hx, f.goal.y - hy) < f.len * 0.5)) {
     // somewhere in the margin at least a body length away
     let gx, gy, tries = 0;
+    const near = t < (f.linger ?? 0); // just fed: nose about close by, in case there's more
     do {
-      gx = g.x + rand(0.15, 0.85) * g.w;
-      gy = (g.y ?? 0) + rand(0.1, 0.9) * g.h;
-    } while (Math.hypot(gx - hx, gy - hy) < f.len && ++tries < 8);
+      gx = near ? Math.max(g.x + 20, Math.min(g.x + g.w - 20, hx + rand(-1, 1) * f.len)) : g.x + rand(0.15, 0.85) * g.w;
+      gy = near ? Math.max((g.y ?? 0) + 20, Math.min((g.y ?? 0) + g.h - 20, hy + rand(-1, 1) * f.len)) : (g.y ?? 0) + rand(0.1, 0.9) * g.h;
+    } while (!near && Math.hypot(gx - hx, gy - hy) < f.len && ++tries < 8);
     f.goal = { x: gx, y: gy };
     f.goalUntil = t + rand(10, 22);
   }
@@ -244,13 +246,20 @@ export function swim(f, t, dt, others = []) {
   f.heading = wrap(f.heading + f.turn * dt);
   // a few beats, then a glide; turning hard costs speed
   const pulse = Math.max(0, Math.sin(t * 0.55 + f.phase));
-  f.thrust = f.food ? 1 : 0.15 + 0.85 * pulse ** 2;
-  const vWant = (f.food ? 34 : 9 + 16 * f.thrust) * (1 - 0.35 * Math.min(1, Math.abs(f.turn) / maxTurn));
-  f.v += (vWant - f.v) * Math.min(1, dt * 0.8);
+  // food: hurry over, then ease off on the way in so it isn't rammed and pushed away
+  const fd = f.food ? Math.hypot(f.food.x - hx, f.food.y - hy) : Infinity;
+  f.thrust = f.food ? Math.min(1, 0.35 + fd / 90) : 0.15 + 0.85 * pulse ** 2;
+  const vWant = (f.food ? Math.max(7, Math.min(32, fd * 0.45)) : 9 + 16 * f.thrust) * (1 - 0.35 * Math.min(1, Math.abs(f.turn) / maxTurn));
+  f.v += (vWant - f.v) * Math.min(1, dt * (f.food ? 1.6 : 0.8));
   f.beat += dt * (2 + 5 * f.thrust);
-  if (f.food && Math.hypot(f.food.x - hx, f.food.y - hy) < 10) {
-    f.food.eaten = true;
+  f.gulp = Math.max(0, (f.gulp ?? 0) - dt);
+  // close enough: the mouth opens and the pellet is sucked in
+  if (f.food && !f.food.taken && fd < f.len * 0.06 + 6) {
+    f.food.taken = { t, by: f };
     f.food = null;
+    f.gulp = 0.45;
+    f.v += 6; // a small lunge into the bite
+    f.linger = t + rand(3, 6); // and it hangs about, in case there's more
   }
   f.spine[0] = [hx + Math.cos(f.heading) * f.v * dt, hy + Math.sin(f.heading) * f.v * dt];
   // the body follows the head, each segment bending at most MAX_BEND from the one before
@@ -464,6 +473,12 @@ export function drawKoi(ctx, f, pts, fade) {
       stampKoi(ctx, lineChar(ba), f.kind.metal ? GOLD : SHIRO, 0.4 * fade(x) * (1 - j * 0.25), x - CW / 2, y - CH / 2);
     }
   }
+  // the mouth, open while it takes a pellet: a dark round gape at the tip of the snout
+  if (f.gulp > 0) {
+    const o = Math.sin((f.gulp / 0.45) * Math.PI);
+    const mx = hx + Math.cos(fwd) * 1.5, my = hy + Math.sin(fwd) * 1.5;
+    stampKoi(ctx, o > 0.5 ? 'O' : 'o', EYE, 0.95 * fade(mx), mx - CW / 2, my - CH / 2);
+  }
 }
 
 export default function KoiPond() {
@@ -672,10 +687,37 @@ export default function KoiPond() {
         nextDrop = t + 0.05 + 0.5 / (1 + (weather.precip ?? 0) * 2);
       }
       bodies.forEach((pts, fi) => drawKoi(ctx, fish[fi], pts, fade));
-      // food: a pellet floating where it landed (its splash is a wave, pushed in feed)
-      food = food.filter((p) => !p.eaten && t - p.t < 10);
-      fish.forEach((f) => f.food && !food.includes(f.food) && (f.food = null));
-      for (const p of food) stampKoi(ctx, 'o', [232, 196, 120], 0.95, p.x - 2, p.y - 4);
+      // food: pellets floating where they landed, drifting a little. A koi that isn't eating
+      // goes for the nearest one in its margin once it has landed, so two can race for the
+      // same one. A pellet that's taken is pulled into the mouth, with a sharp double ring.
+      food = food.filter((p) => (p.taken ? t - p.taken.t < 0.25 : t - p.t < 25));
+      for (const p of food) {
+        if (p.taken) {
+          const k = (t - p.taken.t) / 0.25, [mx, my] = p.taken.by.spine[0];
+          if (!p.rang) {
+            p.rang = true;
+            waves.push({ x: mx, y: my, t0: t, speed: 26, life: 1.8, amp: 0.65, len: 6 }, { x: mx, y: my, t0: t + 0.18, speed: 20, life: 1.4, amp: 0.35, len: 5 });
+          }
+          stampKoi(ctx, 'o', [214, 170, 96], 0.95 * (1 - k), mix(p.x, mx, k) - 2, mix(p.y, my, k) - 4);
+          continue;
+        }
+        p.x += Math.sin(t * 0.4 + p.seed) * 2.5 * dt;
+        p.y += Math.cos(t * 0.33 + p.seed) * 2 * dt;
+        const bob = Math.sin(t * 2 + p.seed) > 0.6; // catching the light as it bobs
+        stampKoi(ctx, bob ? 'o' : '°', [214, 170, 96], 0.95 * Math.min(1, (25 - (t - p.t)) / 3), p.x - 2, p.y - 4);
+      }
+      for (const f of fish) {
+        if (f.food && f.food.taken) f.food = null;
+        if (f.food) continue;
+        const [hx, hy] = f.spine[0];
+        let best = null, bd = f.g.w * 1.6;
+        for (const p of food) {
+          if (p.taken || t - p.t < 0.4 || p.x < f.g.x || p.x >= f.g.x + f.g.w) continue;
+          const d = Math.hypot(p.x - hx, p.y - hy);
+          if (d < bd) (bd = d), (best = p);
+        }
+        if (best) f.food = best;
+      }
     };
 
     const loop = (now) => {
@@ -703,13 +745,15 @@ export default function KoiPond() {
     const inPond = (e) => (e.target === document.body || e.target === document.documentElement) && gutters.some((g) => e.clientX >= g.x && e.clientX < g.x + g.w);
     const feed = (e) => {
       if (still || !inPond(e)) return;
-      const p = { x: e.clientX, y: e.clientY, t };
-      food.push(p);
-      waves.push({ x: p.x, y: p.y, t0: t, speed: 30, life: 2.6, amp: 0.7, len: 8 });
-      const near = fish
-        .filter((f) => !f.food && e.clientX >= f.g.x && e.clientX < f.g.x + f.g.w)
-        .sort((a, b) => Math.hypot(a.spine[0][0] - p.x, a.spine[0][1] - p.y) - Math.hypot(b.spine[0][0] - p.x, b.spine[0][1] - p.y))[0];
-      if (near) near.food = p;
+      // a pinch of pellets, scattered round where you clicked, each landing with its own
+      // small splash; the koi come for them once they've settled
+      const n = 3 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) {
+        const a = rand(0, Math.PI * 2), r = rand(0, 16);
+        const p = { x: e.clientX + Math.cos(a) * r, y: e.clientY + Math.sin(a) * r, t: t + i * 0.06, seed: rand(0, 6) };
+        food.push(p);
+        waves.push({ x: p.x, y: p.y, t0: p.t, speed: 22, life: 1.6, amp: 0.4, len: 5 });
+      }
     };
     // the cursor trailing across the water leaves small rings behind it
     let trail = { x: -99, y: -99, t: 0 };
