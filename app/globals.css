@@ -382,3 +382,138 @@ body {
     translate: none;
   }
 }
+
+/* the document viewer (components/DocViewer.jsx): the page pours out of the link that opened
+   it, and back in on close, like the Mac's genie */
+.doc-viewer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgb(var(--c-text));
+  overflow: hidden;
+}
+.doc-viewer::backdrop {
+  background: rgb(var(--c-ink) / 0.82);
+  backdrop-filter: blur(6px);
+}
+.doc-viewer[open] {
+  display: flex;
+  flex-direction: column;
+}
+.doc-viewer[open]::backdrop {
+  animation: doc-fade 0.3s ease-out;
+}
+.doc-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(900px, calc(100vw - 24px));
+  margin: 12px auto 0;
+  padding: 4px 4px 4px 14px;
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 12px;
+  background: rgb(var(--c-paper) / 0.92);
+  box-shadow: 0 18px 40px -20px rgb(0 0 0 / 0.8);
+  animation: doc-drop 0.4s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+}
+.doc-pages {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 12px 64px;
+  overscroll-behavior: contain;
+}
+.doc-sheet {
+  position: relative;
+  flex-shrink: 0;
+  background: #fbf8f1;
+  border-radius: 3px;
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(0 0 0 / 0.25);
+  overflow: hidden;
+}
+/* the pages, together; while the genie plays they're laid out and drawn but hidden, and the
+   genie (canvas.doc-genie) stands in for them */
+.doc-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.doc-stack.opening,
+.doc-stack.closing {
+  visibility: hidden;
+}
+.doc-genie {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  pointer-events: none;
+  z-index: 2;
+}
+.doc-viewer.closing::backdrop {
+  animation: doc-fade 0.55s ease-in reverse forwards;
+}
+.doc-viewer.closing .doc-bar {
+  animation: doc-drop 0.35s ease-in reverse forwards;
+}
+.doc-sheet canvas {
+  display: block;
+}
+.doc-link {
+  position: absolute;
+  border-radius: 2px;
+}
+.doc-link:hover,
+.doc-link:focus-visible {
+  background: rgb(var(--c-signal) / 0.15);
+  outline: 1px solid rgb(var(--c-signal) / 0.6);
+}
+@keyframes doc-fade {
+  from { opacity: 0; }
+}
+@keyframes doc-drop {
+  from { opacity: 0; transform: translateY(-16px); }
+}
+/* the link's letters (components/DocLink.jsx): they lift away into the sheet as it opens,
+   and drop back in, decoding, when it floats home */
+.doc-word .doc-ch {
+  display: inline-block;
+  white-space: pre;
+}
+.doc-word-away .doc-ch {
+  animation: doc-ch-up 0.32s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+  animation-delay: calc(var(--i) * 28ms);
+}
+.doc-word-back .doc-ch {
+  animation: doc-ch-down 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+@keyframes doc-ch-up {
+  to { opacity: 0; transform: translateY(-12px) scale(0.8); filter: blur(2px); }
+}
+@keyframes doc-ch-down {
+  from { opacity: 0; transform: translateY(-12px) scale(0.8); filter: blur(2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .doc-bar,
+  .doc-viewer[open]::backdrop,
+  .doc-viewer.closing::backdrop,
+  .doc-viewer.closing .doc-bar,
+  .doc-word .doc-ch {
+    animation: none;
+  }
+}

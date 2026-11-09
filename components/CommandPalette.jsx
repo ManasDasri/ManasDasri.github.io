@@ -1,5 +1,6 @@
 'use client';
 
+import { openDoc } from '@/lib/docs';
 import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
 import { commands } from '@/lib/data';
@@ -32,6 +33,8 @@ export default function CommandPalette() {
       toggleMotion();
     } else if (cmd.theme) {
       setTheme(cmd.theme);
+    } else if (cmd.doc) {
+      openDoc(cmd.doc);
     } else if (cmd.terminal) {
       // the terminal lives on Sprout's page
       const term = document.getElementById('terminal');

@@ -8,6 +8,7 @@ import '@fontsource/space-mono/latin-400.css';
 import '@fontsource/space-mono/latin-700.css';
 import { SITE, socials } from '@/lib/data';
 import { THEME_SCRIPT } from '@/lib/themes';
+import DocViewer from '@/components/DocViewer';
 
 // A title reached through a view transition already morphed in, so its rise stays off for
 // good (a rule that only matched during the morph restarted it afterwards, a visible bounce).
@@ -57,6 +58,7 @@ export default function RootLayout({ children }) {
           Skip to content
         </a>
         {children}
+        <DocViewer />
       </body>
     </html>
   );
