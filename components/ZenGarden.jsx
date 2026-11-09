@@ -9,8 +9,8 @@ import { BAYER, NAVY, STEP, TEAL, ihash, lightNow, makeStamper, mix, motionPause
 // waves across the garden and into rings round each stone and the pool, so every groove has
 // a lit side and a shaded side, with grit on top. The stones are rounded granite, mossy at the
 // foot, and cast soft shadows on the gravel. The light follows the time of day in Bengaluru,
-// as the pond's does. The garden is drawn once; only the pool moves: its water drifts, a leaf
-// falls in now and then, and the cursor over it sends out a slow ripple (at most one every
+// as the pond's does. The garden is drawn once; only the pool moves: its water drifts, sakura
+// petals keep falling (and land on it), a leaf falls in now and then, and the cursor over it sends out a slow ripple (at most one every
 // couple of seconds, so it stays calm). Paused while out of view or the tab is hidden.
 
 const P = 3; // css px per pixel
@@ -33,7 +33,7 @@ export default function ZenGarden() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     let W, H, gw, gh, img, still0, stones, pool, pads, raf, last = 0, t = 0, light;
-    let waves = [], leaves = [], nextLeaf = 4, nextRipple = 0;
+    let waves = [], leaves = [], petals = [], nextLeaf = 4, nextPetal = 0, nextRipple = 0;
     let still = motionPaused(), inView = true, ready = false;
 
     // How far (x, y) is outside an outline: negative inside. Edges are irregular, from noise
@@ -154,6 +154,14 @@ export default function ZenGarden() {
       ];
       waves = [];
       leaves = [];
+      // a few blossoms already fallen, so even a still garden has some
+      petals = Array.from({ length: 16 }, () => {
+        const p = newPetal();
+        p.y = p.ty = rand(0.1, 0.85) * H;
+        p.landed = 0;
+        p.wet = outline(pool, p.x, p.y) < 0;
+        return p;
+      });
       drawGarden();
     };
 
@@ -222,6 +230,61 @@ export default function ZenGarden() {
       }
     };
 
+    // Sakura: petals falling all the time, a couple of dozen at once, drifting on a light breeze
+    // and turning over as they go. On the pool a petal lands with a tiny ring and floats a
+    // while; on the gravel it rests, then fades.
+    const PINK = [[250, 204, 216], [238, 158, 184], [214, 120, 150]];
+    function newPetal() {
+      return { x: rand(-0.1, 0.95) * W, y: -6, ty: rand(0.08, 0.95) * H, vx: rand(6, 16), vy: rand(14, 26), sway: rand(6, 14), f: rand(0.9, 1.8), ph: rand(0, 6.28), spin: rand(1.5, 4), size: rand(3.4, 5.6), tone: Math.floor(rand(0, 3)), landed: null, wet: false };
+    }
+    const drawPetals = (dt) => {
+      if (t > nextPetal && petals.filter((p) => p.landed == null).length < 28) {
+        petals.push(newPetal());
+        nextPetal = t + rand(0.12, 0.35);
+      }
+      petals = petals.filter((p) => p.landed == null || p.landed < (p.wet ? 9 : 6));
+      for (const p of petals) {
+        let flip = 1, ang;
+        if (p.landed == null) {
+          p.y += p.vy * dt;
+          p.x += (p.vx + Math.sin(t * p.f + p.ph) * p.sway) * dt;
+          flip = Math.cos(t * p.spin + p.ph); // turning over: seen edge on, then face on
+          ang = Math.sin(t * p.f * 0.7 + p.ph) * 1.2 + p.ph;
+          if (p.y >= p.ty) {
+            p.landed = 0;
+            p.wet = outline(pool, p.x, p.y) < 0;
+            if (p.wet) waves.push({ x: p.x, y: p.y, t0: t, speed: 12, life: 2, amp: 0.22, len: 5 });
+          }
+        } else {
+          p.landed += dt;
+          if (p.wet) p.x += Math.sin(p.landed * 0.4 + p.ph) * 2 * dt; // drifting on the water
+          ang = p.ph;
+        }
+        const fade = p.landed == null ? 1 : Math.max(0, 1 - p.landed / (p.wet ? 9 : 6));
+        if (fade <= 0) continue;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(ang);
+        ctx.scale(Math.max(0.25, Math.abs(flip)), 1);
+        ctx.globalAlpha = 0.92 * fade;
+        ctx.fillStyle = `rgb(${PINK[p.tone].join(' ')})`;
+        // a petal: a rounded teardrop with a notch at its tip, paler at the base
+        ctx.beginPath();
+        ctx.moveTo(0, p.size);
+        ctx.quadraticCurveTo(p.size * 1.1, p.size * 0.2, p.size * 0.35, -p.size);
+        ctx.lineTo(0, -p.size * 0.65);
+        ctx.lineTo(-p.size * 0.35, -p.size);
+        ctx.quadraticCurveTo(-p.size * 1.1, p.size * 0.2, 0, p.size);
+        ctx.fill();
+        ctx.fillStyle = 'rgb(255 236 242 / 0.6)';
+        ctx.beginPath();
+        ctx.ellipse(0, p.size * 0.45, p.size * 0.3, p.size * 0.35, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    };
+
     const frame = (dt) => {
       t += dt;
       waves = waves.filter((w) => t - w.t0 < w.life);
@@ -234,6 +297,7 @@ export default function ZenGarden() {
       ctx.globalAlpha = 1;
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(off, 0, 0, gw * P, gh * P);
+      drawPetals(dt);
       drawLeaves();
     };
 
