@@ -39,29 +39,27 @@ export default function Footer() {
       </nav>
 
       {/* a small ad for Forme, my component library; the tab switcher and the counting numbers
-          here (components/SegmentedSwitch.jsx, NumberTicker.jsx) are ported from it */}
-      <a
-        href={forme.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group mt-8 flex items-center gap-4 max-w-xl rounded-xl border border-line bg-paper p-2.5 pr-4 no-underline transition-colors hover:border-signal/50"
-      >
-        <img
-          src={forme.screenshots[0].src}
-          alt=""
-          loading="lazy"
-          className="w-24 sm:w-32 shrink-0 aspect-[16/10] rounded-md border border-line object-cover object-top"
-        />
-        <span className="min-w-0 flex-1">
+          here (components/SegmentedSwitch.jsx, NumberTicker.jsx) are ported from it. On hover it
+          turns into Forme's own homepage: stars come out, a planet's glowing horizon rises behind
+          the card, and its three screenshots fan out like a hand of cards (app/globals.css) */}
+      <a href={forme.link} target="_blank" rel="noopener noreferrer" className="forme-ad group mt-8 flex items-center gap-4 sm:gap-5 max-w-xl rounded-xl border border-line bg-paper p-2.5 pr-4 no-underline">
+        <span className="forme-ad-sky" aria-hidden="true" />
+        <span className="forme-ad-horizon" aria-hidden="true" />
+        <span className="forme-ad-deck" aria-hidden="true">
+          {forme.screenshots.slice(0, 3).map((shot, k) => (
+            <img key={shot.src} src={shot.src} alt="" loading="lazy" style={{ '--k': k }} />
+          ))}
+        </span>
+        <span className="relative z-[1] min-w-0 flex-1">
           <span className="block font-mono text-[10px] uppercase tracking-wider text-mute">also by me</span>
-          <span className="block font-serif text-lg leading-tight text-text transition-colors group-hover:text-signal">
-            Forme <span className="text-mute font-normal">· {forme.tagline}</span>
+          <span className="block font-serif text-lg leading-tight text-text">
+            <span className="forme-ad-name">Forme</span> <span className="text-mute font-normal">· {forme.tagline}</span>
           </span>
           <span className="block mt-1 font-mono text-[11px] leading-relaxed text-mute">
             52 free React components, installed as source with one command. This site&rsquo;s tab switcher and counting numbers are from it.
           </span>
         </span>
-        <span className="hidden sm:block shrink-0 font-mono text-xs text-signal transition-transform group-hover:translate-x-1" aria-hidden="true">
+        <span className="relative hidden sm:block shrink-0 font-mono text-xs text-signal transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">
           browse →
         </span>
       </a>
