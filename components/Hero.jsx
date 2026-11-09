@@ -1,5 +1,6 @@
 'use client';
 
+import DocLink from './DocLink';
 import { useEffect, useState } from 'react';
 import Typewriter from './Typewriter';
 import { status } from '@/lib/data';
@@ -66,13 +67,9 @@ export default function Hero({ highlights = [] }) {
         >
           Send an email →
         </a>
-        <a
-          href="/Manas_resume.pdf"
-          data-doc="resume"
-          className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
-        >
+        <DocLink doc="resume" className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline">
           Resume
-        </a>
+        </DocLink>
         <a
           href="/recruiter/"
           className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"

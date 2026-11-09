@@ -445,9 +445,32 @@ body {
   border-radius: 3px;
   box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(0 0 0 / 0.25);
   overflow: hidden;
-  /* grows out of the link, tilted, and settles; later pages follow a beat behind */
-  animation: doc-out 0.6s cubic-bezier(0.25, 1.2, 0.4, 1) both;
-  animation-delay: calc(var(--i, 0) * 0.09s);
+}
+/* the pages, together: they grow out of the link, tilted, and settle; on close they float
+   back into it */
+.doc-stack {
+  --from-x: 0px;
+  --from-y: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  transform-origin: 50% 0;
+}
+.doc-stack.opening {
+  opacity: 0;
+}
+.doc-stack.open {
+  animation: doc-out 0.62s cubic-bezier(0.22, 1.15, 0.36, 1) both;
+}
+.doc-stack.closing {
+  animation: doc-back 0.5s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
+}
+.doc-viewer.closing::backdrop {
+  animation: doc-fade 0.5s ease-in reverse forwards;
+}
+.doc-viewer.closing .doc-bar {
+  animation: doc-drop 0.35s ease-in reverse forwards;
 }
 .doc-sheet canvas {
   display: block;
@@ -471,11 +494,6 @@ body {
 .doc-sheet.printed .doc-scan {
   animation: doc-scan 0.9s cubic-bezier(0.5, 0, 0.3, 1) forwards;
 }
-/* before the PDF arrives: a blank sheet with a slow shimmer */
-.doc-blank {
-  background: linear-gradient(100deg, #fbf8f1 40%, #ece6d8 50%, #fbf8f1 60%) 0 0 / 300% 100%;
-  animation: doc-out 0.6s cubic-bezier(0.25, 1.2, 0.4, 1) both, doc-shimmer 1.4s linear infinite;
-}
 .doc-link {
   position: absolute;
   border-radius: 2px;
@@ -494,9 +512,16 @@ body {
 @keyframes doc-out {
   from {
     opacity: 0;
-    transform: translate(var(--from-x), var(--from-y)) scale(0.12) rotate(-6deg);
+    transform: translate(var(--from-x), var(--from-y)) scale(0.06) rotate(-8deg);
   }
-  60% { opacity: 1; }
+  45% { opacity: 1; }
+}
+@keyframes doc-back {
+  70% { opacity: 1; }
+  to {
+    opacity: 0;
+    transform: translate(var(--from-x), var(--from-y)) scale(0.06) rotate(7deg);
+  }
 }
 @keyframes doc-print {
   to { clip-path: inset(0 0 0 0); }
@@ -506,13 +531,32 @@ body {
   92% { top: 100%; opacity: 1; }
   100% { top: 100%; opacity: 0; }
 }
-@keyframes doc-shimmer {
-  to { background-position: -150% 0; }
+/* the link's letters (components/DocLink.jsx): they lift away into the sheet as it opens,
+   and drop back in, decoding, when it floats home */
+.doc-word .doc-ch {
+  display: inline-block;
+  white-space: pre;
+}
+.doc-word-away .doc-ch {
+  animation: doc-ch-up 0.32s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+  animation-delay: calc(var(--i) * 28ms);
+}
+.doc-word-back .doc-ch {
+  animation: doc-ch-down 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+@keyframes doc-ch-up {
+  to { opacity: 0; transform: translateY(-12px) scale(0.8); filter: blur(2px); }
+}
+@keyframes doc-ch-down {
+  from { opacity: 0; transform: translateY(-12px) scale(0.8); filter: blur(2px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .doc-sheet,
+  .doc-stack.open,
+  .doc-stack.closing,
   .doc-bar,
-  .doc-viewer[open]::backdrop {
+  .doc-viewer[open]::backdrop,
+  .doc-word .doc-ch {
     animation: none;
   }
   .doc-sheet canvas,

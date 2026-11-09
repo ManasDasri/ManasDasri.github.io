@@ -1,5 +1,6 @@
 'use client';
 
+import DocLink from './DocLink';
 import { useState } from 'react';
 import { status } from '@/lib/data';
 import Section from './Section';
@@ -32,13 +33,9 @@ export default function Contact() {
         >
           {copied ? 'copied ✓' : 'copy'}
         </button>
-        <a
-          href="/Manas_resume.pdf"
-          data-doc="resume"
-          className="font-mono text-xs text-mute border border-line rounded-md px-2.5 py-1 no-underline hover:text-signal hover:border-signal transition-colors"
-        >
+        <DocLink doc="resume" className="font-mono text-xs text-mute border border-line rounded-md px-2.5 py-1 no-underline hover:text-signal hover:border-signal transition-colors">
           résumé
-        </a>
+        </DocLink>
       </div>
       <div className="mt-8 rounded-md border border-line bg-paper px-5 py-4 max-w-[62ch]">
         <p className="m-0 text-sm text-text/90 leading-relaxed">

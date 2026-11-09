@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DOCS } from '@/lib/docs';
 
 // The site's document viewer. A link with data-doc="id" (lib/docs.js) opens it in place of a
@@ -22,7 +22,7 @@ const loadPdfjs = async () => {
   return pdfjs;
 };
 
-function Sheet({ pdf, n, scale, onVisible }) {
+function Sheet({ pdf, n, scale, sizeHint, onVisible }) {
   const ref = useRef(null);
   const canvasRef = useRef(null);
   const [links, setLinks] = useState([]);
@@ -71,7 +71,7 @@ function Sheet({ pdf, n, scale, onVisible }) {
     <div
       ref={ref}
       className={`doc-sheet${printed ? ' printed' : ''}`}
-      style={{ width: size?.w ?? 612 * scale, height: size?.h ?? 792 * scale, '--i': n - 1 }}
+      style={{ width: size?.w ?? sizeHint.w * scale, height: size?.h ?? sizeHint.h * scale }}
       aria-label={`Page ${n}`}
     >
       <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
@@ -83,60 +83,110 @@ function Sheet({ pdf, n, scale, onVisible }) {
   );
 }
 
+// pdf.js and the document, fetched once and kept, so a second open (or a hover first) is instant
+const loading = {};
+const loadDoc = (id) =>
+  (loading[id] ??= loadPdfjs()
+    .then((lib) => lib.getDocument(DOCS[id].file).promise)
+    .then(async (p) => ({ pdf: p, size: (await p.getPage(1)).getViewport({ scale: 1 }) })));
+
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const announce = (state, from) => window.dispatchEvent(new CustomEvent('doc-state', { detail: { state, from } }));
+
 export default function DocViewer() {
   const dialog = useRef(null);
+  const stack = useRef(null);
+  const fromRef = useRef(null);
   const [doc, setDoc] = useState(null); // { id, ...DOCS[id] }
   const [pdf, setPdf] = useState(null);
+  const [first, setFirst] = useState(null); // page 1's size at scale 1
   const [error, setError] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState(1);
   const [page, setPage] = useState(1);
-  const [origin, setOrigin] = useState(null);
+  const [phase, setPhase] = useState('closed'); // opening, open, closing
+
+  // where the link that opened it sits, relative to the top middle of the stack of pages
+  const aim = () => {
+    const s = stack.current, from = fromRef.current?.getBoundingClientRect?.();
+    if (!s) return;
+    const r = s.getBoundingClientRect();
+    const x = from ? from.left + from.width / 2 - (r.left + r.width / 2) : 0;
+    const y = from ? from.top + from.height / 2 - r.top : innerHeight / 2 - r.top;
+    s.style.setProperty('--from-x', `${x}px`);
+    s.style.setProperty('--from-y', `${y}px`);
+  };
 
   const open = useCallback(async (id, from) => {
     const d = DOCS[id];
     if (!d) return;
-    // grow out of the link that opened it
-    const r = from?.getBoundingClientRect?.();
-    setOrigin(r ? { x: r.left + r.width / 2 - innerWidth / 2, y: r.top + r.height / 2 - innerHeight / 2 } : null);
+    fromRef.current = from ?? null;
     setDoc({ id, ...d });
     setPdf(null);
     setError(false);
     setZoom(1);
     setPage(1);
+    setPhase('opening');
     dialog.current?.showModal();
+    announce('opening', fromRef.current);
     if (location.hash !== `#doc=${id}`) history.replaceState(null, '', `#doc=${id}`);
     try {
-      const lib = await loadPdfjs();
-      const p = await lib.getDocument(d.file).promise;
-      const first = await p.getPage(1);
-      const w = first.getViewport({ scale: 1 }).width;
-      setFit(Math.min(1.5, (Math.min(innerWidth, 900) - 48) / w));
+      const { pdf: p, size } = await loadDoc(id);
+      setFit(Math.min(1.5, (Math.min(innerWidth, 900) - 48) / size.width));
+      setFirst({ w: size.width, h: size.height });
       setPdf(p);
     } catch {
       setError(true);
     }
   }, []);
 
-  const close = useCallback(() => {
+  // aim the stack at the link before its first paint, so it grows out of it in one go
+  useLayoutEffect(() => {
+    if (pdf && phase === 'opening') {
+      aim();
+      setPhase('open');
+    }
+  }, [pdf, phase]);
+
+  const finish = useCallback(() => {
     dialog.current?.close();
+    setPhase('closed');
+    announce('closed', fromRef.current);
   }, []);
 
+  // float back into the link, then close
+  const close = useCallback(() => {
+    if (phase === 'closing') return;
+    if (reduced() || !stack.current) return finish();
+    aim();
+    setPhase('closing');
+    setTimeout(finish, 520);
+  }, [phase, finish]);
+
   useEffect(() => {
-    // any link marked data-doc opens here, unless it's a modified or middle click
+    // any link marked data-doc opens here, unless it's a modified or middle click; hovering
+    // one fetches the document ahead
     const onClick = (e) => {
       const a = e.target.closest?.('a[data-doc]');
       if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       open(a.dataset.doc, a);
     };
+    const warm = (e) => {
+      const a = e.target.closest?.('a[data-doc]');
+      if (a && DOCS[a.dataset.doc]) loadDoc(a.dataset.doc).catch(() => {});
+    };
     const onOpen = (e) => open(e.detail.id, e.detail.from);
     document.addEventListener('click', onClick);
+    document.addEventListener('pointerover', warm);
+    document.addEventListener('focusin', warm);
     window.addEventListener('open-doc', onOpen);
     const m = location.hash.match(/^#doc=(\w+)/);
     if (m) open(m[1]);
     return () => {
       document.removeEventListener('click', onClick);
+      document.removeEventListener('pointerover', warm);
+      document.removeEventListener('focusin', warm);
       window.removeEventListener('open-doc', onOpen);
     };
   }, [open]);
@@ -148,17 +198,24 @@ export default function DocViewer() {
       setPdf(null);
       if (location.hash.startsWith('#doc=')) history.replaceState(null, '', location.pathname + location.search);
     };
+    // Esc: float back rather than vanish
+    const onCancel = (e) => {
+      e.preventDefault();
+      close();
+    };
     const onKey = (e) => {
       if (e.key === '+' || e.key === '=') setZoom((z) => Math.min(2.5, z + 0.25));
       if (e.key === '-') setZoom((z) => Math.max(0.5, z - 0.25));
     };
     d.addEventListener('close', onClose);
+    d.addEventListener('cancel', onCancel);
     d.addEventListener('keydown', onKey);
     return () => {
       d.removeEventListener('close', onClose);
+      d.removeEventListener('cancel', onCancel);
       d.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [close]);
 
   const scale = fit * zoom;
   const btn = 'w-8 h-8 grid place-items-center rounded-md text-mute hover:text-signal hover:bg-raised transition-colors no-underline';
@@ -167,8 +224,7 @@ export default function DocViewer() {
     <dialog
       ref={dialog}
       aria-label={doc ? `${doc.title}, in a document viewer` : 'Document viewer'}
-      className="doc-viewer"
-      style={origin ? { '--from-x': `${origin.x}px`, '--from-y': `${origin.y}px` } : undefined}
+      className={`doc-viewer${phase === 'closing' ? ' closing' : ''}`}
       // a click on the backdrop (the dialog itself, outside the pages) closes it
       onClick={(e) => e.target === e.currentTarget && close()}
     >
@@ -200,8 +256,13 @@ export default function DocViewer() {
                 </a>
               </p>
             )}
-            {!pdf && !error && <div className="doc-sheet doc-blank" style={{ width: Math.min(innerWidth - 48, 640), height: Math.min(innerWidth - 48, 640) * 1.294 }} />}
-            {pdf && Array.from({ length: pdf.numPages }, (_, i) => <Sheet key={i} pdf={pdf} n={i + 1} scale={scale} onVisible={setPage} />)}
+            {pdf && first && (
+              <div ref={stack} className={`doc-stack ${phase}`} onClick={(e) => e.target === e.currentTarget && close()}>
+                {Array.from({ length: pdf.numPages }, (_, i) => (
+                  <Sheet key={i} pdf={pdf} n={i + 1} scale={scale} sizeHint={first} onVisible={setPage} />
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}
