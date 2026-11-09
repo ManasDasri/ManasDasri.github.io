@@ -63,7 +63,7 @@ export default async function Recruiter() {
           I run machine learning experiments built to be checked (held-out tests, baselines, null results reported) and build the tools around them.
         </p>
         <div className="flex flex-wrap gap-2.5 mt-6">
-          <a href="/Manas_resume.pdf" className={primary}>Resume (PDF)</a>
+          <a href="/Manas_resume.pdf" data-doc="resume" className={primary}>Resume</a>
           <a href={`mailto:${EMAIL}`} className={secondary}>Email</a>
           <a href={github} className={secondary}>GitHub</a>
           <a href={linkedin} className={secondary}>LinkedIn</a>
@@ -146,7 +146,7 @@ export default async function Recruiter() {
         <p className="font-head text-lg text-text m-0">Get in touch</p>
         <div className="flex flex-wrap gap-2.5 mt-4">
           <a href={`mailto:${EMAIL}`} className={primary}>{EMAIL}</a>
-          <a href="/Manas_resume.pdf" className={secondary}>Resume (PDF)</a>
+          <a href="/Manas_resume.pdf" data-doc="resume" className={secondary}>Resume</a>
           <a href={github} className={secondary}>GitHub</a>
         </div>
         <p className="font-mono text-[11px] text-mute mt-8 mb-0">

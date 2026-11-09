@@ -34,11 +34,10 @@ export default function Contact() {
         </button>
         <a
           href="/Manas_resume.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
+          data-doc="resume"
           className="font-mono text-xs text-mute border border-line rounded-md px-2.5 py-1 no-underline hover:text-signal hover:border-signal transition-colors"
         >
-          résumé (PDF) ↗
+          résumé
         </a>
       </div>
       <div className="mt-8 rounded-md border border-line bg-paper px-5 py-4 max-w-[62ch]">

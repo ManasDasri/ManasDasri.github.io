@@ -68,11 +68,10 @@ export default function Hero({ highlights = [] }) {
         </a>
         <a
           href="/Manas_resume.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
+          data-doc="resume"
           className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
         >
-          Resume (PDF)
+          Resume
         </a>
         <a
           href="/recruiter/"
