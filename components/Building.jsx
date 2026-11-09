@@ -1,6 +1,6 @@
 import { byRank, projects } from '@/lib/data';
 import Section from './Section';
-import RippleShot from './RippleShot';
+import KoiShot from './KoiShot';
 
 // Selected work on the homepage: the featured projects as cards (a picture, what it is, and
 // one line of evidence), then everything else as a list of names. The full list, with what
@@ -15,9 +15,9 @@ export default function Building() {
         {cards.map((p) => (
           <li key={p.name}>
             <a href={`/projects/${p.slug}/`} className="group block no-underline">
-              <RippleShot>
+              <KoiShot>
                 <img src={p.screenshots[0].src} alt="" loading="lazy" />
-              </RippleShot>
+              </KoiShot>
               <span className="block mt-3 font-mono text-[11px] text-mute">{p.kind}</span>
               <span
                 className="block w-fit mt-1 font-serif text-2xl leading-tight text-text group-hover:text-signal transition-colors"

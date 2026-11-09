@@ -262,7 +262,11 @@ export function swim(f, t, dt, others = []) {
     f.linger = t + rand(3, 6); // and it hangs about, in case there's more
   }
   f.spine[0] = [hx + Math.cos(f.heading) * f.v * dt, hy + Math.sin(f.heading) * f.v * dt];
-  // the body follows the head, each segment bending at most MAX_BEND from the one before
+  follow(f);
+}
+
+// the body follows the head, each segment bending at most MAX_BEND from the one before
+export function follow(f) {
   const bend = f.bend ?? MAX_BEND; // the post about the pond turns these down to show why
   let ref = f.heading + Math.PI;
   for (let i = 1; i < f.spine.length; i++) {
