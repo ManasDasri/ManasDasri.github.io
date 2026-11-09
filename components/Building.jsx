@@ -1,5 +1,6 @@
 import { byRank, projects } from '@/lib/data';
 import Section from './Section';
+import TiltShot from './TiltShot';
 
 // Selected work on the homepage: the featured projects as cards (a picture, what it is, and
 // one line of evidence), then everything else as a list of names. The full list, with what
@@ -14,20 +15,18 @@ export default function Building() {
         {cards.map((p) => (
           <li key={p.name}>
             <a href={`/projects/${p.slug}/`} className="group block no-underline">
-              <span className="block aspect-[16/10] overflow-hidden rounded-lg border border-line bg-paper">
-                <img
-                  src={p.screenshots[0].src}
-                  alt=""
-                  loading="lazy"
-                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
-                />
-              </span>
+              <TiltShot>
+                <img src={p.screenshots[0].src} alt="" loading="lazy" />
+              </TiltShot>
               <span className="block mt-3 font-mono text-[11px] text-mute">{p.kind}</span>
               <span
                 className="block w-fit mt-1 font-serif text-2xl leading-tight text-text group-hover:text-signal transition-colors"
                 style={{ viewTransitionName: `project-${p.slug}` }}
               >
                 {p.name}
+                <span aria-hidden="true" className="inline-block ml-2 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 motion-reduce:transition-none">
+                  →
+                </span>
               </span>
               <span className="block mt-1.5 text-sm leading-relaxed text-text/80">{p.tagline}</span>
               {p.proof && <span className="block mt-2 font-mono text-[11px] leading-relaxed text-signal/90">{p.proof}</span>}
