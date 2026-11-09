@@ -36,6 +36,15 @@ export default function Footer() {
         <a href="/recruiter/" className="text-text/80 hover:text-signal">recruiter view</a>
       </nav>
 
+      {/* components/SegmentedSwitch.jsx and components/NumberTicker.jsx are ported from Forme */}
+      <p className="font-mono text-[11px] text-mute mt-4 mb-0">
+        The tab switcher and the counting numbers are from{' '}
+        <a href="https://forme.vercel.app" target="_blank" rel="noopener noreferrer" className="text-text/80 hover:text-signal underline decoration-line underline-offset-4">
+          Forme
+        </a>
+        , my library of interactive components.
+      </p>
+
       <div className="mt-6 pt-6 border-t border-line/60 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <ul className="list-none p-0 m-0 flex gap-1" aria-label="Elsewhere">
           {socials.map((s) => {
