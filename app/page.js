@@ -14,7 +14,7 @@ import { reading } from '@/lib/data';
 import Writing from '@/components/Writing';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import Starfield from '@/components/Starfield';
+import KoiPond from '@/components/KoiPond';
 import CommandPalette from '@/components/CommandPalette';
 import { getLeetCodeStats } from '@/lib/leetcode';
 import { getContributions, getTickerData } from '@/lib/ticker';
@@ -39,7 +39,7 @@ export default async function Home() {
 
   return (
     <>
-      <Starfield />
+      <KoiPond />
       <Dock />
       <div className="relative z-[2] max-w-2xl mx-auto">
         <Band className="!h-10" />

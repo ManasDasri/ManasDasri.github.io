@@ -17,18 +17,18 @@ html {
 }
 
 :root {
-  /* The default theme, Print: neutral black and white, like the banner, with red as the one
-     colour (as "R G B" so Tailwind can add alpha). Other themes: lib/themes.js */
-  --c-ink: 10 10 10;
-  --c-paper: 18 18 18;
-  --c-raised: 28 28 28;
-  --c-line: 46 46 46;
-  --c-text: 238 238 234;
-  --c-mute: 142 142 140;
-  --c-signal: 232 54 62;
-  --c-mature: 176 176 172;
-  --c-old: 92 92 90;
-  --c-accent: 206 206 202;
+  /* Koi Pond: night water, cream, koi orange as the accent, teal and wake cyan (as "R G B"
+     so Tailwind can add alpha). The accent can be changed: lib/themes.js */
+  --c-ink: 7 11 20;
+  --c-paper: 12 19 34;
+  --c-raised: 18 27 46;
+  --c-line: 31 44 70;
+  --c-text: 236 228 214;
+  --c-mute: 151 160 179;
+  --c-signal: 240 122 74;
+  --c-mature: 79 163 160;
+  --c-old: 44 79 138;
+  --c-accent: 126 200 214;
 }
 
 body {
@@ -268,3 +268,117 @@ body {
 }
 /* titles: Space Grotesk, semibold and set tight */
 .font-serif { font-weight: 600; letter-spacing: -0.03em; }
+
+/* Forme's segmented switch (components/SegmentedSwitch.jsx), in the site's palette; the tab
+   bars (components/TabbedSection.jsx) use the same look with buttons in place of radios */
+.segmented {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-paper));
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+}
+.segmented-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  z-index: -1;
+  width: calc((100% - 6px) / var(--seg-count));
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgb(var(--c-raised)), rgb(var(--c-paper)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 2px 6px rgb(0 0 0 / 0.5);
+  transform: translateX(calc(100% * var(--seg-index)));
+  transition: transform 0.38s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+.segmented > label,
+.segmented > button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  padding: 0 14px;
+  color: rgb(var(--c-mute));
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.segmented > label:hover,
+.segmented > button:hover {
+  color: rgb(var(--c-text));
+}
+.segmented > label[data-active],
+.segmented > button[aria-selected='true'] {
+  color: rgb(var(--c-signal));
+}
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.segmented > label:has(input:focus-visible),
+.segmented > button:focus-visible {
+  border-radius: 7px;
+  outline: 2px solid rgb(var(--c-signal));
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .segmented-thumb,
+  .segmented > label,
+  .segmented > button {
+    transition: none;
+  }
+}
+
+/* project cards' pictures (components/KoiShot.jsx): under the pointer a koi swims across
+   them under the water; the card lifts as it does */
+.shot {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-paper));
+  transition: translate 0.4s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.4s, border-color 0.4s;
+}
+.shot > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+.shot > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.shot > canvas.on {
+  opacity: 1;
+}
+.group:hover .shot,
+.group:focus-visible .shot {
+  translate: 0 -5px;
+  border-color: rgb(var(--c-signal) / 0.5);
+  box-shadow: 0 26px 44px -26px rgb(0 0 0 / 0.9), 0 10px 36px -18px rgb(var(--c-signal) / 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .shot {
+    transition: none;
+  }
+  .group:hover .shot {
+    translate: none;
+  }
+}

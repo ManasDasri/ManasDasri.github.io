@@ -34,7 +34,15 @@ export default function TabbedSection({ id, title, tabs }) {
 
   return (
     <Section id={id} title={title} note={tabs.find((t) => t.id === active).note}>
-      <div role="tablist" aria-label={title} onKeyDown={onKey} className="flex flex-wrap gap-1 p-1 mb-8 w-fit rounded-lg border border-line bg-paper">
+      {/* Forme's segmented switch look: a thumb springs to the chosen tab */}
+      <div
+        role="tablist"
+        aria-label={title}
+        onKeyDown={onKey}
+        className="segmented mb-8 max-w-full overflow-x-auto"
+        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`, '--seg-count': tabs.length, '--seg-index': tabs.findIndex((t) => t.id === active) }}
+      >
+        <span className="segmented-thumb" aria-hidden="true" />
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -45,9 +53,6 @@ export default function TabbedSection({ id, title, tabs }) {
             aria-controls={`panel-${t.id}`}
             tabIndex={active === t.id ? 0 : -1}
             onClick={() => setActive(t.id)}
-            className={`font-mono text-xs px-3 py-1.5 rounded-md transition-colors ${
-              active === t.id ? 'bg-raised text-signal' : 'text-mute hover:text-text'
-            }`}
           >
             {t.label}
           </button>

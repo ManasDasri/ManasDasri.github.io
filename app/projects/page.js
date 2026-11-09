@@ -1,3 +1,4 @@
+import KoiShot from '@/components/KoiShot';
 import { SiGithub } from 'react-icons/si';
 import { FiGlobe } from 'react-icons/fi';
 import { byRank, projects } from '@/lib/data';
@@ -27,21 +28,16 @@ export default function Projects() {
           return (
             <li key={p.name} className="flex flex-col">
               <a href={href} {...out} className="group block no-underline" aria-label={p.name}>
-                <span className="block aspect-[16/10] overflow-hidden rounded-lg border border-line bg-paper">
+                <KoiShot>
                   {p.screenshots?.length ? (
-                    <img
-                      src={p.screenshots[0].src}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
-                    />
+                    <img src={p.screenshots[0].src} alt="" loading="lazy" />
                   ) : (
                     // nothing to show yet: the GitHub mark on a dotted tile, since the source is what there is
                     <span className="flex w-full h-full items-center justify-center bg-[radial-gradient(rgb(var(--c-text)/0.14)_1.2px,transparent_1.2px)] [background-size:12px_12px]">
                       <SiGithub className="w-14 h-14 text-text/70 transition-colors group-hover:text-signal" aria-hidden="true" />
                     </span>
                   )}
-                </span>
+                </KoiShot>
               </a>
               <div className="flex items-start justify-between gap-3 mt-3">
                 <span className="font-mono text-[11px] text-mute pt-1">
