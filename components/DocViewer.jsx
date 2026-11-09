@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DOCS } from '@/lib/docs';
 
 // The site's document viewer. A link with data-doc="id" (lib/docs.js) opens it in place of a
-// new tab: the page grows out of the link, then each sheet is printed onto the screen, an
-// accent line sweeping down it as it renders. Pages are drawn with pdf.js (loaded only on
+// new tab: the page pours out of the link like a window out of the Mac's dock (the genie, or
+// magic lamp), and pours back into it on close. Pages are drawn with pdf.js (loaded only on
 // first open) as paper on the dark page, with the PDF's own links kept clickable on top. A
 // toolbar has the page count, zoom, download, a new-tab link and close; Esc closes, + and -
 // zoom. Cmd- or middle-click on the link still opens a new tab, and without JavaScript the
@@ -22,12 +22,11 @@ const loadPdfjs = async () => {
   return pdfjs;
 };
 
-function Sheet({ pdf, n, scale, sizeHint, onVisible }) {
+function Sheet({ pdf, n, scale, sizeHint, onVisible, onPrinted }) {
   const ref = useRef(null);
   const canvasRef = useRef(null);
   const [links, setLinks] = useState([]);
   const [size, setSize] = useState(null);
-  const [printed, setPrinted] = useState(false);
 
   useEffect(() => {
     let task, alive = true;
@@ -43,7 +42,7 @@ function Sheet({ pdf, n, scale, sizeHint, onVisible }) {
       task = page.render({ canvasContext: c.getContext('2d'), viewport: vp, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null });
       await task.promise;
       if (!alive) return;
-      setPrinted(true);
+      onPrinted(n, c);
       // the PDF's links, as real links over the sheet
       const notes = await page.getAnnotations();
       setLinks(
@@ -70,12 +69,11 @@ function Sheet({ pdf, n, scale, sizeHint, onVisible }) {
   return (
     <div
       ref={ref}
-      className={`doc-sheet${printed ? ' printed' : ''}`}
+      className="doc-sheet"
       style={{ width: size?.w ?? sizeHint.w * scale, height: size?.h ?? sizeHint.h * scale }}
       aria-label={`Page ${n}`}
     >
       <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
-      <span className="doc-scan" aria-hidden="true" />
       {links.map((l, i) => (
         <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="doc-link" style={{ left: l.x, top: l.y, width: l.w, height: l.h }} aria-label={l.url.replace(/^mailto:/, '')} />
       ))}
@@ -91,12 +89,69 @@ const loadDoc = (id) =>
     .then(async (p) => ({ pdf: p, size: (await p.getPage(1)).getViewport({ scale: 1 }) })));
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const smooth = (x) => x * x * (3 - 2 * x);
+
+// The genie: the page cut into thin horizontal strips that slide into the link one after
+// another, nearest first, each narrowing as it nears it, so the sides curve into a funnel
+// and the page pours in. `opening` plays it backwards, out of the link.
+function genie(overlay, src, sheet, link, opening) {
+  return new Promise((done) => {
+    const g = overlay.getContext('2d');
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    overlay.width = innerWidth * dpr;
+    overlay.height = innerHeight * dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const below = link.top + link.height / 2 > sheet.top + sheet.height / 2;
+    const ty = below ? link.top + link.height * 0.3 : link.bottom - link.height * 0.3;
+    const tx = link.left + link.width / 2, tw = Math.max(12, link.width * 0.8);
+    const far = below ? sheet.top : sheet.bottom, span = Math.abs(ty - far) || 1;
+    const N = Math.max(40, Math.ceil(sheet.height / 3));
+    const sh = src.height / N, dh = sheet.height / N;
+    const began = performance.now(), dur = opening ? 600 : 560;
+    const frame = (now) => {
+      const k = Math.min(1, (now - began) / dur);
+      const e = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+      const p = opening ? 1 - e : e;
+      g.clearRect(0, 0, innerWidth, innerHeight);
+      // where each strip's top edge is now: strips nearer the link set off sooner
+      const slideAt = (v) => smooth(Math.min(1, Math.max(0, p * 1.6 - (1 - (below ? v : 1 - v)) * 0.6)));
+      const edge = (j) => {
+        const y0 = sheet.top + j * dh;
+        return y0 + (ty - y0) * slideAt(j / N);
+      };
+      let top = edge(0);
+      for (let i = 0; i < N; i++) {
+        // each strip runs from its own edge to the next one's, so neighbours always meet
+        const bottom = edge(i + 1);
+        const y = Math.min(top, bottom), h = Math.max(0.6, Math.abs(bottom - top));
+        const slide = slideAt((i + 0.5) / N);
+        const mid = y + h / 2;
+        const f = smooth(Math.min(1, Math.max(0, 1 - Math.abs(mid - ty) / span))) * Math.min(1, p * 2.2);
+        const cx = sheet.left + sheet.width / 2 + (tx - sheet.left - sheet.width / 2) * f;
+        const hw = sheet.width / 2 + (tw / 2 - sheet.width / 2) * f;
+        g.globalAlpha = 1 - Math.max(0, (slide - 0.85) / 0.15); // gone into the link at the very end
+        g.drawImage(src, 0, i * sh, src.width, sh, cx - hw, y, hw * 2, h + 0.5);
+        top = bottom;
+      }
+      g.globalAlpha = 1;
+      if (k < 1) requestAnimationFrame(frame);
+      else {
+        g.clearRect(0, 0, innerWidth, innerHeight);
+        done();
+      }
+    };
+    requestAnimationFrame(frame);
+  });
+}
 const announce = (state, from) => window.dispatchEvent(new CustomEvent('doc-state', { detail: { state, from } }));
 
 export default function DocViewer() {
   const dialog = useRef(null);
   const stack = useRef(null);
+  const overlay = useRef(null);
   const fromRef = useRef(null);
+  const canvases = useRef(new Map()); // page number → its rendered canvas
+  const phaseRef = useRef('closed');
   const [doc, setDoc] = useState(null); // { id, ...DOCS[id] }
   const [pdf, setPdf] = useState(null);
   const [first, setFirst] = useState(null); // page 1's size at scale 1
@@ -104,18 +159,13 @@ export default function DocViewer() {
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState(1);
   const [page, setPage] = useState(1);
-  const [phase, setPhase] = useState('closed'); // opening, open, closing
-
-  // where the link that opened it sits, relative to the top middle of the stack of pages
-  const aim = () => {
-    const s = stack.current, from = fromRef.current?.getBoundingClientRect?.();
-    if (!s) return;
-    const r = s.getBoundingClientRect();
-    const x = from ? from.left + from.width / 2 - (r.left + r.width / 2) : 0;
-    const y = from ? from.top + from.height / 2 - r.top : innerHeight / 2 - r.top;
-    s.style.setProperty('--from-x', `${x}px`);
-    s.style.setProperty('--from-y', `${y}px`);
+  const [phase, setPhaseState] = useState('closed'); // opening, open, closing
+  const setPhase = (v) => {
+    phaseRef.current = v;
+    setPhaseState(v);
   };
+  // the genie only runs from a link that's on screen, and not for reduced motion
+  const canGenie = () => !reduced() && fromRef.current?.isConnected && overlay.current;
 
   const open = useCallback(async (id, from) => {
     const d = DOCS[id];
@@ -126,6 +176,7 @@ export default function DocViewer() {
     setError(false);
     setZoom(1);
     setPage(1);
+    canvases.current.clear();
     setPhase('opening');
     dialog.current?.showModal();
     announce('opening', fromRef.current);
@@ -140,13 +191,13 @@ export default function DocViewer() {
     }
   }, []);
 
-  // aim the stack at the link before its first paint, so it grows out of it in one go
-  useLayoutEffect(() => {
-    if (pdf && phase === 'opening') {
-      aim();
-      setPhase('open');
-    }
-  }, [pdf, phase]);
+  // the first page is drawn (still hidden): pour it out of the link, then show the real pages
+  const onPrinted = useCallback(async (n, canvas) => {
+    canvases.current.set(n, canvas);
+    if (n !== 1 || phaseRef.current !== 'opening') return;
+    if (canGenie()) await genie(overlay.current, canvas, canvas.getBoundingClientRect(), fromRef.current.getBoundingClientRect(), true);
+    if (phaseRef.current === 'opening') setPhase('open');
+  }, []);
 
   const finish = useCallback(() => {
     dialog.current?.close();
@@ -154,14 +205,16 @@ export default function DocViewer() {
     announce('closed', fromRef.current);
   }, []);
 
-  // float back into the link, then close
-  const close = useCallback(() => {
-    if (phase === 'closing') return;
-    if (reduced() || !stack.current) return finish();
-    aim();
+  // pour back into the link, then close; from the page you're on
+  const close = useCallback(async () => {
+    if (phaseRef.current === 'closing') return;
+    const src = canvases.current.get(page) ?? canvases.current.get(1);
+    if (!canGenie() || !src || phaseRef.current !== 'open') return finish();
+    const rect = src.getBoundingClientRect();
     setPhase('closing');
-    setTimeout(finish, 520);
-  }, [phase, finish]);
+    await genie(overlay.current, src, rect, fromRef.current.getBoundingClientRect(), false);
+    finish();
+  }, [page, finish]);
 
   useEffect(() => {
     // any link marked data-doc opens here, unless it's a modified or middle click; hovering
@@ -259,13 +312,14 @@ export default function DocViewer() {
             {pdf && first && (
               <div ref={stack} className={`doc-stack ${phase}`} onClick={(e) => e.target === e.currentTarget && close()}>
                 {Array.from({ length: pdf.numPages }, (_, i) => (
-                  <Sheet key={i} pdf={pdf} n={i + 1} scale={scale} sizeHint={first} onVisible={setPage} />
+                  <Sheet key={i} pdf={pdf} n={i + 1} scale={scale} sizeHint={first} onVisible={setPage} onPrinted={onPrinted} />
                 ))}
               </div>
             )}
           </div>
         </>
       )}
+      <canvas ref={overlay} className="doc-genie" aria-hidden="true" />
     </dialog>
   );
 }

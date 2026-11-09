@@ -383,11 +383,9 @@ body {
   }
 }
 
-/* the document viewer (components/DocViewer.jsx): a sheet grows out of the link that opened
-   it, and each page is printed onto the screen, an accent line sweeping down it */
+/* the document viewer (components/DocViewer.jsx): the page pours out of the link that opened
+   it, and back in on close, like the Mac's genie */
 .doc-viewer {
-  --from-x: 0px;
-  --from-y: 0px;
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -446,53 +444,34 @@ body {
   box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(0 0 0 / 0.25);
   overflow: hidden;
 }
-/* the pages, together: they grow out of the link, tilted, and settle; on close they float
-   back into it */
+/* the pages, together; while the genie plays they're laid out and drawn but hidden, and the
+   genie (canvas.doc-genie) stands in for them */
 .doc-stack {
-  --from-x: 0px;
-  --from-y: 0px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  transform-origin: 50% 0;
 }
-.doc-stack.opening {
-  opacity: 0;
-}
-.doc-stack.open {
-  animation: doc-out 0.62s cubic-bezier(0.22, 1.15, 0.36, 1) both;
-}
+.doc-stack.opening,
 .doc-stack.closing {
-  animation: doc-back 0.5s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
+  visibility: hidden;
+}
+.doc-genie {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  pointer-events: none;
+  z-index: 2;
 }
 .doc-viewer.closing::backdrop {
-  animation: doc-fade 0.5s ease-in reverse forwards;
+  animation: doc-fade 0.55s ease-in reverse forwards;
 }
 .doc-viewer.closing .doc-bar {
   animation: doc-drop 0.35s ease-in reverse forwards;
 }
 .doc-sheet canvas {
   display: block;
-  /* hidden until printed, then revealed top to bottom behind the scan line */
-  clip-path: inset(0 0 100% 0);
-}
-.doc-sheet.printed canvas {
-  animation: doc-print 0.9s cubic-bezier(0.5, 0, 0.3, 1) forwards;
-}
-.doc-scan {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2px;
-  background: rgb(var(--c-signal));
-  box-shadow: 0 0 14px 3px rgb(var(--c-signal) / 0.55);
-  opacity: 0;
-  pointer-events: none;
-}
-.doc-sheet.printed .doc-scan {
-  animation: doc-scan 0.9s cubic-bezier(0.5, 0, 0.3, 1) forwards;
 }
 .doc-link {
   position: absolute;
@@ -508,28 +487,6 @@ body {
 }
 @keyframes doc-drop {
   from { opacity: 0; transform: translateY(-16px); }
-}
-@keyframes doc-out {
-  from {
-    opacity: 0;
-    transform: translate(var(--from-x), var(--from-y)) scale(0.06) rotate(-8deg);
-  }
-  45% { opacity: 1; }
-}
-@keyframes doc-back {
-  70% { opacity: 1; }
-  to {
-    opacity: 0;
-    transform: translate(var(--from-x), var(--from-y)) scale(0.06) rotate(7deg);
-  }
-}
-@keyframes doc-print {
-  to { clip-path: inset(0 0 0 0); }
-}
-@keyframes doc-scan {
-  0% { top: 0; opacity: 1; }
-  92% { top: 100%; opacity: 1; }
-  100% { top: 100%; opacity: 0; }
 }
 /* the link's letters (components/DocLink.jsx): they lift away into the sheet as it opens,
    and drop back in, decoding, when it floats home */
@@ -552,19 +509,11 @@ body {
   from { opacity: 0; transform: translateY(-12px) scale(0.8); filter: blur(2px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .doc-stack.open,
-  .doc-stack.closing,
   .doc-bar,
   .doc-viewer[open]::backdrop,
+  .doc-viewer.closing::backdrop,
+  .doc-viewer.closing .doc-bar,
   .doc-word .doc-ch {
     animation: none;
-  }
-  .doc-sheet canvas,
-  .doc-sheet.printed canvas {
-    clip-path: none;
-    animation: none;
-  }
-  .doc-scan {
-    display: none;
   }
 }
