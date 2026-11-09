@@ -4,11 +4,11 @@ import { ImageResponse } from 'next/og';
 
 // The share card for a project or post (1200×630), drawn at build time: a kicker, the
 // title in the display serif, a subtitle, a meta line and the page's address, in the
-// site palette with the default red accent.
+// Koi Pond palette with its orange accent.
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-const C = { ink: '#0A0A0A', paper: '#121212', line: '#2E2E2E', text: '#EEEEEA', mute: '#8E8E8C', signal: '#E8363E', accent: '#CECECA' };
+const C = { ink: '#070B14', paper: '#0C1322', line: '#1F2C46', text: '#ECE4D6', mute: '#97A0B3', signal: '#F07A4A', accent: '#7EC8D6' };
 const font = (file) => readFileSync(join(process.cwd(), 'lib/og', file));
 const FONTS = [
   // the site's fonts: Space Grotesk for titles ('Serif' is the title role), Space Mono for the rest

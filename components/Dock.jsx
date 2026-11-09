@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 import { FiActivity, FiDroplet, FiMail, FiCommand, FiCpu, FiFeather, FiHome, FiLayers, FiPause, FiPlay, FiZap } from 'react-icons/fi';
-import { THEMES, readTheme, setTheme } from '@/lib/themes';
+import { DEFAULT_THEME, THEMES, readTheme, setTheme } from '@/lib/themes';
 import { motionPaused, toggleMotion } from './KoiPond';
 
 const ITEMS = [
@@ -96,7 +96,7 @@ function MotionItem({ common }) {
 
 // Opens a menu of accent colours; the rest of the palette stays black and white.
 function ThemeItem({ common }) {
-  const [theme, setThemeState] = useState('print');
+  const [theme, setThemeState] = useState(DEFAULT_THEME);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
