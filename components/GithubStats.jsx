@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import NumberTicker from './NumberTicker';
 
 // Live numbers from the public GitHub API (no token; 60 requests/hour per visitor IP).
 const USER = 'ManasDasri';
@@ -33,7 +34,7 @@ export default function GithubStats() {
         <div key={label}>
           <dt className="sr-only">{label}</dt>
           <dd className="m-0">
-            <span className="font-serif text-4xl leading-none text-text">{n}</span>
+            <NumberTicker value={n} className="font-serif text-4xl leading-none text-text" />
             <span className="block font-mono text-xs text-mute mt-0.5">{label}</span>
           </dd>
         </div>

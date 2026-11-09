@@ -5,8 +5,9 @@ import { getWeather } from '@/lib/weather';
 
 // The background: a koi pond in the margins either side of the content column. The water
 // is a pixel layer, ordered-dithered to a few levels (with blurred lily pads, a pale
-// reflection and the fishes' shadows). The koi, their wakes and the ripples are dense ASCII
-// on top, with rain falling on it while it rains in Bengaluru. Toward the column it fades
+// reflection and the fishes' shadows), with ripples spreading through it: off the koi as
+// they cruise, behind the cursor, from food and from rain while it rains in Bengaluru. The
+// koi and their wakes are dense ASCII on top. Toward the column it fades
 // into the page's own background colour, so there's no seam. Only the margins are computed,
 // since the column covers the rest. Paused while the tab is hidden; a still frame for
 // reduced motion.
@@ -68,6 +69,22 @@ export function whenIdle(fn) {
   return () => clearTimeout(id);
 }
 
+// Ripples: rings of light and shade spreading from where something broke the surface, a few
+// crests deep, widening and fading as they go, the way they do on still water. Each wave is
+// { x, y, t0, speed (px/s), life (s), amp, len (crest spacing, px) }. Returns how much
+// brighter (or, in a trough, darker) the water at (x, y) is.
+export function rippleAt(waves, x, y, t) {
+  let s = 0;
+  for (const w of waves) {
+    const age = t - w.t0;
+    const spread = 3 + age * 5;
+    const d = Math.hypot(x - w.x, y - w.y) - age * w.speed;
+    if (d > spread * 2.2 || d < -spread * 2.6) continue;
+    s += Math.exp(-((d / spread) ** 2)) * w.amp * (1 - age / w.life) ** 2 * Math.cos((d / w.len) * Math.PI * 2);
+  }
+  return s;
+}
+
 // fillText is slow when called thousands of times a frame, so each character in each colour
 // is drawn once into an atlas canvas and copied from there with drawImage. Colours are
 // rounded to 16 levels a channel so the atlas stays small; it starts over if it fills.
@@ -122,7 +139,7 @@ const LIGHT = [
   [19.6, 0.7, [150, 166, 204], 0.75],
   [24, 0.62, [150, 166, 204], 0.8],
 ];
-function lightNow() {
+export function lightNow() {
   const h = (Date.now() / 3600000 + 5.5) % 24; // IST has no daylight saving
   const i = LIGHT.findIndex((s, j) => h >= s[0] && h < LIGHT[j + 1][0]);
   const [h0, b0, c0, a0] = LIGHT[i], [h1, b1, c1, a1] = LIGHT[i + 1];
@@ -131,11 +148,11 @@ function lightNow() {
 }
 
 // water colour ramps, dark to light: deep blue, and the teal it shifts to in places
-const NAVY = [[3, 6, 16], [10, 18, 46], [20, 36, 82], [34, 58, 120], [58, 92, 158]];
-const TEAL = [[3, 10, 14], [10, 32, 40], [18, 58, 64], [32, 88, 90], [60, 124, 120]];
+export const NAVY = [[3, 6, 16], [10, 18, 46], [20, 36, 82], [34, 58, 120], [58, 92, 158]];
+export const TEAL = [[3, 10, 14], [10, 32, 40], [18, 58, 64], [32, 88, 90], [60, 124, 120]];
 const GREEN = [[3, 9, 6], [10, 30, 20], [22, 58, 36], [42, 92, 56], [72, 126, 82]];
 const SKY = [[4, 8, 20], [16, 30, 64], [34, 60, 112], [62, 98, 160], [104, 140, 196]];
-const ramp = (r, l) => {
+export const ramp = (r, l) => {
   const s = Math.max(0, Math.min(0.999, l)) * (r.length - 1);
   const i = Math.floor(s), f = s - i;
   return [mix(r[i][0], r[i + 1][0], f), mix(r[i][1], r[i + 1][1], f), mix(r[i][2], r[i + 1][2], f)];
@@ -458,7 +475,7 @@ export default function KoiPond() {
     const off = document.createElement('canvas');
     const octx = off.getContext('2d');
     let still = motionPaused();
-    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], rain = [], weather = null, nextDrop = 0, raf, last = 0, t = rand(0, 500);
+    let W, H, gw, gh, img, shade, base, frameNo = 0, gutters, fish, pads, glows, light, food = [], waves = [], weather = null, nextDrop = 0, raf, last = 0, t = rand(0, 500);
 
     // the page's background, for the pond to fade into
     const v = getComputedStyle(document.documentElement).getPropertyValue('--c-ink').trim().split(/\s+/).map(Number);
@@ -491,7 +508,7 @@ export default function KoiPond() {
       // four koi, one of each variety, shared between the margins; not all the same size
       fish = Array.from({ length: gutters.length ? 4 : 0 }, (_, i) => {
         const g = gutters[i % gutters.length];
-        return makeFish(g, i, Math.max(90, Math.min(210, g.w * 0.55)) * rand(0.8, 1.05));
+        return makeFish(g, i, Math.max(110, Math.min(300, g.w * 0.78)) * rand(0.85, 1.05));
       });
       pads = gutters.flatMap((g) =>
         Array.from({ length: 2 + Math.floor(H / 500) }, () => ({ x: g.x + rand(0.15, 0.85) * g.w, y: rand(0, H), r: rand(18, 34), a: rand(0, 6.28), dx: rand(-1.5, 1.5), dy: rand(-1.5, 1.5), lit: rand(0.3, 1) }))
@@ -513,6 +530,15 @@ export default function KoiPond() {
         light = lightNow();
       }
       fish.forEach((f) => swim(f, t, dt, fish));
+      // a koi cruising just under the surface keeps lifting small rings off its head, more
+      // often when it's swimming hard
+      waves = waves.filter((w) => t - w.t0 < w.life);
+      for (const f of fish) {
+        if (t < (f.nextRing ?? 0)) continue;
+        const [hx, hy] = f.spine[0];
+        waves.push({ x: hx + Math.cos(f.heading) * f.len * 0.04, y: hy + Math.sin(f.heading) * f.len * 0.04, t0: t, speed: 14 + 10 * f.thrust, life: 2.4, amp: 0.2 + 0.25 * f.thrust, len: 7 });
+        f.nextRing = t + rand(0.7, 1.4) / (0.6 + f.thrust);
+      }
       const bodies = fish.map((f) => body(f));
       for (const p of pads) {
         p.x += p.dx * dt;
@@ -600,8 +626,13 @@ export default function KoiPond() {
               base[j + 1] = gr;
               base[j + 2] = b;
             }
-            const sh = 1 - shade[py * gw + px];
-            const r = base[j] * sh, gr = base[j + 1] * sh, b = base[j + 2] * sh;
+            let sh = 1 - shade[py * gw + px], glint = 0;
+            if (waves.length) {
+              const wv = rippleAt(waves, x + P / 2, y + P / 2, t);
+              sh *= 1 + wv * 0.9;
+              glint = Math.max(0, wv - 0.3) * 140 * light.bright; // the sky caught on a crest
+            }
+            const r = base[j] * sh + glint, gr = base[j + 1] * sh + glint, b = base[j + 2] * sh + glint;
             const th = BAYER[(py & 3) * 4 + (px & 3)];
             // dither the water, then fade it into the page colour
             d[i] = mix(ink[0], Math.floor((r * 0.96) / STEP + th) * STEP, k);
@@ -633,34 +664,18 @@ export default function KoiPond() {
           }
         }
       }
-      // a ring of ASCII spreading out from (x, y)
-      const ring = (x, y, r, a) => {
-        for (let k = 0, n = Math.max(8, Math.round(r / 3)); k < n; k++) {
-          const ang = (k / n) * Math.PI * 2;
-          stampKoi(ctx, k % 2 ? '~' : '-', [150, 200, 225], a, x + Math.cos(ang) * r - 2, y + Math.sin(ang) * r * 0.8 - 4);
-        }
-      };
-      // while it's raining in Bengaluru it rains on the pond: small rings, under the koi,
-      // more of them the harder it falls
+      // while it's raining in Bengaluru it rains on the pond: small quick rings, more of them
+      // the harder it falls
       if (weather?.rain && t > nextDrop) {
         const g = gutters[Math.floor(Math.random() * gutters.length)];
-        rain.push({ x: g.x + Math.random() * g.w, y: Math.random() * H, t });
+        waves.push({ x: g.x + Math.random() * g.w, y: Math.random() * H, t0: t, speed: 22, life: 1.2, amp: 0.35, len: 5 });
         nextDrop = t + 0.05 + 0.5 / (1 + (weather.precip ?? 0) * 2);
       }
-      rain = rain.filter((d) => t - d.t < 1.1);
-      for (const d of rain) {
-        const age = t - d.t, a = (0.5 - age * 0.45) * fade(d.x);
-        if (a > 0.03) ring(d.x, d.y, 3 + age * 26, a);
-      }
       bodies.forEach((pts, fi) => drawKoi(ctx, fish[fi], pts, fade));
-      // food: a pellet, and a ring spreading from where it landed
+      // food: a pellet floating where it landed (its splash is a wave, pushed in feed)
       food = food.filter((p) => !p.eaten && t - p.t < 10);
       fish.forEach((f) => f.food && !food.includes(f.food) && (f.food = null));
-      for (const p of food) {
-        const age = t - p.t;
-        stampKoi(ctx, 'o', [232, 196, 120], 0.95, p.x - 2, p.y - 4);
-        if (age < 1.7) ring(p.x, p.y, age * 40, 0.6 - age * 0.35);
-      }
+      for (const p of food) stampKoi(ctx, 'o', [232, 196, 120], 0.95, p.x - 2, p.y - 4);
     };
 
     const loop = (now) => {
@@ -690,12 +705,21 @@ export default function KoiPond() {
       if (still || !inPond(e)) return;
       const p = { x: e.clientX, y: e.clientY, t };
       food.push(p);
+      waves.push({ x: p.x, y: p.y, t0: t, speed: 30, life: 2.6, amp: 0.7, len: 8 });
       const near = fish
         .filter((f) => !f.food && e.clientX >= f.g.x && e.clientX < f.g.x + f.g.w)
         .sort((a, b) => Math.hypot(a.spine[0][0] - p.x, a.spine[0][1] - p.y) - Math.hypot(b.spine[0][0] - p.x, b.spine[0][1] - p.y))[0];
       if (near) near.food = p;
     };
-    const hover = (e) => (document.body.style.cursor = !still && inPond(e) ? 'pointer' : '');
+    // the cursor trailing across the water leaves small rings behind it
+    let trail = { x: -99, y: -99, t: 0 };
+    const hover = (e) => {
+      const over = !still && inPond(e);
+      document.body.style.cursor = over ? 'pointer' : '';
+      if (!over || t - trail.t < 0.08 || Math.hypot(e.clientX - trail.x, e.clientY - trail.y) < 16 || waves.length > 40) return;
+      trail = { x: e.clientX, y: e.clientY, t };
+      waves.push({ x: e.clientX, y: e.clientY, t0: t, speed: 24, life: 1.6, amp: 0.3, len: 6 });
+    };
 
     getWeather().then((w) => (weather = w));
 

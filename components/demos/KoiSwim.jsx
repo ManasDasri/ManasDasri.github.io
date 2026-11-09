@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { body, drawKoi, makeFish, swim } from '../KoiPond';
+import SegmentedSwitch from '../SegmentedSwitch';
 
 // One koi, with the two rules that make it swim like one switchable: how far each joint of
 // its spine may bend, and how wide it has to turn. Take either away and it misbehaves.
@@ -65,20 +66,13 @@ export default function KoiSwim() {
       <div className="rounded-md border border-line bg-paper overflow-hidden">
         <canvas ref={ref} className="block w-full h-auto" style={{ aspectRatio: `${W} / ${H}` }} aria-label={`A koi swimming: ${mode.note}`} role="img" />
       </div>
-      <div className="flex flex-wrap gap-2 mt-3" role="group" aria-label="Swimming rules">
-        {MODES.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => setMode(m)}
-            aria-pressed={mode.id === m.id}
-            className={`font-mono text-xs px-2.5 py-1 rounded border transition-colors ${
-              mode.id === m.id ? 'border-signal text-signal bg-signal/10' : 'border-line text-mute hover:text-text'
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedSwitch
+        className="mt-3 max-w-full overflow-x-auto"
+        label="Swimming rules"
+        options={MODES.map((m) => m.label)}
+        value={mode.label}
+        onChange={(l) => setMode(MODES.find((m) => m.label === l))}
+      />
       <figcaption className="font-mono text-xs text-mute mt-2">{mode.note}</figcaption>
     </figure>
   );
