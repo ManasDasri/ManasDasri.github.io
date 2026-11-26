@@ -20,14 +20,15 @@ module.exports = {
         accent: 'rgb(var(--c-accent) / <alpha-value>)',
       },
       fontFamily: {
-        // Space Grotesk and its sibling Space Mono
-        head: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        // display titles: names, section and page headings (the name is historical)
-        serif: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        display: ['"Space Mono"', 'monospace'],
-        mono: ['"Space Mono"', 'monospace'],
-        // prose is set in the grotesk; mono is kept for labels, data and code
-        body: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        // one family, Archivo, at different widths (font-stretch); Space Mono only for code
+        head: ['"Archivo Variable"', 'system-ui', 'sans-serif'],
+        serif: ['"Archivo Variable"', 'system-ui', 'sans-serif'],
+        display: ['"Archivo Variable"', 'system-ui', 'sans-serif'],
+        // small labels and data: Archivo set narrow (see .font-mono in globals.css)
+        mono: ['"Archivo Variable"', 'system-ui', 'sans-serif'],
+        // real code: terminals and commands
+        code: ['"Space Mono"', 'monospace'],
+        body: ['"Archivo Variable"', 'system-ui', 'sans-serif'],
       },
       // where the dock moves to the left side: the 42rem column plus room for the dock beside it
       screens: { dock: '960px' },

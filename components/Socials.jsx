@@ -10,7 +10,7 @@ import SocialHoverCard from './SocialHoverCard';
 export default function Socials() {
   return (
     <div>
-      <p className="font-display text-xs text-mute mb-3">// here are my socials</p>
+      <h3 className="sr-only">Elsewhere</h3>
       <div className="flex flex-wrap gap-2.5">
         {socials.map((s) => {
           const Icon = ICONS[s.label];

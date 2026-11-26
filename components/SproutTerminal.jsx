@@ -159,7 +159,7 @@ export default function SproutTerminal({ greet = 'sprout' }) {
         <div
           ref={bodyRef}
           onClick={() => inputRef.current?.focus({ preventScroll: true })}
-          className="font-mono text-[12px] sm:text-[13px] leading-relaxed p-4 sm:p-5 h-[270px] overflow-auto cursor-text"
+          className="font-code text-[12px] sm:text-[13px] leading-relaxed p-4 sm:p-5 h-[270px] overflow-auto cursor-text"
         >
           <div aria-live="polite">
             {history.map((h, i) => (

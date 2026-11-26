@@ -1,99 +1,82 @@
 'use client';
 
+import { useRef } from 'react';
 import DocLink from './DocLink';
-import { useEffect, useState } from 'react';
-import Typewriter from './Typewriter';
+import WorkMap from './WorkMap';
 import { status } from '@/lib/data';
 
-const ROLES = ['ML Researcher', 'Engineer', 'Artist', 'Writer'];
+const EMAIL = 'dasarimanas049@gmail.com';
 
-const CODING_START_DATE = new Date('2026-01-01');
-
-function useUptime() {
-  const [uptime, setUptime] = useState('calculating…');
-  useEffect(() => {
-    const totalDays = Math.floor((Date.now() - CODING_START_DATE.getTime()) / 86400000);
-    const years = Math.floor(totalDays / 365);
-    const days = totalDays % 365;
-    setUptime(years > 0 ? `${years}y ${days}d` : `${days}d`);
-  }, []);
-  return uptime;
+// The name is set in Archivo's width axis: letters near the pointer stretch wide and heavy,
+// the rest narrow, like type under a magnifier. Nothing moves until you move.
+function Name() {
+  const ref = useRef(null);
+  const raf = useRef(0);
+  const move = (e) => {
+    const x = e.clientX, y = e.clientY;
+    cancelAnimationFrame(raf.current);
+    raf.current = requestAnimationFrame(() => {
+      for (const ch of ref.current.querySelectorAll('[data-ch]')) {
+        const r = ch.getBoundingClientRect();
+        const d = Math.hypot(x - (r.left + r.width / 2), (y - (r.top + r.height / 2)) * 1.6);
+        const t = Math.max(0, 1 - d / 260);
+        ch.style.fontVariationSettings = `'wdth' ${(78 + t * 47).toFixed(1)}, 'wght' ${(560 + t * 340).toFixed(0)}`;
+      }
+    });
+  };
+  const leave = () => {
+    cancelAnimationFrame(raf.current);
+    for (const ch of ref.current.querySelectorAll('[data-ch]')) ch.style.fontVariationSettings = '';
+  };
+  return (
+    <h1 ref={ref} className="name" onPointerMove={move} onPointerLeave={leave} aria-label="Manas Dasari">
+      {['Manas', 'Dasari'].map((word) => (
+        <span key={word} className="name-line" aria-hidden="true">
+          {[...word].map((c, i) => (
+            <span key={i} data-ch>
+              {c}
+            </span>
+          ))}
+        </span>
+      ))}
+    </h1>
+  );
 }
 
 export default function Hero({ highlights = [] }) {
-  const uptime = useUptime();
-
   return (
-    <section id="hero" className="relative px-6 sm:px-9 pt-6 pb-16 sm:pb-20">
-      <div style={{ '--i': 1 }} className="rise flex items-center gap-4 mb-8">
-        <img src="/pfp-112.jpg" alt="" className="w-14 h-14 rounded-xl object-cover ring-1 ring-line" />
-        <div>
-          <p className="font-head text-xl sm:text-2xl font-semibold tracking-tight">
-            <span className="text-mute">$ whoami</span> <Typewriter words={ROLES} />
-          </p>
-          <p className="font-mono text-xs text-mute mt-1">
-            5th sem CSE, Amrita School of Engineering, class of 2028 · coding for {uptime}
-          </p>
-          {status && (
-            <a
-              href="mailto:dasarimanas049@gmail.com"
-              className="mt-2 inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-2.5 py-0.5 font-mono text-[11px] text-signal no-underline hover:border-signal/60"
-            >
-              <span className="relative flex w-1.5 h-1.5" aria-hidden="true">
-                <span className="absolute inset-0 rounded-full bg-signal animate-ping opacity-60 motion-reduce:hidden" />
-                <span className="relative w-1.5 h-1.5 rounded-full bg-signal" />
-              </span>
-              {status}
-            </a>
-          )}
+    <section id="top" className="hero wrap">
+      <div className="hero-copy">
+        <Name />
+        <p className="hero-intro">
+          I run machine learning experiments built to be checked: held-out tests, baselines, and the null results
+          reported next to the rest. I also build developer tools, and send fixes upstream to projects like Zed,
+          Gleam and rules_go. CS at Amrita, class of 2028.
+        </p>
+        <div className="hero-actions">
+          <a href={`mailto:${EMAIL}`} className="btn btn-solid">Email me</a>
+          <DocLink doc="resume" className="btn">Résumé</DocLink>
+          <a href="/recruiter/" className="btn">One-page summary</a>
         </div>
+        {status && (
+          <p className="hero-status">
+            <span className="dot" aria-hidden="true" /> {status[0].toUpperCase() + status.slice(1)}
+          </p>
+        )}
+        {highlights.length > 0 && (
+          <ul className="hero-facts">
+            {highlights.map((h) => (
+              <li key={h.label}>
+                <a href={h.href} className="fact" {...(h.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                  <strong>{h.value}</strong>
+                  <span>{h.label}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      <p style={{ '--i': 2 }} className="rise text-lg sm:text-xl text-text/80 leading-relaxed max-w-[54ch]">
-        I run machine learning experiments built to be checked: held-out tests, baselines,
-        and the null results reported alongside the rest. Right now that's{' '}
-        <a href="/projects/clause-risk-review/" className="text-signal font-bold">Clause Risk Review</a>, BERT
-        against Legal-BERT on contracts, and{' '}
-        <a href="/projects/med-eeg/" className="text-signal font-bold">Med-EEG</a>, EEG biomarkers tested against
-        non-EEG baselines. I also build developer tools, like{' '}
-        <a href="/projects/sprout/" className="text-signal font-bold">Sprout</a>, a codebase mapper for
-        developers and AI agents.
-      </p>
-
-      <div style={{ '--i': 3 }} className="rise flex gap-3 flex-wrap mt-7">
-        <a
-          href="mailto:dasarimanas049@gmail.com"
-          className="font-head text-sm font-semibold px-4 py-2 rounded-md bg-signal text-ink hover:brightness-110 transition no-underline"
-        >
-          Send an email →
-        </a>
-        <DocLink doc="resume" className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline">
-          Resume
-        </DocLink>
-        <a
-          href="/recruiter/"
-          className="font-head text-sm font-semibold px-4 py-2 rounded-md border border-line text-text hover:border-signal hover:text-signal transition-colors no-underline"
-        >
-          Recruiter view
-        </a>
-      </div>
-
-      {highlights.length > 0 && (
-        <ul style={{ '--i': 4 }} className="rise list-none p-0 m-0 mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs" aria-label="Highlights">
-          {highlights.map((h) => (
-            <li key={h.value}>
-              <a
-                href={h.href}
-                {...(h.href.startsWith('#') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-                className="group no-underline text-mute"
-              >
-                <span className="text-signal" aria-hidden="true">▸ </span>
-                <span className="text-text font-bold group-hover:text-signal transition-colors">{h.value}</span> {h.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+      <WorkMap />
     </section>
   );
 }

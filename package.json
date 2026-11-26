@@ -11,19 +11,16 @@
     "predev": "cp node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs public/pdf.worker.min.mjs"
   },
   "dependencies": {
-    "@fontsource/space-grotesk": "^5.3.0",
+    "@fontsource-variable/archivo": "^5.3.0",
     "@fontsource/space-mono": "^5.3.0",
     "cmdk": "^1.0.0",
     "framer-motion": "^11.2.0",
-    "gsap": "^3.15.0",
     "marked": "^14.1.4",
     "next": "14.2.35",
     "pdfjs-dist": "4.10.38",
     "react": "^18.3.1",
-    "react-activity-calendar": "^3.2.1",
     "react-dom": "^18.3.1",
-    "react-icons": "^5.7.0",
-    "react-tooltip": "^6.0.8"
+    "react-icons": "^5.7.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

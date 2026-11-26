@@ -1,16 +1,14 @@
-import Dock from './Dock';
+import SiteNav from './SiteNav';
 import Footer from './Footer';
 import CommandPalette from './CommandPalette';
-import MarginArt from './MarginArt';
 
-// An index page (projects, writing, reading): its margin scene, a way home, a big serif
+// An index page (projects, writing, reading): a way home, a big serif
 // title, then the page's own content in the column.
-export default function PageShell({ scene, title, intro, children }) {
+export default function PageShell({ title, intro, children }) {
   return (
     <>
-      <MarginArt scene={scene} />
-      <Dock />
-      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
+      <SiteNav />
+      <main id="main" className="max-w-3xl mx-auto relative">
         <header className="px-6 sm:px-9 pt-10 pb-10">
           <a href="/" className="rise font-mono text-xs text-mute hover:text-signal">← home</a>
           <h1 className="rise font-serif text-[clamp(3.5rem,10vw,5rem)] leading-none mt-8" style={{ '--i': 1 }}>{title}</h1>

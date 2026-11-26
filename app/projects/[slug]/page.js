@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { projects } from '@/lib/data';
-import Dock from '@/components/Dock';
+import SiteNav from '@/components/SiteNav';
 import Section, { Band } from '@/components/Section';
 import Diagram from '@/components/Diagram';
 import Footer from '@/components/Footer';
@@ -9,13 +9,10 @@ import CommandPalette from '@/components/CommandPalette';
 import Gallery from '@/components/Gallery';
 import RepoStats from '@/components/RepoStats';
 import SproutTerminal from '@/components/SproutTerminal';
-import MarginArt from '@/components/MarginArt';
 import Study from '@/components/Study';
 import { getTickerData } from '@/lib/ticker';
 
 const detailed = projects.filter((p) => p.slug);
-// each project's margin art (components/MarginArt.jsx)
-const SCENE = { sprout: 'sprout', flow: 'flow', atmos: 'air', velora: 'market', 'gradient-works': 'network', forme: 'horizon', 'med-eeg': 'eeg', 'clause-risk-review': 'contract' };
 const hostOf = (url) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 const linkClass = 'font-mono text-sm text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal';
 
@@ -47,9 +44,8 @@ export default async function ProjectPage({ params }) {
 
   return (
     <>
-      <MarginArt scene={SCENE[p.slug] ?? 'garden'} />
-      <Dock />
-      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
+      <SiteNav />
+      <main id="main" className="max-w-3xl mx-auto relative">
         <header className="px-6 sm:px-9 pt-10 pb-14">
           <nav aria-label="Projects" className="rise flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-mute">
             <a href="/projects/" className="hover:text-signal">

@@ -1,13 +1,9 @@
 import './globals.css';
-// two sibling fonts: Space Grotesk for titles and prose, Space Mono for labels, data and code.
-// Self-hosted, so no render-blocking trip to Google.
-import '@fontsource/space-grotesk/latin-400.css';
-import '@fontsource/space-grotesk/latin-600.css';
-import '@fontsource/space-grotesk/latin-700.css';
+// Archivo (variable weight and width) for everything; Space Mono for code. Self-hosted.
+import '@fontsource-variable/archivo/wdth.css';
 import '@fontsource/space-mono/latin-400.css';
 import '@fontsource/space-mono/latin-700.css';
 import { SITE, socials } from '@/lib/data';
-import { THEME_SCRIPT } from '@/lib/themes';
 import DocViewer from '@/components/DocViewer';
 
 // A title reached through a view transition already morphed in, so its rise stays off for
@@ -45,8 +41,6 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://api.github.com" crossOrigin="anonymous" />
         {/* page views via GoatCounter: no cookies, no personal data, so no consent banner */}
         <script data-goatcounter="https://manas049.goatcounter.com/count" async src="https://gc.zgo.at/count.js" />
-        {/* the saved colour theme, before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: NO_RISE_AFTER_MORPH }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: PERSON }} />
       </head>

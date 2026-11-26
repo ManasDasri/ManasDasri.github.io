@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function ReadingIndex() {
   return (
-    <PageShell scene="books" title="Reading" intro="Books I’ve finished this year, and papers worth your time.">
+    <PageShell title="Reading" intro="Books I’ve finished this year, and papers worth your time.">
       <ReadingGroups />
     </PageShell>
   );

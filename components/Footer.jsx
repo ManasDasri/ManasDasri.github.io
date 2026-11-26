@@ -56,7 +56,7 @@ export default function Footer() {
             <span className="forme-ad-name">Forme</span> <span className="text-mute font-normal">· {forme.tagline}</span>
           </span>
           <span className="block mt-1 font-mono text-[11px] leading-relaxed text-mute">
-            52 free React components, installed as source with one command. This site&rsquo;s tab switcher and counting numbers are from it.
+            53 free React components, installed as source with one command. This site&rsquo;s tab switcher and counting numbers are from it.
           </span>
         </span>
         <span className="relative hidden sm:block shrink-0 font-mono text-xs text-signal transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">

@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getPost, getPosts } from '@/lib/posts';
-import Dock from '@/components/Dock';
-import MarginArt from '@/components/MarginArt';
+import SiteNav from '@/components/SiteNav';
 import Footer from '@/components/Footer';
 import CommandPalette from '@/components/CommandPalette';
 import GradientDescent from '@/components/demos/GradientDescent';
@@ -70,9 +69,8 @@ export default function PostPage({ params }) {
 
   return (
     <>
-      <MarginArt scene="mountains" />
-      <Dock />
-      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
+      <SiteNav />
+      <main id="main" className="max-w-3xl mx-auto relative">
         <article className="px-6 sm:px-9 pt-12 pb-16">
           <a href="/writing/" className="rise font-mono text-xs text-mute hover:text-signal">
             ← all writing

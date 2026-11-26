@@ -1,24 +1,13 @@
-import HeroBanner from '@/components/HeroBanner';
-import Dock from '@/components/Dock';
+import SiteNav from '@/components/SiteNav';
 import Hero from '@/components/Hero';
-import Building from '@/components/Building';
-import Now from '@/components/Now';
-import Reading from '@/components/Reading';
-import Log from '@/components/Log';
-import Skills from '@/components/Skills';
-import GithubActivity from '@/components/GithubActivity';
-import ProofOfWork from '@/components/ProofOfWork';
-import TabbedSection from '@/components/TabbedSection';
-import { Band } from '@/components/Section';
-import { reading } from '@/lib/data';
-import Writing from '@/components/Writing';
+import Work from '@/components/Work';
+import Upstream from '@/components/Upstream';
+import Timeline from '@/components/Timeline';
+import { PostList } from '@/components/Writing';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import KoiPond from '@/components/KoiPond';
 import CommandPalette from '@/components/CommandPalette';
-import { getLeetCodeStats } from '@/lib/leetcode';
-import { getContributions, getTickerData } from '@/lib/ticker';
-import { log } from '@/lib/data';
+import { getTickerData } from '@/lib/ticker';
 
 // only the home page is canonical for '/' (set here, not in the layout, or every page would claim it)
 export const metadata = {
@@ -26,57 +15,37 @@ export const metadata = {
 };
 
 export default async function Home() {
-  const leetcode = await getLeetCodeStats('ManasDasari');
-  const contributions = await getContributions();
   const { sprout, mergedPRs } = await getTickerData();
-  const milestone = log.find((e) => e.date !== 'upcoming');
   // three facts for someone skimming; any that failed to load at build are left out
   const highlights = [
-    sprout && { value: `Sprout ${sprout}`, label: 'shipped', href: 'https://github.com/Sprout-DevLabs/sprout/releases' },
-    mergedPRs && { value: `${mergedPRs} PRs`, label: 'merged into open source', href: '#proof-of-work' },
-    milestone && { value: milestone.title.replace(/,.*$/, ''), label: milestone.note ?? '', href: '#log' },
+    mergedPRs && { value: `${mergedPRs} PRs`, label: 'merged into open source', href: '#open-source' },
+    sprout && { value: `Sprout ${sprout}`, label: 'latest release', href: 'https://github.com/Sprout-DevLabs/sprout/releases' },
+    { value: 'BERT 0.879 F1', label: 'on held-out contracts', href: '/projects/clause-risk-review/' },
   ].filter(Boolean);
 
   return (
     <>
-      <KoiPond />
-      <Dock />
-      <div className="relative z-[2] max-w-2xl mx-auto">
-        <Band className="!h-10" />
-      </div>
-      <HeroBanner />
-      <main id="main" className="max-w-2xl mx-auto border-x border-dashed border-line/70 relative">
+      <SiteNav home />
+      <main id="main">
         <Hero highlights={highlights} />
-
-        <Building />
-        <TabbedSection
-          id="now"
-         
-          title="Now"
-          tabs={[
-            { id: 'now-plate', label: 'this semester', note: "what's on my plate this semester", content: <Now /> },
-            ...(reading.length
-              ? [{ id: 'reading', label: 'reading', note: "books I've finished this year, and papers worth your time", content: <Reading /> }]
-              : []),
-            { id: 'log', label: 'log', note: 'dated milestones, newest first', content: <Log /> },
-          ]}
-        />
-        <Skills />
-        <TabbedSection
-          id="activity"
-         
-          title="Activity"
-          tabs={[
-            { id: 'contributions', label: 'contributions', note: 'GitHub numbers live; calendars as of the last build', content: <GithubActivity leetcode={leetcode} contributions={contributions} /> },
-            { id: 'proof-of-work', label: 'pull requests', note: 'my pull requests, live from GitHub', content: <ProofOfWork /> },
-          ]}
-        />
-        <Writing />
+        <Work />
+        <Upstream mergedPRs={mergedPRs} />
+        <Timeline />
+        <section id="writing" className="wrap section">
+          <header className="section-head">
+            <h2>Writing</h2>
+            <p>Notes from building things, some with demos you can play with.</p>
+          </header>
+          <div className="writing">
+            <PostList />
+          </div>
+        </section>
         <Contact />
-
-        <Footer />
-        <CommandPalette />
       </main>
+      <div className="wrap">
+        <Footer />
+      </div>
+      <CommandPalette />
     </>
   );
 }

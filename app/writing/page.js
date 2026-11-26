@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function WritingIndex() {
   return (
-    <PageShell scene="rain" title="Writing" intro="Notes on developer tools, open source and machine learning, as I go.">
+    <PageShell title="Writing" intro="Notes on developer tools, open source and machine learning, as I go.">
       <PostList />
     </PageShell>
   );

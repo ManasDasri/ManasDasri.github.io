@@ -68,7 +68,7 @@ export default function Study({ study: s }) {
       </Section>
 
       <Section id="reproduce" title="Reproduce" note={`sources last checked ${s.reviewed}`}>
-        <pre className="text-xs font-mono bg-paper border border-line rounded-md p-4 overflow-x-auto m-0">
+        <pre className="text-xs font-code bg-paper border border-line rounded-md p-4 overflow-x-auto m-0">
           <code>{s.reproduce.join('\n')}</code>
         </pre>
         <ul className="list-none p-0 m-0 mt-6 flex flex-col gap-2 text-sm">

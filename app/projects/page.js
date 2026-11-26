@@ -18,7 +18,7 @@ const iconLink = 'w-8 h-8 flex items-center justify-center rounded-md text-mute 
 export default function Projects() {
   const list = [...projects].sort(byRank);
   return (
-    <PageShell scene="bamboo" title="Projects">
+    <PageShell title="Projects">
       <ul className="list-none m-0 p-0 grid gap-x-6 gap-y-12 sm:grid-cols-2">
         {list.map((p) => {
           const site = p.link && !p.link.includes('github.com') ? p.link : null;
